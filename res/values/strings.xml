@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">GSM Logger</string>
+    <string name="service_notif_title">GSM Logger</string>
+    <string name="service_notif_text">GSM Logger Text</string>
+    <string name="btn_service_start">Start Logger</string>
+    <string name="btn_service_stop">Stop Logger</string>
+    <string name="btn_make_mark">Make Mark</string>
+    <string name="btn_save_mark">Save Mark</string>
+    <string name="mark_editor_hint">Enter your text here</string>
+</resources>
