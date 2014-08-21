@@ -8,4 +8,6 @@
     <string name="btn_make_mark">Make Mark</string>
     <string name="btn_save_mark">Save Mark</string>
     <string name="mark_editor_hint">Enter your text here</string>
+    <string name="ext_media_unmounted">GSM Logger:\nExternal Media is NOT MOUNTED</string>
+    <string name="file_system_error">GSM Logger:\nFile system ERROR.</string>
 </resources>
