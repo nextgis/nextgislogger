@@ -108,8 +108,10 @@ public class LoggerService extends Service {
                             StringBuilder sb = new StringBuilder();
 
                             String active = gsmInfo.isActive() ? "1"
-                                    : gsmInfo.getMcc() + "-" + gsmInfo.getMnc() + "-" +
-                                    gsmInfo.getLac() + "-" + gsmInfo.getCid();
+                                    : gsmInfoArray.get(0).getMcc() + "-" +
+                                    gsmInfoArray.get(0).getMnc() + "-" +
+                                    gsmInfoArray.get(0).getLac() + "-" +
+                                    gsmInfoArray.get(0).getCid();
 
                             sb.append(gsmInfo.getTimeStamp()).append(MainActivity.CSV_SEPARATOR);
                             sb.append(active).append(MainActivity.CSV_SEPARATOR);
