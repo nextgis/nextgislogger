@@ -13,7 +13,9 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
-    <application android:label="@string/app_name" android:icon="@drawable/ic_launcher">
+    <application android:label="@string/app_name"
+                 android:icon="@drawable/antenna">
+
         <activity android:name="MainActivity"
                   android:label="@string/app_name"
                   android:launchMode="singleTask">
@@ -25,7 +27,7 @@
 
         <service
             android:name="LoggerService"
-            android:icon="@drawable/ic_launcher"
+            android:icon="@drawable/antenna"
             android:enabled="true"
             android:exported="false"/>
 

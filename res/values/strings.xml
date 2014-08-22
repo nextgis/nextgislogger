@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">GSM Logger</string>
     <string name="service_notif_title">GSM Logger</string>
-    <string name="service_notif_text">GSM Logger Text</string>
+    <string name="service_notif_text">GSM Logger is running…</string>
     <string name="btn_service_start">Start Logger</string>
     <string name="btn_service_stop">Stop Logger</string>
     <string name="btn_make_mark">Make Mark</string>

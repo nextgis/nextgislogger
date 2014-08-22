@@ -14,18 +14,38 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import java.io.*;
+import java.util.ArrayList;
 
 
 public class MainActivity extends Activity {
 
-    private GSMEngine mGSMEngine;
-
-    private String mCSVMarkFileName = "gsm_time_marks.csv";
     public static final String CSV_SEPARATOR = ";";
 
+    public static final String dataDirPath =
+            Environment.getExternalStorageDirectory().getAbsolutePath() +
+            File.separator + "gsm_logger";
+    public static final String csvLogFilePath =
+            dataDirPath + File.separator + "gsm_time_log.csv";
+    public static final String csvMarkFilePath =
+            dataDirPath + File.separator + "gsm_time_marks.csv";
+
+    public static final String csvLogHeader =
+            "TimeStamp" + MainActivity.CSV_SEPARATOR +
+                    "Active" + MainActivity.CSV_SEPARATOR +
+                    "MCC" + MainActivity.CSV_SEPARATOR +
+                    "MNC" + MainActivity.CSV_SEPARATOR +
+                    "LAC" + MainActivity.CSV_SEPARATOR +
+                    "CID" + MainActivity.CSV_SEPARATOR +
+                    "RSSI";
+
+    public static final String csvMarkHeader =
+            "MarkName" + MainActivity.CSV_SEPARATOR + csvLogHeader;
+
     public static final String PARAM_PINTENT = "pendingIntent";
-    public final static int STATUS_ERROR = 100;
+    public static final int STATUS_ERROR = 100;
     public static final int CODE_ERROR = 1;
+
+    private GSMEngine gsmEngine;
 
 
     @Override
@@ -37,12 +57,14 @@ public class MainActivity extends Activity {
         if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
             Toast.makeText(this, R.string.ext_media_unmounted, Toast.LENGTH_LONG).show();
             isMediaMounted = false;
+        } else {
+            File dataDir = new File(dataDirPath);
+            if (!dataDir.exists()) {
+                dataDir.mkdirs();
+            }
         }
 
-        mGSMEngine = new GSMEngine(this);
-
-        mCSVMarkFileName = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() +
-                File.separator + mCSVMarkFileName;
+        gsmEngine = new GSMEngine(this);
 
         boolean isServiceRunning = isLoggerServiceRunning();
 
@@ -91,23 +113,37 @@ public class MainActivity extends Activity {
                 if (markTextEditor.isShown()) {
 
                     try {
-                        File csvFile = new File(mCSVMarkFileName);
+                        File csvFile = new File(csvMarkFilePath);
                         boolean isFileExist = csvFile.exists();
                         PrintWriter pw = new PrintWriter(new FileOutputStream(csvFile, true));
 
                         if (!isFileExist) {
-                            StringBuilder sbHeader = new StringBuilder();
-                            sbHeader.append("MarkName").append(MainActivity.CSV_SEPARATOR)
-                                    .append("TimeStamp").append(MainActivity.CSV_SEPARATOR)
-                                    .append("CellID").append(MainActivity.CSV_SEPARATOR)
-                                    .append("LAC").append(MainActivity.CSV_SEPARATOR)
-                                    .append("[Neighbor_CellID,Neighbor_LAC,Neighbor_RSSI]...");
-
-                            pw.println(sbHeader.toString());
+                            pw.println(csvMarkHeader);
                         }
 
-                        pw.println(markTextEditor.getText().toString() +
-                                CSV_SEPARATOR + mGSMEngine.getGSMInfo());
+                        String markName = markTextEditor.getText().toString();
+
+                        ArrayList<GSMEngine.GSMInfo> gsmInfoArray = gsmEngine.getGSMInfoArray();
+
+                        for (GSMEngine.GSMInfo gsmInfo : gsmInfoArray) {
+                            StringBuilder sb = new StringBuilder();
+
+                            String active = gsmInfo.isActive() ? "1"
+                                    : gsmInfo.getMcc() + "-" + gsmInfo.getMnc() + "-" +
+                                    gsmInfo.getLac() + "-" + gsmInfo.getCid();
+
+                            sb.append(markName).append(MainActivity.CSV_SEPARATOR);
+                            sb.append(gsmInfo.getTimeStamp()).append(MainActivity.CSV_SEPARATOR);
+                            sb.append(active).append(MainActivity.CSV_SEPARATOR);
+                            sb.append(gsmInfo.getMcc()).append(MainActivity.CSV_SEPARATOR);
+                            sb.append(gsmInfo.getMnc()).append(MainActivity.CSV_SEPARATOR);
+                            sb.append(gsmInfo.getLac()).append(MainActivity.CSV_SEPARATOR);
+                            sb.append(gsmInfo.getCid()).append(MainActivity.CSV_SEPARATOR);
+                            sb.append(gsmInfo.getRssi());
+
+                            pw.println(sb.toString());
+                        }
+
                         pw.close();
 
                     } catch (FileNotFoundException e) {
@@ -132,12 +168,12 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        mGSMEngine.onResume();
+        gsmEngine.onResume();
     }
 
     @Override
     protected void onPause() {
-        mGSMEngine.onPause();
+        gsmEngine.onPause();
         super.onPause();
     }
 

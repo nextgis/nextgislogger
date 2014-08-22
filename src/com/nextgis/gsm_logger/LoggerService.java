@@ -4,24 +4,20 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
-import android.os.Environment;
 import android.os.IBinder;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 
 
 public class LoggerService extends Service {
 
-    private GSMEngine mGSMEngine;
-
-    private String mCSVLogFileName = "gsm_time_log.csv";
-
+    private GSMEngine gsmEngine;
     private Thread thread = null;
     private boolean isRunning = false;
-    private boolean isFileSystemError = false;
 
     @Override
     public void onCreate() {
@@ -29,30 +25,8 @@ public class LoggerService extends Service {
 
         //android.os.Debug.waitForDebugger();
 
-        mGSMEngine = new GSMEngine(this);
-        mGSMEngine.onResume();
-
-        mCSVLogFileName = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
-                .getAbsolutePath() + File.separator + mCSVLogFileName;
-
-        try {
-            File csvFile = new File(mCSVLogFileName);
-
-            if (!csvFile.exists()) {
-                StringBuilder sbHeader = new StringBuilder();
-                sbHeader.append("TimeStamp").append(MainActivity.CSV_SEPARATOR)
-                        .append("CellID").append(MainActivity.CSV_SEPARATOR)
-                        .append("LAC").append(MainActivity.CSV_SEPARATOR)
-                        .append("[Neighbor_CellID,Neighbor_LAC,Neighbor_RSSI]...");
-
-                PrintWriter pw = new PrintWriter(csvFile);
-                pw.println(sbHeader.toString());
-                pw.close();
-            }
-
-        } catch (FileNotFoundException e) {
-            isFileSystemError = true;
-        }
+        gsmEngine = new GSMEngine(this);
+        gsmEngine.onResume();
     }
 
     @Override
@@ -77,7 +51,7 @@ public class LoggerService extends Service {
 
         //android.os.Debug.waitForDebugger();
 
-        mGSMEngine.onPause();
+        gsmEngine.onPause();
 
         if (thread != null) {
             thread.interrupt();
@@ -94,7 +68,7 @@ public class LoggerService extends Service {
         //android.os.Debug.waitForDebugger();
 
         Notification notif = new Notification(
-                R.drawable.ic_launcher,
+                R.drawable.antenna,
                 getString(R.string.service_notif_title),
                 System.currentTimeMillis());
 
@@ -115,12 +89,39 @@ public class LoggerService extends Service {
         thread = new Thread(new Runnable() {
             public void run() {
 
-                while (!isFileSystemError) {
+                boolean isFileSystemError = false;
+
+                while (true) {
 
                     try {
-                        PrintWriter pw = new PrintWriter(
-                                new FileOutputStream(mCSVLogFileName, true));
-                        pw.println(mGSMEngine.getGSMInfo());
+                        File csvFile = new File(MainActivity.csvLogFilePath);
+                        boolean isFileExist = csvFile.exists();
+                        PrintWriter pw = new PrintWriter(new FileOutputStream(csvFile, true));
+
+                        if (!isFileExist) {
+                            pw.println(MainActivity.csvLogHeader);
+                        }
+
+                        ArrayList<GSMEngine.GSMInfo> gsmInfoArray = gsmEngine.getGSMInfoArray();
+
+                        for (GSMEngine.GSMInfo gsmInfo : gsmInfoArray) {
+                            StringBuilder sb = new StringBuilder();
+
+                            String active = gsmInfo.isActive() ? "1"
+                                    : gsmInfo.getMcc() + "-" + gsmInfo.getMnc() + "-" +
+                                    gsmInfo.getLac() + "-" + gsmInfo.getCid();
+
+                            sb.append(gsmInfo.getTimeStamp()).append(MainActivity.CSV_SEPARATOR);
+                            sb.append(active).append(MainActivity.CSV_SEPARATOR);
+                            sb.append(gsmInfo.getMcc()).append(MainActivity.CSV_SEPARATOR);
+                            sb.append(gsmInfo.getMnc()).append(MainActivity.CSV_SEPARATOR);
+                            sb.append(gsmInfo.getLac()).append(MainActivity.CSV_SEPARATOR);
+                            sb.append(gsmInfo.getCid()).append(MainActivity.CSV_SEPARATOR);
+                            sb.append(gsmInfo.getRssi());
+
+                            pw.println(sb.toString());
+                        }
+
                         pw.close();
 
                         Thread.sleep(1000);
