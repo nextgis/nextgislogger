@@ -5,7 +5,6 @@
     <string name="service_notif_text">GSM Logger is running…</string>
     <string name="btn_service_start">Start Logger</string>
     <string name="btn_service_stop">Stop Logger</string>
-    <string name="btn_make_mark">Make Mark</string>
     <string name="btn_save_mark">Save Mark</string>
     <string name="mark_editor_hint">Enter Name of Mark</string>
     <string name="ext_media_unmounted">GSM Logger:\nExternal Media is NOT MOUNTED</string>

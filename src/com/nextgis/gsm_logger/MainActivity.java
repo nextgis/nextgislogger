@@ -102,64 +102,55 @@ public class MainActivity extends Activity {
         });
 
         final Button markButton = (Button) findViewById(R.id.btn_mark);
-        markButton.setText(getString(R.string.btn_make_mark));
+        markButton.setText(getString(R.string.btn_save_mark));
         markButton.setEnabled(isMediaMounted);
 
         final EditText markTextEditor = (EditText) findViewById(R.id.mark_text_editor);
+        markTextEditor.setEnabled(isMediaMounted);
+        markTextEditor.requestFocus();
 
         markButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
-                if (markTextEditor.isShown()) {
+                try {
+                    File csvFile = new File(csvMarkFilePath);
+                    boolean isFileExist = csvFile.exists();
+                    PrintWriter pw = new PrintWriter(new FileOutputStream(csvFile, true));
 
-                    try {
-                        File csvFile = new File(csvMarkFilePath);
-                        boolean isFileExist = csvFile.exists();
-                        PrintWriter pw = new PrintWriter(new FileOutputStream(csvFile, true));
-
-                        if (!isFileExist) {
-                            pw.println(csvMarkHeader);
-                        }
-
-                        String markName = markTextEditor.getText().toString();
-
-                        ArrayList<GSMEngine.GSMInfo> gsmInfoArray = gsmEngine.getGSMInfoArray();
-
-                        for (GSMEngine.GSMInfo gsmInfo : gsmInfoArray) {
-                            StringBuilder sb = new StringBuilder();
-
-                            String active = gsmInfo.isActive() ? "1"
-                                    : gsmInfo.getMcc() + "-" + gsmInfo.getMnc() + "-" +
-                                    gsmInfo.getLac() + "-" + gsmInfo.getCid();
-
-                            sb.append(markName).append(MainActivity.CSV_SEPARATOR);
-                            sb.append(gsmInfo.getTimeStamp()).append(MainActivity.CSV_SEPARATOR);
-                            sb.append(active).append(MainActivity.CSV_SEPARATOR);
-                            sb.append(gsmInfo.getMcc()).append(MainActivity.CSV_SEPARATOR);
-                            sb.append(gsmInfo.getMnc()).append(MainActivity.CSV_SEPARATOR);
-                            sb.append(gsmInfo.getLac()).append(MainActivity.CSV_SEPARATOR);
-                            sb.append(gsmInfo.getCid()).append(MainActivity.CSV_SEPARATOR);
-                            sb.append(gsmInfo.getRssi());
-
-                            pw.println(sb.toString());
-                        }
-
-                        pw.close();
-
-                    } catch (FileNotFoundException e) {
-                        Toast.makeText(getApplicationContext(),
-                                R.string.mark_fs_error, Toast.LENGTH_LONG).show();
-                        markButton.setEnabled(false);
+                    if (!isFileExist) {
+                        pw.println(csvMarkHeader);
                     }
 
-                    markTextEditor.setVisibility(View.GONE);
-                    markButton.setText(getString(R.string.btn_make_mark));
+                    String markName = markTextEditor.getText().toString();
 
-                } else {
-                    markTextEditor.setText("");
-                    markTextEditor.setVisibility(View.VISIBLE);
-                    markTextEditor.requestFocus();
-                    markButton.setText(getString(R.string.btn_save_mark));
+                    ArrayList<GSMEngine.GSMInfo> gsmInfoArray = gsmEngine.getGSMInfoArray();
+
+                    for (GSMEngine.GSMInfo gsmInfo : gsmInfoArray) {
+                        StringBuilder sb = new StringBuilder();
+
+                        String active = gsmInfo.isActive() ? "1"
+                                : gsmInfo.getMcc() + "-" + gsmInfo.getMnc() + "-" +
+                                gsmInfo.getLac() + "-" + gsmInfo.getCid();
+
+                        sb.append(markName).append(MainActivity.CSV_SEPARATOR);
+                        sb.append(gsmInfo.getTimeStamp()).append(MainActivity.CSV_SEPARATOR);
+                        sb.append(active).append(MainActivity.CSV_SEPARATOR);
+                        sb.append(gsmInfo.getMcc()).append(MainActivity.CSV_SEPARATOR);
+                        sb.append(gsmInfo.getMnc()).append(MainActivity.CSV_SEPARATOR);
+                        sb.append(gsmInfo.getLac()).append(MainActivity.CSV_SEPARATOR);
+                        sb.append(gsmInfo.getCid()).append(MainActivity.CSV_SEPARATOR);
+                        sb.append(gsmInfo.getRssi());
+
+                        pw.println(sb.toString());
+                    }
+
+                    pw.close();
+
+                } catch (FileNotFoundException e) {
+                    Toast.makeText(getApplicationContext(),
+                            R.string.mark_fs_error, Toast.LENGTH_LONG).show();
+                    markButton.setEnabled(false);
+                    markTextEditor.setEnabled(false);
                 }
             }
         });
