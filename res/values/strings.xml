@@ -7,7 +7,6 @@
     <string name="btn_service_stop">Stop Logger</string>
     <string name="btn_save_mark">Save Mark</string>
     <string name="mark_editor_hint">Enter Name of Mark</string>
-    <string name="ext_media_unmounted">GSM Logger:\nExternal Media is NOT MOUNTED</string>
-    <string name="log_fs_error">GSM Logger:\nFile system ERROR.</string>
-    <string name="mark_fs_error">GSM Marker:\nFile system ERROR.</string>
+    <string name="ext_media_unmounted_msg">External Media is NOT MOUNTED</string>
+    <string name="fs_error_msg">File system ERROR.</string>
 </resources>

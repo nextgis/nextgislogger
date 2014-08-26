@@ -11,7 +11,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.Toast;
+import android.widget.TextView;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -52,11 +52,16 @@ public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        setContentView(R.layout.main_activity);
+
+        final TextView errorMessage = (TextView) findViewById(R.id.tv_error_message);
         boolean isMediaMounted = true;
 
         if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-            Toast.makeText(this, R.string.ext_media_unmounted, Toast.LENGTH_LONG).show();
+            errorMessage.setText(R.string.ext_media_unmounted_msg);
+            errorMessage.setVisibility(View.VISIBLE);
             isMediaMounted = false;
+
         } else {
             File dataDir = new File(dataDirPath);
             if (!dataDir.exists()) {
@@ -67,8 +72,6 @@ public class MainActivity extends Activity {
         gsmEngine = new GSMEngine(this);
 
         boolean isServiceRunning = isLoggerServiceRunning();
-
-        setContentView(R.layout.main_activity);
 
         final Button serviceOnOffButton = (Button) findViewById(R.id.btn_service_onoff);
         serviceOnOffButton.setText(getString(isServiceRunning
@@ -147,8 +150,8 @@ public class MainActivity extends Activity {
                     pw.close();
 
                 } catch (FileNotFoundException e) {
-                    Toast.makeText(getApplicationContext(),
-                            R.string.mark_fs_error, Toast.LENGTH_LONG).show();
+                    errorMessage.setText(R.string.fs_error_msg);
+                    errorMessage.setVisibility(View.VISIBLE);
                     markButton.setEnabled(false);
                     markTextEditor.setEnabled(false);
                 }
@@ -173,7 +176,9 @@ public class MainActivity extends Activity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (resultCode == STATUS_ERROR && requestCode == CODE_ERROR) {
-            Toast.makeText(this, R.string.log_fs_error, Toast.LENGTH_LONG).show();
+            final TextView errorMessage = (TextView) findViewById(R.id.tv_error_message);
+            errorMessage.setText(R.string.fs_error_msg);
+            errorMessage.setVisibility(View.VISIBLE);
 
             Button serviceOnOffButton = (Button) findViewById(R.id.btn_service_onoff);
             serviceOnOffButton.setText(getString(R.string.btn_service_start));

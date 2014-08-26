@@ -1,6 +1,7 @@
 package com.nextgis.gsm_logger;
 
 import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
@@ -83,6 +84,29 @@ public class LoggerService extends Service {
         startForeground(1, notif);
     }
 
+    private void sendErrorNotification() {
+
+        //android.os.Debug.waitForDebugger();
+
+        NotificationManager notificationManager =
+                (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
+        Notification notif = new Notification(
+                R.drawable.antenna,
+                getString(R.string.service_notif_title),
+                System.currentTimeMillis());
+
+        PendingIntent pIntentNotif = PendingIntent.getActivity(this, 0, new Intent(), 0);
+
+        notif.setLatestEventInfo(this,
+                getString(R.string.service_notif_title),
+                getString(R.string.fs_error_msg),
+                pIntentNotif);
+
+        notif.flags |= Notification.FLAG_AUTO_CANCEL;
+        notificationManager.notify(2, notif);
+    }
+
     private void RunTask(final PendingIntent pintent) {
         //android.os.Debug.waitForDebugger();
 
@@ -141,6 +165,8 @@ public class LoggerService extends Service {
                 }
 
                 if (isFileSystemError) {
+                    sendErrorNotification();
+
                     try {
                         pintent.send(MainActivity.STATUS_ERROR);
                     } catch (PendingIntent.CanceledException e) {
