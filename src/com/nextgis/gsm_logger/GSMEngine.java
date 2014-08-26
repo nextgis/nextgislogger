@@ -12,9 +12,11 @@ public class GSMEngine {
 
     Context mContext;
 
+    public final static int SIGNAL_STRENGTH_NONE = 0;
+
     private TelephonyManager mTelephonyManager;
     private GSMPhoneStateListener mSignalListener;
-    private int signalStrength = -1;
+    private int signalStrength = SIGNAL_STRENGTH_NONE;
 
 
     public GSMEngine(Context context) {
@@ -55,7 +57,10 @@ public class GSMEngine {
         @Override
         public void onSignalStrengthsChanged(SignalStrength signal) {
             super.onSignalStrengthsChanged(signal);
-            setSignalStrength(signal.isGsm() ? signal.getGsmSignalStrength() : -1);
+            setSignalStrength(signal.isGsm()
+                    ? signalStrengthAsuToDbm(
+                            signal.getGsmSignalStrength(), TelephonyManager.NETWORK_TYPE_GPRS)
+                    : SIGNAL_STRENGTH_NONE);
         }
 
 //        @Override
@@ -63,6 +68,44 @@ public class GSMEngine {
 //            super.onCellLocationChanged(location);
 //            GSMEngine.this.onCellLocationChanged(location);
 //        }
+    }
+
+    public int signalStrengthAsuToDbm(int asu, int networkType) {
+
+        switch (networkType) {
+
+            // 2G -- GSM network
+            case TelephonyManager.NETWORK_TYPE_GPRS : // API 1+
+            case TelephonyManager.NETWORK_TYPE_EDGE : // API 1+
+                if (0 <= asu && asu <= 31) {
+                    return 2 * asu - 113;
+                } else if (asu == 99) {
+                    return 0;
+                }
+                break;
+
+            // 3G -- UMTS network
+//            case TelephonyManager.NETWORK_TYPE_UMTS : // API 1+
+//            case TelephonyManager.NETWORK_TYPE_HSPA : // API 5+
+//            case TelephonyManager.NETWORK_TYPE_HSDPA : // API 5+
+//            case TelephonyManager.NETWORK_TYPE_HSUPA : // API 5+
+//            case TelephonyManager.NETWORK_TYPE_HSPAP : // API 5+
+//                if (-5 <= asu && asu <= 91) {
+//                    return asu - 116;
+//                } else if (asu == 255) {
+//                    return 0;
+//                }
+//                break;
+
+            // 4G -- LTE network
+//            case TelephonyManager.NETWORK_TYPE_LTE : // API 11+
+//                if (0 <= asu && asu <= 97) {
+//                    return asu - 141;
+//                }
+//                break;
+        }
+
+        return 0;
     }
 
     public ArrayList<GSMInfo> getGSMInfoArray() {
@@ -114,7 +157,8 @@ public class GSMEngine {
                     nbNetworkType == TelephonyManager.NETWORK_TYPE_EDGE) {
 
                 gsmInfoArray.add(new GSMInfo(timeStamp, false, mcc, mnc,
-                        neighbor.getCid(), neighbor.getLac(), neighbor.getRssi()));
+                        neighbor.getCid(), neighbor.getLac(),
+                        signalStrengthAsuToDbm(neighbor.getRssi(), nbNetworkType)));
             }
         }
 
