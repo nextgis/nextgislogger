@@ -132,8 +132,10 @@ public class MainActivity extends Activity {
                         StringBuilder sb = new StringBuilder();
 
                         String active = gsmInfo.isActive() ? "1"
-                                : gsmInfo.getMcc() + "-" + gsmInfo.getMnc() + "-" +
-                                gsmInfo.getLac() + "-" + gsmInfo.getCid();
+                                : gsmInfoArray.get(0).getMcc() + "-" +
+                                gsmInfoArray.get(0).getMnc() + "-" +
+                                gsmInfoArray.get(0).getLac() + "-" +
+                                gsmInfoArray.get(0).getCid();
 
                         sb.append(markName).append(MainActivity.CSV_SEPARATOR);
                         sb.append(gsmInfo.getTimeStamp()).append(MainActivity.CSV_SEPARATOR);
