@@ -53,8 +53,15 @@ public class MainActivity extends Activity {
 
     public static int loggerPeriodSec = minPeriodSec;
 
-
     private GSMEngine gsmEngine;
+
+    private Button serviceOnOffButton;
+    private ProgressBar serviceProgressBar;
+    private Button markButton;
+    private EditText markTextEditor;
+    private Button setPeriodButton;
+    private EditText periodEditor;
+    private TextView errorMessage;
 
 
     @Override
@@ -63,12 +70,10 @@ public class MainActivity extends Activity {
 
         setContentView(R.layout.main_activity);
 
-        final TextView errorMessage = (TextView) findViewById(R.id.tv_error_message);
+        errorMessage = (TextView) findViewById(R.id.tv_error_message);
         boolean isMediaMounted = true;
 
         if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-            errorMessage.setText(R.string.ext_media_unmounted_msg);
-            errorMessage.setVisibility(View.VISIBLE);
             isMediaMounted = false;
 
         } else {
@@ -82,13 +87,11 @@ public class MainActivity extends Activity {
 
         boolean isServiceRunning = isLoggerServiceRunning();
 
-        final Button serviceOnOffButton = (Button) findViewById(R.id.btn_service_onoff);
+        serviceOnOffButton = (Button) findViewById(R.id.btn_service_onoff);
         serviceOnOffButton.setText(getString(isServiceRunning
                 ? R.string.btn_service_stop : R.string.btn_service_start));
-        serviceOnOffButton.setEnabled(isMediaMounted);
 
-        final ProgressBar serviceProgressBar =
-                (ProgressBar) findViewById(R.id.service_progress_bar);
+        serviceProgressBar = (ProgressBar) findViewById(R.id.service_progress_bar);
         serviceProgressBar.setVisibility(isServiceRunning ? View.VISIBLE : View.INVISIBLE);
 
         serviceOnOffButton.setOnClickListener(new View.OnClickListener() {
@@ -113,12 +116,10 @@ public class MainActivity extends Activity {
             }
         });
 
-        final Button markButton = (Button) findViewById(R.id.btn_mark);
+        markButton = (Button) findViewById(R.id.btn_mark);
         markButton.setText(getString(R.string.btn_save_mark));
-        markButton.setEnabled(isMediaMounted);
 
-        final EditText markTextEditor = (EditText) findViewById(R.id.mark_text_editor);
-        markTextEditor.setEnabled(isMediaMounted);
+        markTextEditor = (EditText) findViewById(R.id.mark_text_editor);
         markTextEditor.requestFocus();
 
         markButton.setOnClickListener(new View.OnClickListener() {
@@ -161,10 +162,7 @@ public class MainActivity extends Activity {
                     pw.close();
 
                 } catch (FileNotFoundException e) {
-                    errorMessage.setText(R.string.fs_error_msg);
-                    errorMessage.setVisibility(View.VISIBLE);
-                    markButton.setEnabled(false);
-                    markTextEditor.setEnabled(false);
+                    setState(R.string.fs_error_msg, true);
                 }
             }
         });
@@ -174,12 +172,10 @@ public class MainActivity extends Activity {
 
         loggerPeriodSec = pref.getInt(PREF_PERIOD_SEC, minPeriodSec);
 
-        final Button setPeriodButton = (Button) findViewById(R.id.btn_set_period);
-        setPeriodButton.setEnabled(isMediaMounted);
+        setPeriodButton = (Button) findViewById(R.id.btn_set_period);
 
-        final EditText periodEditor = (EditText) findViewById(R.id.period_editor);
+        periodEditor = (EditText) findViewById(R.id.period_editor);
         periodEditor.setText(loggerPeriodSec + "");
-        periodEditor.setEnabled(isMediaMounted);
 
         setPeriodButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -207,6 +203,8 @@ public class MainActivity extends Activity {
                 periodEditor.setText(loggerPeriodSec + "");
             }
         });
+
+        setState(R.string.ext_media_unmounted_msg, !isMediaMounted);
     }
 
     @Override
@@ -226,16 +224,34 @@ public class MainActivity extends Activity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (resultCode == STATUS_ERROR && requestCode == CODE_ERROR) {
-            final TextView errorMessage = (TextView) findViewById(R.id.tv_error_message);
-            errorMessage.setText(R.string.fs_error_msg);
+            setState(R.string.fs_error_msg, true);
+        }
+    }
+
+    private void setState(int resId, boolean isError) {
+
+        if (isError) {
+            serviceOnOffButton.setText(getString(R.string.btn_service_start));
+
+            serviceOnOffButton.setEnabled(false);
+            markButton.setEnabled(false);
+            setPeriodButton.setEnabled(false);
+            periodEditor.setEnabled(false);
+
+            serviceProgressBar.setVisibility(View.INVISIBLE);
+            markTextEditor.setVisibility(View.GONE);
+
+            errorMessage.setText(resId);
             errorMessage.setVisibility(View.VISIBLE);
 
-            Button serviceOnOffButton = (Button) findViewById(R.id.btn_service_onoff);
-            serviceOnOffButton.setText(getString(R.string.btn_service_start));
-            serviceOnOffButton.setEnabled(false);
+        } else {
+            serviceOnOffButton.setEnabled(true);
+            markButton.setEnabled(true);
+            setPeriodButton.setEnabled(true);
+            periodEditor.setEnabled(true);
 
-            ProgressBar serviceProgressBar = (ProgressBar) findViewById(R.id.service_progress_bar);
-            serviceProgressBar.setVisibility(View.INVISIBLE);
+            markTextEditor.setVisibility(View.VISIBLE);
+            errorMessage.setVisibility(View.GONE);
         }
     }
 

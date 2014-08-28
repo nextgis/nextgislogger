@@ -10,4 +10,8 @@
     <string name="ext_media_unmounted_msg">External Media is NOT MOUNTED</string>
     <string name="fs_error_msg">File system ERROR.</string>
     <string name="btn_period_set">Set Period (sec):</string>
+    <string name="logger_started">Logger started: </string>
+    <string name="logger_finished">Logger finished: </string>
+    <string name="records_collected">Records collected: </string>
+    <string name="marks_collected">Marks collected: </string>
 </resources>
