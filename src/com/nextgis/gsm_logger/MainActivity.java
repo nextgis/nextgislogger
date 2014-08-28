@@ -5,6 +5,8 @@ import android.app.ActivityManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.View;
@@ -44,6 +46,13 @@ public class MainActivity extends Activity {
     public static final String PARAM_PINTENT = "pendingIntent";
     public static final int STATUS_ERROR = 100;
     public static final int CODE_ERROR = 1;
+
+    public static final int minPeriodSec = 1;
+    public static final int maxPeriodSec = 3600;
+    public static final String PREF_PERIOD_SEC = "periodSec";
+
+    public static int loggerPeriodSec = minPeriodSec;
+
 
     private GSMEngine gsmEngine;
 
@@ -157,6 +166,45 @@ public class MainActivity extends Activity {
                     markButton.setEnabled(false);
                     markTextEditor.setEnabled(false);
                 }
+            }
+        });
+
+        SharedPreferences pref = getPreferences(MODE_PRIVATE);
+        final Editor prefEd = pref.edit();
+
+        loggerPeriodSec = pref.getInt(PREF_PERIOD_SEC, minPeriodSec);
+
+        final Button setPeriodButton = (Button) findViewById(R.id.btn_set_period);
+        setPeriodButton.setEnabled(isMediaMounted);
+
+        final EditText periodEditor = (EditText) findViewById(R.id.period_editor);
+        periodEditor.setText(loggerPeriodSec + "");
+        periodEditor.setEnabled(isMediaMounted);
+
+        setPeriodButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+
+                String sPeriod = periodEditor.getText().toString();
+
+                if (sPeriod.length() > 0) {
+                    int sec = Integer.parseInt(sPeriod);
+
+                    if (minPeriodSec <= sec && sec <= maxPeriodSec) {
+                        loggerPeriodSec = sec;
+                    } else if (sec < minPeriodSec) {
+                        loggerPeriodSec = minPeriodSec;
+                    } else if (sec > maxPeriodSec) {
+                        loggerPeriodSec = maxPeriodSec;
+                    }
+
+                } else {
+                    loggerPeriodSec = minPeriodSec;
+                }
+
+                prefEd.putInt(PREF_PERIOD_SEC, loggerPeriodSec);
+                prefEd.commit();
+
+                periodEditor.setText(loggerPeriodSec + "");
             }
         });
     }

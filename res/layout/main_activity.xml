@@ -61,5 +61,31 @@
             android:visibility="gone"/>
 
     </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="10sp">
+
+        <Button
+            android:id="@+id/btn_set_period"
+            android:text="@string/btn_period_set"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"/>
+
+        <EditText
+            android:id="@+id/period_editor"
+            android:inputType="numberDecimal"
+            android:ems="4"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_weight="1"/>
+
+    </LinearLayout>
+
 </LinearLayout>
 

@@ -125,7 +125,6 @@ public class GSMEngine {
             mnc = Integer.parseInt(networkOperator.substring(3));
         }
 
-        // TODO: what is without SIM-card?
         if (isPhoneTypeGSM) {
 
             GsmCellLocation gsmCellLocation;
@@ -146,7 +145,6 @@ public class GSMEngine {
             gsmInfoArray.add(new GSMInfo(timeStamp));
         }
 
-        // TODO: what is without SIM-card?
         List<NeighboringCellInfo> neighbors = mTelephonyManager.getNeighboringCellInfo();
 
         for (NeighboringCellInfo neighbor : neighbors) {

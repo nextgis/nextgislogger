@@ -150,7 +150,7 @@ public class LoggerService extends Service {
 
                         pw.close();
 
-                        Thread.sleep(1000);
+                        Thread.sleep(MainActivity.loggerPeriodSec * 1000);
 
                     } catch (FileNotFoundException e) {
                         isFileSystemError = true;

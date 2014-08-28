@@ -9,4 +9,5 @@
     <string name="mark_editor_hint">Enter Name of Mark</string>
     <string name="ext_media_unmounted_msg">External Media is NOT MOUNTED</string>
     <string name="fs_error_msg">File system ERROR.</string>
+    <string name="btn_period_set">Set Period (sec):</string>
 </resources>
