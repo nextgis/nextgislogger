@@ -5,6 +5,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.os.Binder;
 import android.os.IBinder;
 
 import java.io.File;
@@ -16,15 +17,32 @@ import java.util.ArrayList;
 
 public class LoggerService extends Service {
 
+    private static long timeStart = 0;
+    private static int recordsCount = 0;
+
+    private boolean isRunning = false;
+
     private GSMEngine gsmEngine;
     private Thread thread = null;
-    private boolean isRunning = false;
+    private LocalBinder localBinder = new LocalBinder();
+
+
+    public class LocalBinder extends Binder {
+        public LoggerService getService() {
+            return LoggerService.this;
+        }
+    }
+
 
     @Override
     public void onCreate() {
         super.onCreate();
 
         //android.os.Debug.waitForDebugger();
+
+        if (timeStart == 0) {
+            timeStart = System.currentTimeMillis();
+        }
 
         gsmEngine = new GSMEngine(this);
         gsmEngine.onResume();
@@ -37,10 +55,8 @@ public class LoggerService extends Service {
 
         if (!isRunning) {
             isRunning = true;
-            PendingIntent pintent = intent.getParcelableExtra(MainActivity.PARAM_PINTENT);
-
             sendNotification();
-            RunTask(pintent);
+            RunTask();
         }
 
         return super.onStartCommand(intent, flags, startId);
@@ -61,7 +77,7 @@ public class LoggerService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        return localBinder;
     }
 
     private void sendNotification() {
@@ -107,13 +123,27 @@ public class LoggerService extends Service {
         notificationManager.notify(2, notif);
     }
 
-    private void RunTask(final PendingIntent pintent) {
+    public long getTimeStart() {
+        return timeStart;
+    }
+
+    public int getRecordsCount() {
+        return recordsCount;
+    }
+
+    private void RunTask() {
         //android.os.Debug.waitForDebugger();
 
         thread = new Thread(new Runnable() {
             public void run() {
 
                 boolean isFileSystemError = false;
+                Intent intentStatus = new Intent(MainActivity.BROADCAST_ACTION);
+
+                intentStatus
+                        .putExtra(MainActivity.PARAM_SERVICE_STATUS, MainActivity.STATUS_STARTED)
+                        .putExtra(MainActivity.PARAM_TIME, timeStart);
+                sendBroadcast(intentStatus);
 
                 while (true) {
 
@@ -150,7 +180,16 @@ public class LoggerService extends Service {
 
                         pw.close();
 
-                        Thread.sleep(MainActivity.loggerPeriodSec * 1000);
+                        intentStatus
+                                .putExtra(
+                                        MainActivity.PARAM_SERVICE_STATUS,
+                                        MainActivity.STATUS_RUNNING)
+                                .putExtra(
+                                        MainActivity.PARAM_RECORDS_COUNT, ++recordsCount);
+
+                        sendBroadcast(intentStatus);
+
+                        Thread.sleep(MainActivity.getLoggerPeriodSec() * 1000);
 
                     } catch (FileNotFoundException e) {
                         isFileSystemError = true;
@@ -166,14 +205,17 @@ public class LoggerService extends Service {
 
                 if (isFileSystemError) {
                     sendErrorNotification();
+                    intentStatus.putExtra(
+                            MainActivity.PARAM_SERVICE_STATUS, MainActivity.STATUS_ERROR);
 
-                    try {
-                        pintent.send(MainActivity.STATUS_ERROR);
-                    } catch (PendingIntent.CanceledException e) {
-                        // TODO: PendingIntent.CanceledException
-                        //e.printStackTrace();
-                    }
+                } else {
+                    intentStatus
+                            .putExtra(
+                                    MainActivity.PARAM_SERVICE_STATUS, MainActivity.STATUS_FINISHED)
+                            .putExtra(MainActivity.PARAM_TIME, System.currentTimeMillis());
+
                 }
+                sendBroadcast(intentStatus);
 
                 stopSelf();
             }

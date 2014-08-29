@@ -2,13 +2,11 @@ package com.nextgis.gsm_logger;
 
 import android.app.Activity;
 import android.app.ActivityManager;
-import android.app.PendingIntent;
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
+import android.content.*;
 import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.IBinder;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -16,7 +14,9 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.io.*;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 
 
 public class MainActivity extends Activity {
@@ -43,25 +43,46 @@ public class MainActivity extends Activity {
     public static final String csvMarkHeader =
             "MarkName" + MainActivity.CSV_SEPARATOR + csvLogHeader;
 
-    public static final String PARAM_PINTENT = "pendingIntent";
-    public static final int STATUS_ERROR = 100;
-    public static final int CODE_ERROR = 1;
-
     public static final int minPeriodSec = 1;
     public static final int maxPeriodSec = 3600;
     public static final String PREF_PERIOD_SEC = "periodSec";
 
-    public static int loggerPeriodSec = minPeriodSec;
+    public static final String BROADCAST_ACTION = "com.nextgis.gsm_logger.MainActivity";
 
-    private GSMEngine gsmEngine;
+    public static final String PARAM_SERVICE_STATUS = "serviceStatus";
+    public static final String PARAM_TIME = "time";
+    public static final String PARAM_RECORDS_COUNT = "recordsCount";
+
+    public static final int STATUS_STARTED = 100;
+    public static final int STATUS_RUNNING = 101;
+    public static final int STATUS_FINISHED = 102;
+    public static final int STATUS_ERROR = 103;
+
+    private static int loggerPeriodSec = minPeriodSec;
+    private static long timeStarted = 0;
+    private static int recordsCount = 0;
+    private static int marksCount = 0;
+
+    private BroadcastReceiver broadcastReceiver;
 
     private Button serviceOnOffButton;
     private ProgressBar serviceProgressBar;
+
     private Button markButton;
     private EditText markTextEditor;
+
     private Button setPeriodButton;
     private EditText periodEditor;
+
+    private TextView loggerStartedTime;
+    private TextView loggerFinishedTime;
+    private TextView recordsCollectedCount;
+    private TextView marksCollectedCount;
+
     private TextView errorMessage;
+
+    private GSMEngine gsmEngine;
+    private ServiceConnection servConn = null;
 
 
     @Override
@@ -105,11 +126,9 @@ public class MainActivity extends Activity {
                     serviceProgressBar.setVisibility(View.INVISIBLE);
 
                 } else {
-                    PendingIntent pintent = createPendingResult(CODE_ERROR, new Intent(), 0);
-                    Intent intent = new Intent(getApplicationContext(), LoggerService.class)
-                            .putExtra(PARAM_PINTENT, pintent);
-
+                    Intent intent = new Intent(getApplicationContext(), LoggerService.class);
                     startService(intent);
+
                     serviceOnOffButton.setText(getString(R.string.btn_service_stop));
                     serviceProgressBar.setVisibility(View.VISIBLE);
                 }
@@ -160,9 +179,10 @@ public class MainActivity extends Activity {
                     }
 
                     pw.close();
+                    marksCollectedCount.setText(++marksCount + "");
 
                 } catch (FileNotFoundException e) {
-                    setState(R.string.fs_error_msg, true);
+                    setInterfaceState(R.string.fs_error_msg, true);
                 }
             }
         });
@@ -204,7 +224,77 @@ public class MainActivity extends Activity {
             }
         });
 
-        setState(R.string.ext_media_unmounted_msg, !isMediaMounted);
+        loggerStartedTime = (TextView) findViewById(R.id.tv_logger_started_time);
+        loggerFinishedTime = (TextView) findViewById(R.id.tv_logger_finished_time);
+        recordsCollectedCount = (TextView) findViewById(R.id.tv_records_collected_count);
+        marksCollectedCount = (TextView) findViewById(R.id.tv_marks_collected_count);
+
+        if (marksCount > 0) {
+            marksCollectedCount.setText(marksCount + "");
+        }
+
+        if (!isServiceRunning) {
+            if (timeStarted > 0) {
+                loggerStartedTime.setText(millisToDate(timeStarted, "dd.MM.yyyy hh:mm:ss"));
+            }
+
+            loggerFinishedTime.setText(getText(R.string.service_stopped));
+
+            if (recordsCount > 0) {
+                recordsCollectedCount.setText(recordsCount + "");
+            }
+
+        } else {
+            servConn = new ServiceConnection() {
+                public void onServiceConnected(ComponentName name, IBinder binder) {
+                    LoggerService loggerService = ((LoggerService.LocalBinder) binder).getService();
+                    loggerStartedTime.setText(
+                            millisToDate(loggerService.getTimeStart(), "dd.MM.yyyy hh:mm:ss"));
+                    recordsCollectedCount.setText(loggerService.getRecordsCount() + "");
+                }
+
+                public void onServiceDisconnected(ComponentName name) {
+                }
+            };
+            Intent intentConn = new Intent(this, LoggerService.class);
+            bindService(intentConn, servConn, 0);
+
+            loggerFinishedTime.setText(getText(R.string.service_running));
+        }
+
+        broadcastReceiver = new BroadcastReceiver() {
+            public void onReceive(Context context, Intent intent) {
+                int serviceStatus = intent.getIntExtra(PARAM_SERVICE_STATUS, 0);
+                long time = intent.getLongExtra(PARAM_TIME, 0);
+
+                switch (serviceStatus) {
+                    case STATUS_STARTED:
+                        timeStarted = time;
+                        loggerStartedTime.setText(millisToDate(time, "dd.MM.yyyy hh:mm:ss"));
+                        loggerFinishedTime.setText(getText(R.string.service_running));
+                        break;
+
+                    case STATUS_RUNNING:
+                        recordsCount = intent.getIntExtra(PARAM_RECORDS_COUNT, 0);
+                        recordsCollectedCount.setText(recordsCount + "");
+                        loggerFinishedTime.setText(getText(R.string.service_running));
+                        break;
+
+                    case STATUS_FINISHED:
+                        loggerFinishedTime.setText(millisToDate(time, "dd.MM.yyyy hh:mm:ss"));
+                        break;
+
+                    case STATUS_ERROR:
+                        loggerFinishedTime.setText(millisToDate(time, "dd.MM.yyyy hh:mm:ss"));
+                        setInterfaceState(R.string.fs_error_msg, true);
+                        break;
+                }
+            }
+        };
+        IntentFilter intentFilter = new IntentFilter(BROADCAST_ACTION);
+        registerReceiver(broadcastReceiver, intentFilter);
+
+        setInterfaceState(R.string.ext_media_unmounted_msg, !isMediaMounted);
     }
 
     @Override
@@ -220,15 +310,20 @@ public class MainActivity extends Activity {
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (resultCode == STATUS_ERROR && requestCode == CODE_ERROR) {
-            setState(R.string.fs_error_msg, true);
+    protected void onDestroy() {
+        if (servConn != null) {
+            unbindService(servConn);
         }
+
+        unregisterReceiver(broadcastReceiver);
+        super.onDestroy();
     }
 
-    private void setState(int resId, boolean isError) {
+    public static int getLoggerPeriodSec() {
+        return loggerPeriodSec;
+    }
+
+    private void setInterfaceState(int resId, boolean isError) {
 
         if (isError) {
             serviceOnOffButton.setText(getString(R.string.btn_service_start));
@@ -266,5 +361,24 @@ public class MainActivity extends Activity {
             }
         }
         return false;
+    }
+
+    /**
+     * Return date in specified format.
+     * @param milliSeconds Date in milliseconds
+     * @param dateFormat Date format
+     * @return String representing date in specified format
+     */
+    public static String millisToDate(long milliSeconds, String dateFormat)
+    {
+        // dateFormat example: "dd/MM/yyyy hh:mm:ss.SSS"
+        // Create a DateFormatter object for displaying date in specified format.
+        SimpleDateFormat formatter = new SimpleDateFormat(dateFormat);
+
+        // Create a calendar object that will convert
+        // the date and time value in milliseconds to date.
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(milliSeconds);
+        return formatter.format(calendar.getTime());
     }
 }

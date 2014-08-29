@@ -99,7 +99,8 @@
             android:text="@string/logger_started"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="left"/>
+            android:layout_gravity="left"
+            android:layout_marginRight="10sp"/>
 
         <TextView
             android:id="@+id/tv_logger_started_time"
@@ -121,7 +122,8 @@
             android:text="@string/logger_finished"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="left"/>
+            android:layout_gravity="left"
+            android:layout_marginRight="10sp"/>
 
         <TextView
             android:id="@+id/tv_logger_finished_time"
@@ -143,7 +145,8 @@
             android:text="@string/records_collected"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="left"/>
+            android:layout_gravity="left"
+            android:layout_marginRight="10sp"/>
 
         <TextView
             android:id="@+id/tv_records_collected_count"
@@ -165,7 +168,8 @@
             android:text="@string/marks_collected"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="left"/>
+            android:layout_gravity="left"
+            android:layout_marginRight="10sp"/>
 
         <TextView
             android:id="@+id/tv_marks_collected_count"
