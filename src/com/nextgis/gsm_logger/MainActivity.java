@@ -32,7 +32,8 @@ public class MainActivity extends Activity {
             dataDirPath + File.separator + "gsm_time_marks.csv";
 
     public static final String csvLogHeader =
-            "TimeStamp" + MainActivity.CSV_SEPARATOR +
+            "Name" + MainActivity.CSV_SEPARATOR +
+                    "TimeStamp" + MainActivity.CSV_SEPARATOR +
                     "Active" + MainActivity.CSV_SEPARATOR +
                     "MCC" + MainActivity.CSV_SEPARATOR +
                     "MNC" + MainActivity.CSV_SEPARATOR +
@@ -40,8 +41,12 @@ public class MainActivity extends Activity {
                     "CID" + MainActivity.CSV_SEPARATOR +
                     "RSSI";
 
-    public static final String csvMarkHeader =
-            "MarkName" + MainActivity.CSV_SEPARATOR + csvLogHeader;
+    public static final String logDefaultName = "ServiceLog";
+    public static final String markDefaultName = "Mark";
+
+
+    // TODO: remove it
+    public static final String csvMarkHeader = csvLogHeader;
 
     public static final int minPeriodSec = 1;
     public static final int maxPeriodSec = 3600;
@@ -154,6 +159,11 @@ public class MainActivity extends Activity {
                     }
 
                     String markName = markTextEditor.getText().toString();
+                    markTextEditor.setText("");
+
+                    if (markName.length() == 0) {
+                        markName = markDefaultName;
+                    }
 
                     ArrayList<GSMEngine.GSMInfo> gsmInfoArray = gsmEngine.getGSMInfoArray();
 

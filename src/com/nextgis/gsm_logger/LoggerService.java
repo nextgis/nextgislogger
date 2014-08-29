@@ -167,6 +167,8 @@ public class LoggerService extends Service {
                                     gsmInfoArray.get(0).getLac() + "-" +
                                     gsmInfoArray.get(0).getCid();
 
+                            sb.append(MainActivity.logDefaultName)
+                                    .append(MainActivity.CSV_SEPARATOR);
                             sb.append(gsmInfo.getTimeStamp()).append(MainActivity.CSV_SEPARATOR);
                             sb.append(active).append(MainActivity.CSV_SEPARATOR);
                             sb.append(gsmInfo.getMcc()).append(MainActivity.CSV_SEPARATOR);
