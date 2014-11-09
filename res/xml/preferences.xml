@@ -1,0 +1,15 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:title="@string/app_settings" >
+
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:key="sensor_state"
+        android:title="@string/settings_sensor_state" />
+
+    <CheckBoxPreference
+        android:dependency="sensor_state"
+        android:defaultValue="true"
+        android:key="sensor_mode"
+        android:summary="@string/settings_sensor_mode_sum"
+        android:title="@string/settings_sensor_mode" />
+</PreferenceScreen>

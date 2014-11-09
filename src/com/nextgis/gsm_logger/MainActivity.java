@@ -7,6 +7,9 @@ import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -17,7 +20,7 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-
+import java.util.Locale;
 
 public class MainActivity extends Activity {
 
@@ -28,8 +31,12 @@ public class MainActivity extends Activity {
             File.separator + "gsm_logger";
     public static final String csvLogFilePath =
             dataDirPath + File.separator + "gsm_time_log.csv";
+    public static final String csvLogFilePathSensor =
+            dataDirPath + File.separator + "sensor_time_log.csv";
     public static final String csvMarkFilePath =
             dataDirPath + File.separator + "gsm_time_marks.csv";
+    public static final String csvMarkFilePathSensor =
+            dataDirPath + File.separator + "sensor_time_marks.csv";
 
     public static final String csvLogHeader =
             "Name" + MainActivity.CSV_SEPARATOR +
@@ -40,6 +47,14 @@ public class MainActivity extends Activity {
                     "LAC" + MainActivity.CSV_SEPARATOR +
                     "CID" + MainActivity.CSV_SEPARATOR +
                     "RSSI";
+    
+    public static final String csvHeaderSensor =
+            "Name" + MainActivity.CSV_SEPARATOR +
+                    "TimeStamp" + MainActivity.CSV_SEPARATOR +
+                    "Type" + MainActivity.CSV_SEPARATOR +
+                    "X" + MainActivity.CSV_SEPARATOR +
+                    "Y" + MainActivity.CSV_SEPARATOR +
+                    "Z";
 
     public static final String logDefaultName = "ServiceLog";
     public static final String markDefaultName = "Mark";
@@ -50,7 +65,10 @@ public class MainActivity extends Activity {
 
     public static final int minPeriodSec = 1;
     public static final int maxPeriodSec = 3600;
+    public static final String PREFERENCE_NAME = "MainActivity";
     public static final String PREF_PERIOD_SEC = "periodSec";
+    public static final String PREF_SENSOR_STATE = "sensor_state";
+    public static final String PREF_SENSOR_MODE = "sensor_mode";
 
     public static final String BROADCAST_ACTION = "com.nextgis.gsm_logger.MainActivity";
 
@@ -87,14 +105,15 @@ public class MainActivity extends Activity {
     private TextView errorMessage;
 
     private GSMEngine gsmEngine;
+    private SensorEngine sensorEngine;
     private ServiceConnection servConn = null;
-
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.main_activity);
+        PreferenceManager.setDefaultValues(this, PREFERENCE_NAME, MODE_PRIVATE, R.xml.preferences, false);
 
         errorMessage = (TextView) findViewById(R.id.tv_error_message);
         boolean isMediaMounted = true;
@@ -135,7 +154,7 @@ public class MainActivity extends Activity {
                     startService(intent);
 
                     serviceOnOffButton.setText(getString(R.string.btn_service_stop));
-                    serviceProgressBar.setVisibility(View.VISIBLE);
+                    serviceProgressBar.setVisibility(View.VISIBLE);;
                 }
             }
         });
@@ -145,6 +164,10 @@ public class MainActivity extends Activity {
 
         markTextEditor = (EditText) findViewById(R.id.mark_text_editor);
         markTextEditor.requestFocus();
+        
+        final SharedPreferences pref = getPreferences(MODE_PRIVATE);
+        if (pref.getBoolean(PREF_SENSOR_STATE, true))
+        	sensorEngine = new SensorEngine(this);
 
         markButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -190,6 +213,29 @@ public class MainActivity extends Activity {
 
                     pw.close();
                     marksCollectedCount.setText(++marksCount + "");
+                    
+                    // checking accelerometer data state
+                    if (pref.getBoolean(PREF_SENSOR_STATE, true))
+                    {
+                    	csvFile = new File(csvMarkFilePathSensor);
+                    	isFileExist = csvFile.exists();
+                    	pw = new PrintWriter(new FileOutputStream(csvFile, true));
+                    	
+                    	if (!isFileExist)
+                            pw.println(csvHeaderSensor);
+                    	
+                    	StringBuilder sb = new StringBuilder();
+
+                        sb.append(markName).append(CSV_SEPARATOR);
+                        sb.append(gsmInfoArray.get(0).getTimeStamp()).append(CSV_SEPARATOR);
+                        sb.append(sensorEngine.getSensorType()).append(CSV_SEPARATOR);
+                        sb.append(sensorEngine.getX()).append(CSV_SEPARATOR);
+                        sb.append(sensorEngine.getY()).append(CSV_SEPARATOR);
+                        sb.append(sensorEngine.getZ());
+
+                        pw.println(sb.toString());
+                    	pw.close();
+                    }
 
                 } catch (FileNotFoundException e) {
                     setInterfaceState(R.string.fs_error_msg, true);
@@ -197,7 +243,6 @@ public class MainActivity extends Activity {
             }
         });
 
-        SharedPreferences pref = getPreferences(MODE_PRIVATE);
         final Editor prefEd = pref.edit();
 
         loggerPeriodSec = pref.getInt(PREF_PERIOD_SEC, minPeriodSec);
@@ -311,11 +356,21 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         gsmEngine.onResume();
+        
+        if (sensorEngine != null)
+        	sensorEngine.onResume(this);
+        else
+        	if (getPreferences(MODE_PRIVATE).getBoolean(PREF_SENSOR_STATE, true))
+            	sensorEngine = new SensorEngine(this);
     }
 
     @Override
     protected void onPause() {
         gsmEngine.onPause();
+        
+        if (sensorEngine != null)
+        	sensorEngine.onPause();
+        
         super.onPause();
     }
 
@@ -329,6 +384,32 @@ public class MainActivity extends Activity {
         super.onDestroy();
     }
 
+    @Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		getMenuInflater().inflate(R.menu.main, menu);
+		return true;
+	}
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        menu.findItem(R.id.action_settings).setEnabled(!isLoggerServiceRunning());
+		return true;
+    }
+    
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.action_settings:
+			Intent preferencesActivity = new Intent(this, PreferencesActivity.class);
+			startActivity(preferencesActivity);
+			break;
+		default:
+			break;
+		}
+
+		return super.onOptionsItemSelected(item);
+	}
+    
     public static int getLoggerPeriodSec() {
         return loggerPeriodSec;
     }
@@ -383,7 +464,7 @@ public class MainActivity extends Activity {
     {
         // dateFormat example: "dd/MM/yyyy hh:mm:ss.SSS"
         // Create a DateFormatter object for displaying date in specified format.
-        SimpleDateFormat formatter = new SimpleDateFormat(dateFormat);
+        SimpleDateFormat formatter = new SimpleDateFormat(dateFormat, Locale.getDefault());
 
         // Create a calendar object that will convert
         // the date and time value in milliseconds to date.

@@ -21,8 +21,10 @@ public class LoggerService extends Service {
     private static int recordsCount = 0;
 
     private boolean isRunning = false;
+    private boolean isSensor = true;
 
     private GSMEngine gsmEngine;
+    private SensorEngine sensorEngine;
     private Thread thread = null;
     private LocalBinder localBinder = new LocalBinder();
 
@@ -46,6 +48,11 @@ public class LoggerService extends Service {
 
         gsmEngine = new GSMEngine(this);
         gsmEngine.onResume();
+        
+        isSensor = getSharedPreferences(MainActivity.PREFERENCE_NAME, MODE_PRIVATE).getBoolean(MainActivity.PREF_SENSOR_STATE, true);
+        
+        if (isSensor)
+        	sensorEngine = new SensorEngine(this);
     }
 
     @Override
@@ -69,6 +76,9 @@ public class LoggerService extends Service {
         //android.os.Debug.waitForDebugger();
 
         gsmEngine.onPause();
+
+        if (sensorEngine != null)
+        	sensorEngine.onPause();
 
         if (thread != null) {
             thread.interrupt();
@@ -181,6 +191,28 @@ public class LoggerService extends Service {
                         }
 
                         pw.close();
+                        
+                        if (isSensor)
+                        {
+                        	csvFile = new File(MainActivity.csvLogFilePathSensor);
+                        	isFileExist = csvFile.exists();
+                        	pw = new PrintWriter(new FileOutputStream(csvFile, true));
+                        	
+                        	if (!isFileExist)
+                                pw.println(MainActivity.csvHeaderSensor);
+                        	
+                        	StringBuilder sb = new StringBuilder();
+
+                            sb.append(MainActivity.logDefaultName).append(MainActivity.CSV_SEPARATOR);
+                            sb.append(gsmInfoArray.get(0).getTimeStamp()).append(MainActivity.CSV_SEPARATOR);
+//                            sb.append(sensorEngine.getSensorType()).append(CSV_SEPARATOR);
+                            sb.append(sensorEngine.getX()).append(MainActivity.CSV_SEPARATOR);
+                            sb.append(sensorEngine.getY()).append(MainActivity.CSV_SEPARATOR);
+                            sb.append(sensorEngine.getZ());
+
+                            pw.println(sb.toString());
+                        	pw.close();
+                        }
 
                         intentStatus
                                 .putExtra(
