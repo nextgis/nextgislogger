@@ -1,15 +1,27 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     android:title="@string/app_settings" >
 
+    <com.nextgis.gsm_logger.IntEditTextPreference
+        android:defaultValue="1"
+        android:inputType="number"
+        android:key="periodSec"
+        android:numeric="integer"
+        android:title="@string/settings_period" />
+
     <CheckBoxPreference
         android:defaultValue="true"
         android:key="sensor_state"
         android:title="@string/settings_sensor_state" />
-
     <CheckBoxPreference
+        android:defaultValue="false"
         android:dependency="sensor_state"
-        android:defaultValue="true"
         android:key="sensor_mode"
         android:summary="@string/settings_sensor_mode_sum"
         android:title="@string/settings_sensor_mode" />
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:key="use_api17"
+        android:title="@string/settings_cells_api17"
+        android:summary="@string/settings_cells_api17_sum" />
+
 </PreferenceScreen>

@@ -3,11 +3,11 @@ package com.nextgis.gsm_logger;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.*;
-import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.telephony.TelephonyManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -63,12 +63,11 @@ public class MainActivity extends Activity {
     // TODO: remove it
     public static final String csvMarkHeader = csvLogHeader;
 
-    public static final int minPeriodSec = 1;
-    public static final int maxPeriodSec = 3600;
     public static final String PREFERENCE_NAME = "MainActivity";
     public static final String PREF_PERIOD_SEC = "periodSec";
     public static final String PREF_SENSOR_STATE = "sensor_state";
     public static final String PREF_SENSOR_MODE = "sensor_mode";
+    public static final String PREF_USE_API17 = "use_api17";
 
     public static final String BROADCAST_ACTION = "com.nextgis.gsm_logger.MainActivity";
 
@@ -81,7 +80,7 @@ public class MainActivity extends Activity {
     public static final int STATUS_FINISHED = 102;
     public static final int STATUS_ERROR = 103;
 
-    private static int loggerPeriodSec = minPeriodSec;
+//    private static int loggerPeriodSec = minPeriodSec;
     private static long timeStarted = 0;
     private static int recordsCount = 0;
     private static int marksCount = 0;
@@ -94,8 +93,8 @@ public class MainActivity extends Activity {
     private Button markButton;
     private EditText markTextEditor;
 
-    private Button setPeriodButton;
-    private EditText periodEditor;
+//    private Button setPeriodButton;
+//    private EditText periodEditor;
 
     private TextView loggerStartedTime;
     private TextView loggerFinishedTime;
@@ -243,41 +242,41 @@ public class MainActivity extends Activity {
             }
         });
 
-        final Editor prefEd = pref.edit();
+//        final Editor prefEd = pref.edit();
 
-        loggerPeriodSec = pref.getInt(PREF_PERIOD_SEC, minPeriodSec);
+//        loggerPeriodSec = pref.getInt(PREF_PERIOD_SEC, minPeriodSec);
 
-        setPeriodButton = (Button) findViewById(R.id.btn_set_period);
+//        setPeriodButton = (Button) findViewById(R.id.btn_set_period);
 
-        periodEditor = (EditText) findViewById(R.id.period_editor);
-        periodEditor.setText(loggerPeriodSec + "");
+//        periodEditor = (EditText) findViewById(R.id.period_editor);
+//        periodEditor.setText(loggerPeriodSec + "");
 
-        setPeriodButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-
-                String sPeriod = periodEditor.getText().toString();
-
-                if (sPeriod.length() > 0) {
-                    int sec = Integer.parseInt(sPeriod);
-
-                    if (minPeriodSec <= sec && sec <= maxPeriodSec) {
-                        loggerPeriodSec = sec;
-                    } else if (sec < minPeriodSec) {
-                        loggerPeriodSec = minPeriodSec;
-                    } else if (sec > maxPeriodSec) {
-                        loggerPeriodSec = maxPeriodSec;
-                    }
-
-                } else {
-                    loggerPeriodSec = minPeriodSec;
-                }
-
-                prefEd.putInt(PREF_PERIOD_SEC, loggerPeriodSec);
-                prefEd.commit();
-
-                periodEditor.setText(loggerPeriodSec + "");
-            }
-        });
+//        setPeriodButton.setOnClickListener(new View.OnClickListener() {
+//            public void onClick(View v) {
+//
+//                String sPeriod = periodEditor.getText().toString();
+//
+//                if (sPeriod.length() > 0) {
+//                    int sec = Integer.parseInt(sPeriod);
+//
+//                    if (minPeriodSec <= sec && sec <= maxPeriodSec) {
+//                        loggerPeriodSec = sec;
+//                    } else if (sec < minPeriodSec) {
+//                        loggerPeriodSec = minPeriodSec;
+//                    } else if (sec > maxPeriodSec) {
+//                        loggerPeriodSec = maxPeriodSec;
+//                    }
+//
+//                } else {
+//                    loggerPeriodSec = minPeriodSec;
+//                }
+//
+//                prefEd.putInt(PREF_PERIOD_SEC, loggerPeriodSec);
+//                prefEd.commit();
+//
+//                periodEditor.setText(loggerPeriodSec + "");
+//            }
+//        });
 
         loggerStartedTime = (TextView) findViewById(R.id.tv_logger_started_time);
         loggerFinishedTime = (TextView) findViewById(R.id.tv_logger_finished_time);
@@ -362,6 +361,15 @@ public class MainActivity extends Activity {
         else
         	if (getPreferences(MODE_PRIVATE).getBoolean(PREF_SENSOR_STATE, true))
             	sensorEngine = new SensorEngine(this);
+        
+        int networkType = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getNetworkType();
+        
+        if(!GSMEngine.isGSMNetwork(networkType)) {
+            errorMessage.setText(R.string.network_error);
+            errorMessage.setVisibility(View.VISIBLE);
+        }
+        else
+            errorMessage.setVisibility(View.GONE);        	
     }
 
     @Override
@@ -410,9 +418,9 @@ public class MainActivity extends Activity {
 		return super.onOptionsItemSelected(item);
 	}
     
-    public static int getLoggerPeriodSec() {
-        return loggerPeriodSec;
-    }
+//    public static int getLoggerPeriodSec() {
+//        return loggerPeriodSec;
+//    }
 
     private void setInterfaceState(int resId, boolean isError) {
 
@@ -421,8 +429,8 @@ public class MainActivity extends Activity {
 
             serviceOnOffButton.setEnabled(false);
             markButton.setEnabled(false);
-            setPeriodButton.setEnabled(false);
-            periodEditor.setEnabled(false);
+//            setPeriodButton.setEnabled(false);
+//            periodEditor.setEnabled(false);
 
             serviceProgressBar.setVisibility(View.INVISIBLE);
             markTextEditor.setVisibility(View.GONE);
@@ -433,8 +441,8 @@ public class MainActivity extends Activity {
         } else {
             serviceOnOffButton.setEnabled(true);
             markButton.setEnabled(true);
-            setPeriodButton.setEnabled(true);
-            periodEditor.setEnabled(true);
+//            setPeriodButton.setEnabled(true);
+//            periodEditor.setEnabled(true);
 
             markTextEditor.setVisibility(View.VISIBLE);
             errorMessage.setVisibility(View.GONE);

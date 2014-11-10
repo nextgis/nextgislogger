@@ -7,6 +7,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
+import android.os.PowerManager;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -154,6 +155,10 @@ public class LoggerService extends Service {
                         .putExtra(MainActivity.PARAM_SERVICE_STATUS, MainActivity.STATUS_STARTED)
                         .putExtra(MainActivity.PARAM_TIME, timeStart);
                 sendBroadcast(intentStatus);
+                
+                PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
+                PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "GSMLoggerWakeLock");
+                wakeLock.acquire();
 
                 while (true) {
 
@@ -177,8 +182,7 @@ public class LoggerService extends Service {
                                     gsmInfoArray.get(0).getLac() + "-" +
                                     gsmInfoArray.get(0).getCid();
 
-                            sb.append(MainActivity.logDefaultName)
-                                    .append(MainActivity.CSV_SEPARATOR);
+                            sb.append(MainActivity.logDefaultName).append(MainActivity.CSV_SEPARATOR);
                             sb.append(gsmInfo.getTimeStamp()).append(MainActivity.CSV_SEPARATOR);
                             sb.append(active).append(MainActivity.CSV_SEPARATOR);
                             sb.append(gsmInfo.getMcc()).append(MainActivity.CSV_SEPARATOR);
@@ -205,7 +209,7 @@ public class LoggerService extends Service {
 
                             sb.append(MainActivity.logDefaultName).append(MainActivity.CSV_SEPARATOR);
                             sb.append(gsmInfoArray.get(0).getTimeStamp()).append(MainActivity.CSV_SEPARATOR);
-//                            sb.append(sensorEngine.getSensorType()).append(CSV_SEPARATOR);
+                            sb.append(sensorEngine.getSensorType()).append(MainActivity.CSV_SEPARATOR);
                             sb.append(sensorEngine.getX()).append(MainActivity.CSV_SEPARATOR);
                             sb.append(sensorEngine.getY()).append(MainActivity.CSV_SEPARATOR);
                             sb.append(sensorEngine.getZ());
@@ -223,7 +227,7 @@ public class LoggerService extends Service {
 
                         sendBroadcast(intentStatus);
 
-                        Thread.sleep(MainActivity.getLoggerPeriodSec() * 1000);
+                        Thread.sleep(getSharedPreferences(MainActivity.PREFERENCE_NAME, MODE_PRIVATE).getInt(MainActivity.PREF_PERIOD_SEC, 1) * 1000);
 
                     } catch (FileNotFoundException e) {
                         isFileSystemError = true;
@@ -236,6 +240,8 @@ public class LoggerService extends Service {
                     if (Thread.currentThread().isInterrupted())
                         break;
                 }
+                
+                wakeLock.release();
 
                 if (isFileSystemError) {
                     sendErrorNotification();

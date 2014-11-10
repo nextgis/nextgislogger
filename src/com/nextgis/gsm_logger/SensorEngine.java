@@ -1,18 +1,20 @@
 package com.nextgis.gsm_logger;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.Build;
+import android.widget.Toast;
 
 public class SensorEngine implements SensorEventListener {
 	private float x, y, z;
 	private long lastUpdate = 0;
 	private int sensorType = Sensor.TYPE_ACCELEROMETER;
-	// TODO remove?
-	
-	private boolean linearAcceleration = true;
+
+	private boolean linearAcceleration;
 
 	private final int updateFrequency = 100; // in ms
 
@@ -28,11 +30,18 @@ public class SensorEngine implements SensorEventListener {
 		sm.unregisterListener(this);
 	}
 
+	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
 	protected void onResume(Context ctx) {
-		linearAcceleration = ctx.getSharedPreferences(MainActivity.PREFERENCE_NAME, Context.MODE_PRIVATE).getBoolean(MainActivity.PREF_SENSOR_MODE, true);
-//		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.GINGERBREAD && linearAcceleration)
+		linearAcceleration = ctx.getSharedPreferences(MainActivity.PREFERENCE_NAME, Context.MODE_PRIVATE).getBoolean(MainActivity.PREF_SENSOR_MODE, false);
+		
+		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.GINGERBREAD && linearAcceleration)
+			sensorType = Sensor.TYPE_LINEAR_ACCELERATION;
 		
 		sa = sm.getDefaultSensor(sensorType);
+		
+		if (sa == null)
+			Toast.makeText(ctx, R.string.sensor_error, Toast.LENGTH_LONG).show();
+			
 		sm.registerListener(this, sa, SensorManager.SENSOR_DELAY_NORMAL);
 	}
 
@@ -54,9 +63,6 @@ public class SensorEngine implements SensorEventListener {
 				x = event.values[0];
 				y = event.values[1];
 				z = event.values[2];
-				
-				if (linearAcceleration)
-					z -= SensorManager.GRAVITY_EARTH;
 			}
 		}
 	}
