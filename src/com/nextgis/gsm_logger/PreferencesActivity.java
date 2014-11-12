@@ -76,7 +76,7 @@ public class PreferencesActivity extends PreferenceActivity {
 						String summary = NO_FILE;
 
 						if (!new File(chosenDir).isFile())
-							Toast.makeText(parent, "No such file", Toast.LENGTH_SHORT).show();
+							Toast.makeText(parent, "No such file", Toast.LENGTH_SHORT).show();	// FIXME hardcoded string
 						else
 							summary = chosenDir;
 						
@@ -96,5 +96,7 @@ public class PreferencesActivity extends PreferenceActivity {
 		
 		if (!new File(selectedFile).isFile())
 			selectedFile = NO_FILE;
+		
+		catPathPreference.setSummary(selectedFile);
 	}
 }

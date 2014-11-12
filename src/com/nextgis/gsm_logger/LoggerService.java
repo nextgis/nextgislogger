@@ -168,7 +168,7 @@ public class LoggerService extends Service {
                         PrintWriter pw = new PrintWriter(new FileOutputStream(csvFile, true));
 
                         if (!isFileExist) {
-                            pw.println(MainActivity.csvLogHeader);
+                            pw.println(MainActivity.csvMarkHeader);
                         }
 
                         ArrayList<GSMEngine.GSMInfo> gsmInfoArray = gsmEngine.getGSMInfoArray();
@@ -182,6 +182,7 @@ public class LoggerService extends Service {
                                     gsmInfoArray.get(0).getLac() + "-" +
                                     gsmInfoArray.get(0).getCid();
 
+    						sb.append("").append(MainActivity.CSV_SEPARATOR);
                             sb.append(MainActivity.logDefaultName).append(MainActivity.CSV_SEPARATOR);
                             sb.append(gsmInfo.getTimeStamp()).append(MainActivity.CSV_SEPARATOR);
                             sb.append(active).append(MainActivity.CSV_SEPARATOR);
@@ -207,6 +208,7 @@ public class LoggerService extends Service {
                         	
                         	StringBuilder sb = new StringBuilder();
 
+    						sb.append("").append(MainActivity.CSV_SEPARATOR);
                             sb.append(MainActivity.logDefaultName).append(MainActivity.CSV_SEPARATOR);
                             sb.append(gsmInfoArray.get(0).getTimeStamp()).append(MainActivity.CSV_SEPARATOR);
                             sb.append(sensorEngine.getSensorType()).append(MainActivity.CSV_SEPARATOR);
