@@ -68,6 +68,8 @@ public class MainActivity extends Activity {
     public static final String PREF_SENSOR_STATE = "sensor_state";
     public static final String PREF_SENSOR_MODE = "sensor_mode";
     public static final String PREF_USE_API17 = "use_api17";
+    public static final String PREF_USE_CATS = "use_cats";
+    public static final String PREF_CAT_PATH = "cat_path";
 
     public static final String BROADCAST_ACTION = "com.nextgis.gsm_logger.MainActivity";
 

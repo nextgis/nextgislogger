@@ -10,6 +10,9 @@
     <string name="settings_period_toast">Min is 1, max is 3600</string>
     <string name="settings_cells_api17">Try use API >=17 to find nearby cells</string>
     <string name="settings_cells_api17_sum">Available on Android 4.2 or above\r\nCould help for some devices if default method doesn\'t work</string>
+    <string name="settings_cats">Use categories file</string>
+    <string name="settings_cats_sum">Load mark name presets from file</string>
+    <string name="settings_cat_path">Select categories file</string>
     <string name="service_notif_title">GSM Logger</string>
     <string name="service_notif_text">GSM Logger is running…</string>
     <string name="btn_service_start">Start Logger</string>

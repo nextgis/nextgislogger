@@ -9,6 +9,17 @@
         android:title="@string/settings_period" />
 
     <CheckBoxPreference
+        android:defaultValue="false"
+        android:key="use_cats"
+        android:summary="@string/settings_cats_sum"
+        android:title="@string/settings_cats" />
+
+    <Preference
+        android:dependency="use_cats"
+        android:key="cat_path"
+        android:title="@string/settings_cat_path" />
+
+    <CheckBoxPreference
         android:defaultValue="true"
         android:key="sensor_state"
         android:title="@string/settings_sensor_state" />
@@ -21,7 +32,7 @@
     <CheckBoxPreference
         android:defaultValue="false"
         android:key="use_api17"
-        android:title="@string/settings_cells_api17"
-        android:summary="@string/settings_cells_api17_sum" />
+        android:summary="@string/settings_cells_api17_sum"
+        android:title="@string/settings_cells_api17" />
 
 </PreferenceScreen>
