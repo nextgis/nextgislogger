@@ -7,6 +7,7 @@ import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.preference.EditTextPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.Preference.OnPreferenceClickListener;
@@ -33,6 +34,17 @@ public class PreferencesActivity extends PreferenceActivity {
 		if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.JELLY_BEAN_MR1)
 			findPreference(MainActivity.PREF_USE_API17).setEnabled(false);
 
+		EditTextPreference userName = (EditTextPreference) findPreference(MainActivity.PREF_USER_NAME);
+		userName.setSummary(userName.getText());
+		userName.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
+			@Override
+			public boolean onPreferenceChange(Preference preference, Object newValue) {
+				preference.setSummary((String) newValue);
+				
+				return true;
+			}
+		});
+		
 		IntEditTextPreference periodPreference = (IntEditTextPreference) findPreference(MainActivity.PREF_PERIOD_SEC);
 		periodPreference.setSummary(getString(R.string.settings_period_sum) + periodPreference.getPersistedString("1"));
 		periodPreference.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {

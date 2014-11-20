@@ -122,6 +122,7 @@ public class GSMEngine {
 		// #2 using API 17 to get all cell towers around, including one which phone registered to
 		if (osVersion >= api17 && useAPI17) {
 			List<CellInfo> allCells = mTelephonyManager.getAllCellInfo();
+			int nwType = mTelephonyManager.getNetworkType();
 
 			if (allCells != null) // Samsung and Nexus return null
 				for (CellInfo cell : allCells) {
@@ -130,15 +131,15 @@ public class GSMEngine {
 						CellInfoGsm gsm = (CellInfoGsm) cell;
 						CellIdentityGsm gsmIdentity = gsm.getCellIdentity();
 
-						gsmInfoArray.add(new GSMInfo(timeStamp, gsm.isRegistered(), gsmIdentity.getMcc(), gsmIdentity.getMnc(), gsmIdentity.getLac(),
+						gsmInfoArray.add(new GSMInfo(timeStamp, gsm.isRegistered(), nwType, gsmIdentity.getMcc(), gsmIdentity.getMnc(), gsmIdentity.getLac(),
 								gsmIdentity.getCid(), -1, gsm.getCellSignalStrength().getDbm()));
 
-					// 3G - WCDMA cell towers, its API 18+
+						// 3G - WCDMA cell towers, its API 18+
 					} else if (osVersion >= api18 && cell.getClass() == CellInfoWcdma.class) {
 						CellInfoWcdma wcdma = (CellInfoWcdma) cell;
 						CellIdentityWcdma wcdmaIdentity = wcdma.getCellIdentity();
 
-						gsmInfoArray.add(new GSMInfo(timeStamp, wcdma.isRegistered(), wcdmaIdentity.getMcc(), wcdmaIdentity.getMnc(), wcdmaIdentity.getLac(),
+						gsmInfoArray.add(new GSMInfo(timeStamp, wcdma.isRegistered(), nwType, wcdmaIdentity.getMcc(), wcdmaIdentity.getMnc(), wcdmaIdentity.getLac(),
 								wcdmaIdentity.getCid(), wcdmaIdentity.getPsc(), wcdma.getCellSignalStrength().getDbm()));
 					}
 				}
@@ -170,7 +171,7 @@ public class GSMEngine {
 				}
 
 				if (gsmCellLocation != null) {
-					gsmInfoArray.add(new GSMInfo(timeStamp, true, mcc, mnc, gsmCellLocation.getLac(), gsmCellLocation.getCid(), gsmCellLocation.getPsc(),
+					gsmInfoArray.add(new GSMInfo(timeStamp, true, mTelephonyManager.getNetworkType(), mcc, mnc, gsmCellLocation.getLac(), gsmCellLocation.getCid(), gsmCellLocation.getPsc(),
 							signalStrength));
 				}
 			}
@@ -181,7 +182,7 @@ public class GSMEngine {
 				int nbNetworkType = neighbor.getNetworkType();
 
 				//				if (nbNetworkType == TelephonyManager.NETWORK_TYPE_GPRS || nbNetworkType == TelephonyManager.NETWORK_TYPE_EDGE) {
-				gsmInfoArray.add(new GSMInfo(timeStamp, false, mcc, mnc, neighbor.getLac(), neighbor.getCid(), neighbor.getPsc(), signalStrengthAsuToDbm(
+				gsmInfoArray.add(new GSMInfo(timeStamp, false, nbNetworkType, mcc, mnc, neighbor.getLac(), neighbor.getCid(), neighbor.getPsc(), signalStrengthAsuToDbm(
 						neighbor.getRssi(), nbNetworkType)));
 				//				}
 			}
@@ -194,8 +195,78 @@ public class GSMEngine {
 		return gsmInfoArray;
 	}
 
-	public static boolean isGSMNetwork(int network) {
-		return network == TelephonyManager.NETWORK_TYPE_EDGE || network == TelephonyManager.NETWORK_TYPE_GPRS;
+//	public static boolean isGSMNetwork(int network) {
+//		return network == TelephonyManager.NETWORK_TYPE_EDGE || network == TelephonyManager.NETWORK_TYPE_GPRS;
+//	}
+
+	public static String getNetworkGen(int type) {
+		String gen;
+		
+		switch (type) {
+		case TelephonyManager.NETWORK_TYPE_EDGE:
+		case TelephonyManager.NETWORK_TYPE_GPRS:
+			gen = "2G";
+			break;
+		case TelephonyManager.NETWORK_TYPE_UMTS:
+		case TelephonyManager.NETWORK_TYPE_HSPA:
+		case TelephonyManager.NETWORK_TYPE_HSDPA:
+		case TelephonyManager.NETWORK_TYPE_HSUPA:
+		case TelephonyManager.NETWORK_TYPE_HSPAP:
+			gen = "3G";
+			break;
+		case TelephonyManager.NETWORK_TYPE_LTE:
+			gen = "4G";
+			break;
+		default:
+			gen = "unknown";
+			break;
+		}
+		
+		return gen;
+	}
+	
+	public static String getNetworkType(int type) {
+		String network;
+
+		switch (type) {
+		//		case TelephonyManager.NETWORK_TYPE_CDMA:
+		//			break;
+		//		case TelephonyManager.NETWORK_TYPE_EVDO_0:
+		//			break;
+		//		case TelephonyManager.NETWORK_TYPE_IDEN:
+		//			break;
+		case TelephonyManager.NETWORK_TYPE_EDGE:
+			network = "EDGE";
+			break;
+		case TelephonyManager.NETWORK_TYPE_GPRS:
+			network = "GPRS";
+			break;
+		case TelephonyManager.NETWORK_TYPE_UMTS:
+			network = "UMTS";
+			break;
+		case TelephonyManager.NETWORK_TYPE_HSPA:
+			network = "HSPA";
+			break;
+		case TelephonyManager.NETWORK_TYPE_HSDPA:
+			network = "HSDPA";
+			break;
+		case TelephonyManager.NETWORK_TYPE_HSUPA:
+			network = "HSUPA";
+			break;
+		case TelephonyManager.NETWORK_TYPE_HSPAP:
+			network = "HSPAP";
+			break;
+		case TelephonyManager.NETWORK_TYPE_LTE:
+			network = "LTE";
+			break;
+		//		case TelephonyManager.NETWORK_TYPE_UNKNOWN:
+		//			break;
+		default:
+			network = "unknown";
+			break;
+		}
+
+		return network;
 	}
 
 	public class GSMInfo {
@@ -206,11 +277,13 @@ public class GSMEngine {
 		private int lac;
 		private int cid;
 		private int psc; // new - primary scrambling code for UMTS
+		private int networkType; // new - primary scrambling code for UMTS
 		private int rssi;
 
 		public GSMInfo(long timeStamp) {
 			this.timeStamp = timeStamp;
 			this.active = true;
+			this.networkType = TelephonyManager.NETWORK_TYPE_UNKNOWN;
 			this.mcc = -1;
 			this.mnc = -1;
 			this.lac = -1;
@@ -219,9 +292,10 @@ public class GSMEngine {
 			this.rssi = -1;
 		}
 
-		public GSMInfo(long timeStamp, boolean active, int mcc, int mnc, int lac, int cid, int psc, int rssi) {
+		public GSMInfo(long timeStamp, boolean active, int networkType, int mcc, int mnc, int lac, int cid, int psc, int rssi) {
 			this.timeStamp = timeStamp;
 			this.active = active;
+			this.networkType = networkType;
 			this.mcc = mcc;
 			this.mnc = mnc;
 			this.lac = lac;
@@ -238,6 +312,14 @@ public class GSMEngine {
 			return active;
 		}
 
+		public String networkType() {
+			return getNetworkType(networkType);
+		}
+		
+		public String networkGen() {
+			return getNetworkGen(networkType);
+		}
+		
 		public int getMcc() {
 			return mcc;
 		}

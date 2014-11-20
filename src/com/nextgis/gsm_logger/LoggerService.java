@@ -5,6 +5,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.PowerManager;
@@ -12,7 +13,9 @@ import android.os.PowerManager;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
 
@@ -163,6 +166,7 @@ public class LoggerService extends Service {
                 while (true) {
 
                     try {
+                    	SharedPreferences prefs = getSharedPreferences(MainActivity.PREFERENCE_NAME, MODE_PRIVATE);
                         File csvFile = new File(MainActivity.csvLogFilePath);
                         boolean isFileExist = csvFile.exists();
                         PrintWriter pw = new PrintWriter(new FileOutputStream(csvFile, true));
@@ -184,7 +188,10 @@ public class LoggerService extends Service {
 
     						sb.append("").append(MainActivity.CSV_SEPARATOR);
                             sb.append(MainActivity.logDefaultName).append(MainActivity.CSV_SEPARATOR);
+    						sb.append(prefs.getString(MainActivity.PREF_USER_NAME, "User 1")).append(MainActivity.CSV_SEPARATOR);
                             sb.append(gsmInfo.getTimeStamp()).append(MainActivity.CSV_SEPARATOR);
+    						sb.append(gsmInfo.networkGen()).append(MainActivity.CSV_SEPARATOR);
+    						sb.append(gsmInfo.networkType()).append(MainActivity.CSV_SEPARATOR);
                             sb.append(active).append(MainActivity.CSV_SEPARATOR);
                             sb.append(gsmInfo.getMcc()).append(MainActivity.CSV_SEPARATOR);
                             sb.append(gsmInfo.getMnc()).append(MainActivity.CSV_SEPARATOR);
@@ -202,7 +209,7 @@ public class LoggerService extends Service {
                         {
                         	csvFile = new File(MainActivity.csvLogFilePathSensor);
                         	isFileExist = csvFile.exists();
-                        	pw = new PrintWriter(new FileOutputStream(csvFile, true));
+                        	pw = new PrintWriter(new OutputStreamWriter(new FileOutputStream(csvFile, true), "UTF-8"));
                         	
                         	if (!isFileExist)
                                 pw.println(MainActivity.csvHeaderSensor);
@@ -211,6 +218,7 @@ public class LoggerService extends Service {
 
     						sb.append("").append(MainActivity.CSV_SEPARATOR);
                             sb.append(MainActivity.logDefaultName).append(MainActivity.CSV_SEPARATOR);
+    						sb.append(prefs.getString(MainActivity.PREF_USER_NAME, "User 1")).append(MainActivity.CSV_SEPARATOR);
                             sb.append(gsmInfoArray.get(0).getTimeStamp()).append(MainActivity.CSV_SEPARATOR);
                             sb.append(sensorEngine.getSensorType()).append(MainActivity.CSV_SEPARATOR);
                             sb.append(sensorEngine.getX()).append(MainActivity.CSV_SEPARATOR);
@@ -230,7 +238,7 @@ public class LoggerService extends Service {
 
                         sendBroadcast(intentStatus);
 
-                        Thread.sleep(getSharedPreferences(MainActivity.PREFERENCE_NAME, MODE_PRIVATE).getInt(MainActivity.PREF_PERIOD_SEC, 1) * 1000);
+                        Thread.sleep(prefs.getInt(MainActivity.PREF_PERIOD_SEC, 1) * 1000);
 
                     } catch (FileNotFoundException e) {
                         isFileSystemError = true;
@@ -238,7 +246,9 @@ public class LoggerService extends Service {
 
                     } catch (InterruptedException e) {
                         break;
-                    }
+                    } catch (UnsupportedEncodingException e) {
+						break;
+					}
 
                     if (Thread.currentThread().isInterrupted())
                         break;

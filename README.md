@@ -4,11 +4,11 @@ gsm_logger
 Productive GSM data logger for Android
 ***
 #### version 1.1.3 (20.11.2014)
-* Added "User initials" to settings
-* Added current network type, psc for UMTS and user initials to log
-* Improved current network type info. Now it shows in main screen as separate line
-* Fixed app crash on Samsung and Nexus (perhaps others) devices when using API 17 option
-* Changed "Try use API 17" to true by default
+* Added "Identification string" to settings
+* Added current network type/generetaion, psc for UMTS and identification string to log
+* Improved current network type info. Now generation and type show in main screen as separate line
+* Fixed app crash on Samsung and Nexus (perhaps others) devices when using API 17+ option
+* Changed "Try use API 17+" to true by default
 
 #### version 1.1.2 (13.11.2014)
 * Added preset categories for mark name (choose preset file in options)

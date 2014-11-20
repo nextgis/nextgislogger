@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -37,12 +38,14 @@ public class MainActivity extends Activity {
 	public static final String csvMarkFilePath = dataDirPath + File.separator + "gsm_time_marks.csv";
 	public static final String csvMarkFilePathSensor = dataDirPath + File.separator + "sensor_time_marks.csv";
 
-	public static final String csvMarkHeader = "ID" + MainActivity.CSV_SEPARATOR + "Name" + MainActivity.CSV_SEPARATOR + "TimeStamp"
-			+ MainActivity.CSV_SEPARATOR + "Active" + MainActivity.CSV_SEPARATOR + "MCC" + MainActivity.CSV_SEPARATOR + "MNC" + MainActivity.CSV_SEPARATOR
-			+ "LAC" + MainActivity.CSV_SEPARATOR + "CID" + MainActivity.CSV_SEPARATOR + "PSC" + MainActivity.CSV_SEPARATOR + "RSSI";
+	public static final String csvMarkHeader = "ID" + MainActivity.CSV_SEPARATOR + "Name" + MainActivity.CSV_SEPARATOR + "User" + MainActivity.CSV_SEPARATOR
+			+ "TimeStamp" + MainActivity.CSV_SEPARATOR + "NetworkGen" + MainActivity.CSV_SEPARATOR + "NetworkType" + MainActivity.CSV_SEPARATOR + "Active" + MainActivity.CSV_SEPARATOR + "MCC" + MainActivity.CSV_SEPARATOR + "MNC"
+			+ MainActivity.CSV_SEPARATOR + "LAC" + MainActivity.CSV_SEPARATOR + "CID" + MainActivity.CSV_SEPARATOR + "PSC" + MainActivity.CSV_SEPARATOR
+			+ "RSSI";
 
-	public static final String csvHeaderSensor = "ID" + MainActivity.CSV_SEPARATOR + "Name" + MainActivity.CSV_SEPARATOR + "TimeStamp"
-			+ MainActivity.CSV_SEPARATOR + "Type" + MainActivity.CSV_SEPARATOR + "X" + MainActivity.CSV_SEPARATOR + "Y" + MainActivity.CSV_SEPARATOR + "Z";
+	public static final String csvHeaderSensor = "ID" + MainActivity.CSV_SEPARATOR + "Name" + MainActivity.CSV_SEPARATOR + "User" + MainActivity.CSV_SEPARATOR
+			+ "TimeStamp" + MainActivity.CSV_SEPARATOR + "Type" + MainActivity.CSV_SEPARATOR + "X" + MainActivity.CSV_SEPARATOR + "Y"
+			+ MainActivity.CSV_SEPARATOR + "Z";
 
 	public static final String logDefaultName = "ServiceLog";
 	public static final String markDefaultName = "Mark";
@@ -54,6 +57,7 @@ public class MainActivity extends Activity {
 	public static final String PREF_USE_API17 = "use_api17";
 	public static final String PREF_USE_CATS = "use_cats";
 	public static final String PREF_CAT_PATH = "cat_path";
+	public static final String PREF_USER_NAME = "user_name";
 
 	public static final String BROADCAST_ACTION = "com.nextgis.gsm_logger.MainActivity";
 
@@ -93,6 +97,8 @@ public class MainActivity extends Activity {
 	private SensorEngine sensorEngine;
 	private ServiceConnection servConn = null;
 	CustomArrayAdapter substringMarkNameAdapter;
+	
+	NetworkTypeChangeListener networkTypeListener;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -185,7 +191,10 @@ public class MainActivity extends Activity {
 
 						sb.append(ID).append(MainActivity.CSV_SEPARATOR);
 						sb.append(markName).append(MainActivity.CSV_SEPARATOR);
+						sb.append(pref.getString(PREF_USER_NAME, "User 1")).append(MainActivity.CSV_SEPARATOR);
 						sb.append(gsmInfo.getTimeStamp()).append(MainActivity.CSV_SEPARATOR);
+						sb.append(gsmInfo.networkGen()).append(MainActivity.CSV_SEPARATOR);
+						sb.append(gsmInfo.networkType()).append(MainActivity.CSV_SEPARATOR);
 						sb.append(active).append(MainActivity.CSV_SEPARATOR);
 						sb.append(gsmInfo.getMcc()).append(MainActivity.CSV_SEPARATOR);
 						sb.append(gsmInfo.getMnc()).append(MainActivity.CSV_SEPARATOR);
@@ -213,6 +222,7 @@ public class MainActivity extends Activity {
 
 						sb.append(ID).append(MainActivity.CSV_SEPARATOR);
 						sb.append(markName).append(CSV_SEPARATOR);
+						sb.append(pref.getString(PREF_USER_NAME, "User 1")).append(MainActivity.CSV_SEPARATOR);
 						sb.append(gsmInfoArray.get(0).getTimeStamp()).append(CSV_SEPARATOR);
 						sb.append(sensorEngine.getSensorType()).append(CSV_SEPARATOR);
 						sb.append(sensorEngine.getX()).append(CSV_SEPARATOR);
@@ -268,6 +278,8 @@ public class MainActivity extends Activity {
 		//            }
 		//        });
 
+		networkTypeListener = new NetworkTypeChangeListener((TextView) findViewById(R.id.tv_network_type_str));
+		
 		loggerStartedTime = (TextView) findViewById(R.id.tv_logger_started_time);
 		loggerFinishedTime = (TextView) findViewById(R.id.tv_logger_finished_time);
 		recordsCollectedCount = (TextView) findViewById(R.id.tv_records_collected_count);
@@ -350,15 +362,15 @@ public class MainActivity extends Activity {
 		else if (getPreferences(MODE_PRIVATE).getBoolean(PREF_SENSOR_STATE, true))
 			sensorEngine = new SensorEngine(this);
 
-		int networkType = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getNetworkType();
+//		int networkType = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getNetworkType();
 
-		if (!GSMEngine.isGSMNetwork(networkType)) {
-			errorMessage.setText(R.string.network_error);
-			errorMessage.setVisibility(View.VISIBLE);
-		} else
-			errorMessage.setVisibility(View.GONE);
+//		if (!GSMEngine.isGSMNetwork(networkType)) {
+//			errorMessage.setText(R.string.network_error);
+//			errorMessage.setVisibility(View.VISIBLE);
+//		} else
+//			errorMessage.setVisibility(View.GONE);
 
-		if (getPreferences(MODE_PRIVATE).getBoolean(PREF_USE_CATS, false)) {
+		if (getPreferences(MODE_PRIVATE).getBoolean(PREF_USE_CATS, false)) {	// reload file
 			List<MarkName> markNames = new ArrayList<MainActivity.MarkName>();
 
 			String catPath = getPreferences(MODE_PRIVATE).getString(PREF_CAT_PATH, "");
@@ -383,13 +395,16 @@ public class MainActivity extends Activity {
 				} catch (Exception other) {
 					Toast.makeText(this, R.string.cat_file_error, Toast.LENGTH_SHORT).show();
 				}
-				
+
 				substringMarkNameAdapter = new CustomArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, markNames);
 			}
 		} else
 			substringMarkNameAdapter = null;
-		
+
 		markTextEditor.setAdapter(substringMarkNameAdapter);
+
+		((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).listen(networkTypeListener,
+				PhoneStateListener.LISTEN_DATA_CONNECTION_STATE);
 	}
 
 	@Override
@@ -398,6 +413,9 @@ public class MainActivity extends Activity {
 
 		if (sensorEngine != null)
 			sensorEngine.onPause();
+
+		((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).listen(networkTypeListener,
+				PhoneStateListener.LISTEN_NONE);
 
 		super.onPause();
 	}
@@ -590,6 +608,22 @@ public class MainActivity extends Activity {
 
 		public String getCAT() {
 			return CAT;
+		}
+	}
+
+	private class NetworkTypeChangeListener extends PhoneStateListener {
+		
+		TextView tv;
+		
+		public NetworkTypeChangeListener(TextView tv) {
+			this.tv = tv;
+		}
+		
+		@Override
+		public void onDataConnectionStateChanged(int state, int networkType) {
+			super.onDataConnectionStateChanged(state, networkType);
+			
+			tv.setText(GSMEngine.getNetworkGen(networkType) + " / " + GSMEngine.getNetworkType(networkType));
 		}
 	}
 }
