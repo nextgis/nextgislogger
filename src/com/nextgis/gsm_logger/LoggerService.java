@@ -190,6 +190,7 @@ public class LoggerService extends Service {
                             sb.append(gsmInfo.getMnc()).append(MainActivity.CSV_SEPARATOR);
                             sb.append(gsmInfo.getLac()).append(MainActivity.CSV_SEPARATOR);
                             sb.append(gsmInfo.getCid()).append(MainActivity.CSV_SEPARATOR);
+    						sb.append(gsmInfo.getPsc()).append(MainActivity.CSV_SEPARATOR);
                             sb.append(gsmInfo.getRssi());
 
                             pw.println(sb.toString());

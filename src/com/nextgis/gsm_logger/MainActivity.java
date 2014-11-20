@@ -39,7 +39,7 @@ public class MainActivity extends Activity {
 
 	public static final String csvMarkHeader = "ID" + MainActivity.CSV_SEPARATOR + "Name" + MainActivity.CSV_SEPARATOR + "TimeStamp"
 			+ MainActivity.CSV_SEPARATOR + "Active" + MainActivity.CSV_SEPARATOR + "MCC" + MainActivity.CSV_SEPARATOR + "MNC" + MainActivity.CSV_SEPARATOR
-			+ "LAC" + MainActivity.CSV_SEPARATOR + "CID" + MainActivity.CSV_SEPARATOR + "RSSI";
+			+ "LAC" + MainActivity.CSV_SEPARATOR + "CID" + MainActivity.CSV_SEPARATOR + "PSC" + MainActivity.CSV_SEPARATOR + "RSSI";
 
 	public static final String csvHeaderSensor = "ID" + MainActivity.CSV_SEPARATOR + "Name" + MainActivity.CSV_SEPARATOR + "TimeStamp"
 			+ MainActivity.CSV_SEPARATOR + "Type" + MainActivity.CSV_SEPARATOR + "X" + MainActivity.CSV_SEPARATOR + "Y" + MainActivity.CSV_SEPARATOR + "Z";
@@ -191,6 +191,7 @@ public class MainActivity extends Activity {
 						sb.append(gsmInfo.getMnc()).append(MainActivity.CSV_SEPARATOR);
 						sb.append(gsmInfo.getLac()).append(MainActivity.CSV_SEPARATOR);
 						sb.append(gsmInfo.getCid()).append(MainActivity.CSV_SEPARATOR);
+						sb.append(gsmInfo.getPsc()).append(MainActivity.CSV_SEPARATOR);
 						sb.append(gsmInfo.getRssi());
 
 						pw.println(sb.toString());
