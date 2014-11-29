@@ -3,6 +3,10 @@ gsm_logger
 
 Productive GSM data logger for Android
 ***
+#### version 1.1.3.1 (29.11.2014)
+* Fixed app crash while delete characters fast in Mark Name edit
+* Possibly fixed GSM log headers
+
 #### version 1.1.3 (20.11.2014)
 * Added "Identification string" to settings
 * Added current network type/generetaion, psc for UMTS and identification string to log

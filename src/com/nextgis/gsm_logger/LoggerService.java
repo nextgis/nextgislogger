@@ -209,7 +209,7 @@ public class LoggerService extends Service {
                         {
                         	csvFile = new File(MainActivity.csvLogFilePathSensor);
                         	isFileExist = csvFile.exists();
-                        	pw = new PrintWriter(new OutputStreamWriter(new FileOutputStream(csvFile, true), "UTF-8"));
+                        	pw = new PrintWriter(new FileOutputStream(csvFile, true));
                         	
                         	if (!isFileExist)
                                 pw.println(MainActivity.csvHeaderSensor);
@@ -246,9 +246,7 @@ public class LoggerService extends Service {
 
                     } catch (InterruptedException e) {
                         break;
-                    } catch (UnsupportedEncodingException e) {
-						break;
-					}
+                    }
 
                     if (Thread.currentThread().isInterrupted())
                         break;

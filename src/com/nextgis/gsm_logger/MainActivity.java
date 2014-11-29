@@ -39,9 +39,9 @@ public class MainActivity extends Activity {
 	public static final String csvMarkFilePathSensor = dataDirPath + File.separator + "sensor_time_marks.csv";
 
 	public static final String csvMarkHeader = "ID" + MainActivity.CSV_SEPARATOR + "Name" + MainActivity.CSV_SEPARATOR + "User" + MainActivity.CSV_SEPARATOR
-			+ "TimeStamp" + MainActivity.CSV_SEPARATOR + "NetworkGen" + MainActivity.CSV_SEPARATOR + "NetworkType" + MainActivity.CSV_SEPARATOR + "Active" + MainActivity.CSV_SEPARATOR + "MCC" + MainActivity.CSV_SEPARATOR + "MNC"
-			+ MainActivity.CSV_SEPARATOR + "LAC" + MainActivity.CSV_SEPARATOR + "CID" + MainActivity.CSV_SEPARATOR + "PSC" + MainActivity.CSV_SEPARATOR
-			+ "RSSI";
+			+ "TimeStamp" + MainActivity.CSV_SEPARATOR + "NetworkGen" + MainActivity.CSV_SEPARATOR + "NetworkType" + MainActivity.CSV_SEPARATOR + "Active"
+			+ MainActivity.CSV_SEPARATOR + "MCC" + MainActivity.CSV_SEPARATOR + "MNC" + MainActivity.CSV_SEPARATOR + "LAC" + MainActivity.CSV_SEPARATOR + "CID"
+			+ MainActivity.CSV_SEPARATOR + "PSC" + MainActivity.CSV_SEPARATOR + "RSSI";
 
 	public static final String csvHeaderSensor = "ID" + MainActivity.CSV_SEPARATOR + "Name" + MainActivity.CSV_SEPARATOR + "User" + MainActivity.CSV_SEPARATOR
 			+ "TimeStamp" + MainActivity.CSV_SEPARATOR + "Type" + MainActivity.CSV_SEPARATOR + "X" + MainActivity.CSV_SEPARATOR + "Y"
@@ -97,7 +97,7 @@ public class MainActivity extends Activity {
 	private SensorEngine sensorEngine;
 	private ServiceConnection servConn = null;
 	CustomArrayAdapter substringMarkNameAdapter;
-	
+
 	NetworkTypeChangeListener networkTypeListener;
 
 	@Override
@@ -167,7 +167,8 @@ public class MainActivity extends Activity {
 				try {
 					File csvFile = new File(csvMarkFilePath);
 					boolean isFileExist = csvFile.exists();
-					PrintWriter pw = new PrintWriter(new OutputStreamWriter(new FileOutputStream(csvFile, true), "UTF-8"));
+					//					PrintWriter pw = new PrintWriter(new OutputStreamWriter(new FileOutputStream(csvFile, true), "UTF-8"));
+					PrintWriter pw = new PrintWriter(new FileOutputStream(csvFile, true));
 
 					if (!isFileExist) {
 						pw.println(csvMarkHeader);
@@ -235,9 +236,6 @@ public class MainActivity extends Activity {
 
 				} catch (FileNotFoundException e) {
 					setInterfaceState(R.string.fs_error_msg, true);
-				} catch (UnsupportedEncodingException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
 				}
 			}
 		});
@@ -279,7 +277,7 @@ public class MainActivity extends Activity {
 		//        });
 
 		networkTypeListener = new NetworkTypeChangeListener((TextView) findViewById(R.id.tv_network_type_str));
-		
+
 		loggerStartedTime = (TextView) findViewById(R.id.tv_logger_started_time);
 		loggerFinishedTime = (TextView) findViewById(R.id.tv_logger_finished_time);
 		recordsCollectedCount = (TextView) findViewById(R.id.tv_records_collected_count);
@@ -362,15 +360,15 @@ public class MainActivity extends Activity {
 		else if (getPreferences(MODE_PRIVATE).getBoolean(PREF_SENSOR_STATE, true))
 			sensorEngine = new SensorEngine(this);
 
-//		int networkType = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getNetworkType();
+		//		int networkType = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getNetworkType();
 
-//		if (!GSMEngine.isGSMNetwork(networkType)) {
-//			errorMessage.setText(R.string.network_error);
-//			errorMessage.setVisibility(View.VISIBLE);
-//		} else
-//			errorMessage.setVisibility(View.GONE);
+		//		if (!GSMEngine.isGSMNetwork(networkType)) {
+		//			errorMessage.setText(R.string.network_error);
+		//			errorMessage.setVisibility(View.VISIBLE);
+		//		} else
+		//			errorMessage.setVisibility(View.GONE);
 
-		if (getPreferences(MODE_PRIVATE).getBoolean(PREF_USE_CATS, false)) {	// reload file
+		if (getPreferences(MODE_PRIVATE).getBoolean(PREF_USE_CATS, false)) { // reload file
 			List<MarkName> markNames = new ArrayList<MainActivity.MarkName>();
 
 			String catPath = getPreferences(MODE_PRIVATE).getString(PREF_CAT_PATH, "");
@@ -403,8 +401,7 @@ public class MainActivity extends Activity {
 
 		markTextEditor.setAdapter(substringMarkNameAdapter);
 
-		((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).listen(networkTypeListener,
-				PhoneStateListener.LISTEN_DATA_CONNECTION_STATE);
+		((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).listen(networkTypeListener, PhoneStateListener.LISTEN_DATA_CONNECTION_STATE);
 	}
 
 	@Override
@@ -414,8 +411,7 @@ public class MainActivity extends Activity {
 		if (sensorEngine != null)
 			sensorEngine.onPause();
 
-		((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).listen(networkTypeListener,
-				PhoneStateListener.LISTEN_NONE);
+		((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).listen(networkTypeListener, PhoneStateListener.LISTEN_NONE);
 
 		super.onPause();
 	}
@@ -522,7 +518,7 @@ public class MainActivity extends Activity {
 
 	public class CustomArrayAdapter extends ArrayAdapter<String> implements Filterable {
 		private List<MarkName> objects;
-		private ArrayList<MarkName> matches;
+		private ArrayList<MarkName> matches = new ArrayList<MarkName>();;
 		private final CustomFilter substringFilter = new CustomFilter();
 
 		public CustomArrayAdapter(final Context ctx, final int selectDialogItem, final List<MarkName> objects) {
@@ -560,30 +556,34 @@ public class MainActivity extends Activity {
 			@Override
 			protected FilterResults performFiltering(final CharSequence prefix) {
 				final FilterResults results = new FilterResults();
-				matches = new ArrayList<MarkName>();
 
 				if (prefix != null && prefix.length() > 0) {
+					ArrayList<MarkName> resultList = new ArrayList<MarkName>();
+
 					for (MarkName item : objects) {
 						String CAT = getUpperString(item.getCAT());
 						String substr = getUpperString(prefix.toString());
 
 						if (CAT.contains(substr))
-							matches.add(item);
+							resultList.add(item);
 					}
 
-					results.count = matches.size();
+					results.count = resultList.size();
+					results.values = resultList;
 				}
-
-				results.values = matches;
 
 				return results;
 			}
 
+			@SuppressWarnings("unchecked")
 			@Override
 			protected void publishResults(final CharSequence constraint, final FilterResults results) {
-				if (results != null && results.count > 0)
+				if (results != null && results.count > 0) {
+					matches.clear();
+					matches.addAll((ArrayList<MarkName>)results.values);
+					
 					notifyDataSetChanged();
-				else
+				} else
 					notifyDataSetInvalidated();
 			}
 
@@ -612,17 +612,17 @@ public class MainActivity extends Activity {
 	}
 
 	private class NetworkTypeChangeListener extends PhoneStateListener {
-		
+
 		TextView tv;
-		
+
 		public NetworkTypeChangeListener(TextView tv) {
 			this.tv = tv;
 		}
-		
+
 		@Override
 		public void onDataConnectionStateChanged(int state, int networkType) {
 			super.onDataConnectionStateChanged(state, networkType);
-			
+
 			tv.setText(GSMEngine.getNetworkGen(networkType) + " / " + GSMEngine.getNetworkType(networkType));
 		}
 	}
