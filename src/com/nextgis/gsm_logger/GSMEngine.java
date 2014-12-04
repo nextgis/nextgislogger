@@ -76,6 +76,7 @@ public class GSMEngine {
 		// 2G -- GSM network
 		case TelephonyManager.NETWORK_TYPE_GPRS: // API 1+
 		case TelephonyManager.NETWORK_TYPE_EDGE: // API 1+
+			// getRssi() returns ASU for GSM
 			if (0 <= asu && asu <= 31) {
 				return 2 * asu - 113;
 			} else if (asu == 99) {
@@ -89,12 +90,14 @@ public class GSMEngine {
 		case TelephonyManager.NETWORK_TYPE_HSDPA: // API 5+
 		case TelephonyManager.NETWORK_TYPE_HSUPA: // API 5+
 		case TelephonyManager.NETWORK_TYPE_HSPAP: // API 5+
-			if (-5 <= asu && asu <= 91) {
-				return asu - 116;
-			} else if (asu == 255) {
-				return 0;
-			}
-			break;
+			// getRssi() returns RSCP for UMTS
+//			if (-5 <= asu && asu <= 91) {
+//				return asu - 116;
+//			} else if (asu == 255) {
+//				return 0;
+//			}
+			return asu; 
+//			break;
 
 		// 4G -- LTE network
 		//            case TelephonyManager.NETWORK_TYPE_LTE : // API 11+

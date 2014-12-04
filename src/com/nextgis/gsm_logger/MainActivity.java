@@ -3,6 +3,8 @@ package com.nextgis.gsm_logger;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.*;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
@@ -41,7 +43,7 @@ public class MainActivity extends Activity {
 	public static final String csvMarkHeader = "ID" + MainActivity.CSV_SEPARATOR + "Name" + MainActivity.CSV_SEPARATOR + "User" + MainActivity.CSV_SEPARATOR
 			+ "TimeStamp" + MainActivity.CSV_SEPARATOR + "NetworkGen" + MainActivity.CSV_SEPARATOR + "NetworkType" + MainActivity.CSV_SEPARATOR + "Active"
 			+ MainActivity.CSV_SEPARATOR + "MCC" + MainActivity.CSV_SEPARATOR + "MNC" + MainActivity.CSV_SEPARATOR + "LAC" + MainActivity.CSV_SEPARATOR + "CID"
-			+ MainActivity.CSV_SEPARATOR + "PSC" + MainActivity.CSV_SEPARATOR + "RSSI";
+			+ MainActivity.CSV_SEPARATOR + "PSC" + MainActivity.CSV_SEPARATOR + "RSSI/RSCP";
 
 	public static final String csvHeaderSensor = "ID" + MainActivity.CSV_SEPARATOR + "Name" + MainActivity.CSV_SEPARATOR + "User" + MainActivity.CSV_SEPARATOR
 			+ "TimeStamp" + MainActivity.CSV_SEPARATOR + "Type" + MainActivity.CSV_SEPARATOR + "X" + MainActivity.CSV_SEPARATOR + "Y"
@@ -58,6 +60,7 @@ public class MainActivity extends Activity {
 	public static final String PREF_USE_CATS = "use_cats";
 	public static final String PREF_CAT_PATH = "cat_path";
 	public static final String PREF_USER_NAME = "user_name";
+	public static final String CAT_FILE = "categories.csv";
 
 	public static final String BROADCAST_ACTION = "com.nextgis.gsm_logger.MainActivity";
 
@@ -158,6 +161,8 @@ public class MainActivity extends Activity {
 		markTextEditor.requestFocus();
 
 		final SharedPreferences pref = getPreferences(MODE_PRIVATE);
+		updateApplicationStructure(pref);
+		
 		if (pref.getBoolean(PREF_SENSOR_STATE, true))
 			sensorEngine = new SensorEngine(this);
 
@@ -210,6 +215,9 @@ public class MainActivity extends Activity {
 					pw.close();
 					marksCollectedCount.setText(++marksCount + "");
 
+					Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(csvFile));
+			    	sendBroadcast(intent);
+
 					// checking accelerometer data state
 					if (pref.getBoolean(PREF_SENSOR_STATE, true)) {
 						csvFile = new File(csvMarkFilePathSensor);
@@ -232,6 +240,9 @@ public class MainActivity extends Activity {
 
 						pw.println(sb.toString());
 						pw.close();
+
+						intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(csvFile));
+				    	sendBroadcast(intent);
 					}
 
 				} catch (FileNotFoundException e) {
@@ -371,26 +382,29 @@ public class MainActivity extends Activity {
 		if (getPreferences(MODE_PRIVATE).getBoolean(PREF_USE_CATS, false)) { // reload file
 			List<MarkName> markNames = new ArrayList<MainActivity.MarkName>();
 
-			String catPath = getPreferences(MODE_PRIVATE).getString(PREF_CAT_PATH, "");
-			File cats = new File(catPath);
+			String internalPath = getFilesDir().getAbsolutePath();
+			File cats = new File(internalPath + "/" + CAT_FILE);
 
 			if (cats.isFile()) {
 				BufferedReader in;
 				String[] split;
 
 				try {
-					in = new BufferedReader(new FileReader(catPath));
+					in = new BufferedReader(new FileReader(cats));
 					String line;
 
 					while ((line = in.readLine()) != null) {
 						split = line.split(",");
 						markNames.add(new MarkName(split[0], split[1]));
 					}
-				} catch (FileNotFoundException e) {
-					Toast.makeText(this, "No file found in " + catPath, Toast.LENGTH_LONG).show();
+					
+					in.close();
+					
+					if (markNames.size() == 0)
+						throw new ArrayIndexOutOfBoundsException();
 				} catch (IOException e) {
 					Toast.makeText(this, R.string.fs_error_msg, Toast.LENGTH_SHORT).show();
-				} catch (Exception other) {
+				} catch (ArrayIndexOutOfBoundsException e) {
 					Toast.makeText(this, R.string.cat_file_error, Toast.LENGTH_SHORT).show();
 				}
 
@@ -516,6 +530,57 @@ public class MainActivity extends Activity {
 		return formatter.format(calendar.getTime());
 	}
 
+	private void updateApplicationStructure(SharedPreferences prefs)
+	{
+//		String lastVersion = "version";
+		
+		//			if(prefs.getInt(lastVersion, 0) < getPackageManager().getPackageInfo(getPackageName(), 0).versionCode)
+		if(getPreferences(MODE_PRIVATE).contains(PREF_CAT_PATH))
+		{	// update from previous version or clean install
+			// ==========Improvement==========
+			String catPath = getPreferences(MODE_PRIVATE).getString(PREF_CAT_PATH, "");
+			String info;
+			
+			File fromCats = new File(catPath);
+
+			String internalPath = getFilesDir().getAbsolutePath();
+			File toCats = new File(internalPath + "/" + MainActivity.CAT_FILE);
+
+			try {
+				PrintWriter pw = new PrintWriter(new FileOutputStream(toCats, false));
+				BufferedReader in = new BufferedReader(new FileReader(fromCats));
+
+				String[] split;
+				String line;
+
+				while ((line = in.readLine()) != null) {
+					split = line.split(",");
+
+					if (split.length != 2) {
+						in.close();
+						pw.close();
+						throw new ArrayIndexOutOfBoundsException("Must be two columns splitted by ','!");
+					} else
+						pw.println(line);
+				}
+
+				in.close();
+				pw.close();
+
+				info = "Categories loaded from " + catPath;
+			} catch (Exception e) {
+				info = "Please reload categories file";
+			}
+			
+			prefs.edit().remove(PREF_CAT_PATH).commit();
+			Toast.makeText(this, info, Toast.LENGTH_LONG).show();
+			// ==========End Improvement==========
+			
+			// save current version to preferences
+//				prefs.edit().putInt(lastVersion, getPackageManager().getPackageInfo(getPackageName(), 0).versionCode).commit();
+		}
+	}
+	
 	public class CustomArrayAdapter extends ArrayAdapter<String> implements Filterable {
 		private List<MarkName> objects;
 		private ArrayList<MarkName> matches = new ArrayList<MarkName>();;

@@ -6,6 +6,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.PowerManager;
@@ -18,260 +19,237 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
-
 public class LoggerService extends Service {
 
-    private static long timeStart = 0;
-    private static int recordsCount = 0;
+	private static long timeStart = 0;
+	private static int recordsCount = 0;
 
-    private boolean isRunning = false;
-    private boolean isSensor = true;
+	private boolean isRunning = false;
+	private boolean isSensor = true;
 
-    private GSMEngine gsmEngine;
-    private SensorEngine sensorEngine;
-    private Thread thread = null;
-    private LocalBinder localBinder = new LocalBinder();
+	private GSMEngine gsmEngine;
+	private SensorEngine sensorEngine;
+	private Thread thread = null;
+	private LocalBinder localBinder = new LocalBinder();
 
+	public class LocalBinder extends Binder {
+		public LoggerService getService() {
+			return LoggerService.this;
+		}
+	}
 
-    public class LocalBinder extends Binder {
-        public LoggerService getService() {
-            return LoggerService.this;
-        }
-    }
+	@Override
+	public void onCreate() {
+		super.onCreate();
 
+		//android.os.Debug.waitForDebugger();
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
+		if (timeStart == 0) {
+			timeStart = System.currentTimeMillis();
+		}
 
-        //android.os.Debug.waitForDebugger();
+		gsmEngine = new GSMEngine(this);
+		gsmEngine.onResume();
 
-        if (timeStart == 0) {
-            timeStart = System.currentTimeMillis();
-        }
+		isSensor = getSharedPreferences(MainActivity.PREFERENCE_NAME, MODE_PRIVATE).getBoolean(MainActivity.PREF_SENSOR_STATE, true);
 
-        gsmEngine = new GSMEngine(this);
-        gsmEngine.onResume();
-        
-        isSensor = getSharedPreferences(MainActivity.PREFERENCE_NAME, MODE_PRIVATE).getBoolean(MainActivity.PREF_SENSOR_STATE, true);
-        
-        if (isSensor)
-        	sensorEngine = new SensorEngine(this);
-    }
+		if (isSensor)
+			sensorEngine = new SensorEngine(this);
+	}
 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
+	@Override
+	public int onStartCommand(Intent intent, int flags, int startId) {
 
-        //android.os.Debug.waitForDebugger();
+		//android.os.Debug.waitForDebugger();
 
-        if (!isRunning) {
-            isRunning = true;
-            sendNotification();
-            RunTask();
-        }
+		if (!isRunning) {
+			isRunning = true;
+			sendNotification();
+			RunTask();
+		}
 
-        return super.onStartCommand(intent, flags, startId);
-    }
+		return super.onStartCommand(intent, flags, startId);
+	}
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
 
-        //android.os.Debug.waitForDebugger();
+		//android.os.Debug.waitForDebugger();
 
-        gsmEngine.onPause();
+		gsmEngine.onPause();
 
-        if (sensorEngine != null)
-        	sensorEngine.onPause();
+		if (sensorEngine != null)
+			sensorEngine.onPause();
 
-        if (thread != null) {
-            thread.interrupt();
-        }
-    }
+		if (thread != null) {
+			thread.interrupt();
+		}
+	}
 
-    @Override
-    public IBinder onBind(Intent intent) {
-        return localBinder;
-    }
+	@Override
+	public IBinder onBind(Intent intent) {
+		return localBinder;
+	}
 
-    private void sendNotification() {
+	private void sendNotification() {
 
-        //android.os.Debug.waitForDebugger();
+		//android.os.Debug.waitForDebugger();
 
-        Notification notif = new Notification(
-                R.drawable.antenna,
-                getString(R.string.service_notif_title),
-                System.currentTimeMillis());
+		Notification notif = new Notification(R.drawable.antenna, getString(R.string.service_notif_title), System.currentTimeMillis());
 
-        Intent intentNotif = new Intent(this, MainActivity.class);
-        PendingIntent pintent = PendingIntent.getActivity(this, 0, intentNotif, 0);
+		Intent intentNotif = new Intent(this, MainActivity.class);
+		PendingIntent pintent = PendingIntent.getActivity(this, 0, intentNotif, 0);
 
-        notif.setLatestEventInfo(this,
-                getString(R.string.service_notif_title),
-                getString(R.string.service_notif_text),
-                pintent);
+		notif.setLatestEventInfo(this, getString(R.string.service_notif_title), getString(R.string.service_notif_text), pintent);
 
-        startForeground(1, notif);
-    }
+		startForeground(1, notif);
+	}
 
-    private void sendErrorNotification() {
+	private void sendErrorNotification() {
 
-        //android.os.Debug.waitForDebugger();
+		//android.os.Debug.waitForDebugger();
 
-        NotificationManager notificationManager =
-                (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+		NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
-        Notification notif = new Notification(
-                R.drawable.antenna,
-                getString(R.string.service_notif_title),
-                System.currentTimeMillis());
+		Notification notif = new Notification(R.drawable.antenna, getString(R.string.service_notif_title), System.currentTimeMillis());
 
-        PendingIntent pIntentNotif = PendingIntent.getActivity(this, 0, new Intent(), 0);
+		PendingIntent pIntentNotif = PendingIntent.getActivity(this, 0, new Intent(), 0);
 
-        notif.setLatestEventInfo(this,
-                getString(R.string.service_notif_title),
-                getString(R.string.fs_error_msg),
-                pIntentNotif);
+		notif.setLatestEventInfo(this, getString(R.string.service_notif_title), getString(R.string.fs_error_msg), pIntentNotif);
 
-        notif.flags |= Notification.FLAG_AUTO_CANCEL;
-        notificationManager.notify(2, notif);
-    }
+		notif.flags |= Notification.FLAG_AUTO_CANCEL;
+		notificationManager.notify(2, notif);
+	}
 
-    public long getTimeStart() {
-        return timeStart;
-    }
+	public long getTimeStart() {
+		return timeStart;
+	}
 
-    public int getRecordsCount() {
-        return recordsCount;
-    }
+	public int getRecordsCount() {
+		return recordsCount;
+	}
 
-    private void RunTask() {
-        //android.os.Debug.waitForDebugger();
+	private void RunTask() {
+		//android.os.Debug.waitForDebugger();
 
-        thread = new Thread(new Runnable() {
-            public void run() {
+		thread = new Thread(new Runnable() {
+			public void run() {
 
-                boolean isFileSystemError = false;
-                Intent intentStatus = new Intent(MainActivity.BROADCAST_ACTION);
+				boolean isFileSystemError = false;
+				Intent intentStatus = new Intent(MainActivity.BROADCAST_ACTION);
 
-                intentStatus
-                        .putExtra(MainActivity.PARAM_SERVICE_STATUS, MainActivity.STATUS_STARTED)
-                        .putExtra(MainActivity.PARAM_TIME, timeStart);
-                sendBroadcast(intentStatus);
-                
-                PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
-                PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "GSMLoggerWakeLock");
-                wakeLock.acquire();
+				intentStatus.putExtra(MainActivity.PARAM_SERVICE_STATUS, MainActivity.STATUS_STARTED).putExtra(MainActivity.PARAM_TIME, timeStart);
+				sendBroadcast(intentStatus);
 
-                while (true) {
+				PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
+				PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "GSMLoggerWakeLock");
+				wakeLock.acquire();
 
-                    try {
-                    	SharedPreferences prefs = getSharedPreferences(MainActivity.PREFERENCE_NAME, MODE_PRIVATE);
-                        File csvFile = new File(MainActivity.csvLogFilePath);
-                        boolean isFileExist = csvFile.exists();
-                        PrintWriter pw = new PrintWriter(new FileOutputStream(csvFile, true));
+				while (true) {
 
-                        if (!isFileExist) {
-                            pw.println(MainActivity.csvMarkHeader);
-                        }
+					try {
+						SharedPreferences prefs = getSharedPreferences(MainActivity.PREFERENCE_NAME, MODE_PRIVATE);
+						File csvFile = new File(MainActivity.csvLogFilePath);
+						boolean isFileExist = csvFile.exists();
+						PrintWriter pw = new PrintWriter(new FileOutputStream(csvFile, true));
 
-                        ArrayList<GSMEngine.GSMInfo> gsmInfoArray = gsmEngine.getGSMInfoArray();
+						if (!isFileExist) {
+							pw.println(MainActivity.csvMarkHeader);
+						}
 
-                        for (GSMEngine.GSMInfo gsmInfo : gsmInfoArray) {
-                            StringBuilder sb = new StringBuilder();
+						ArrayList<GSMEngine.GSMInfo> gsmInfoArray = gsmEngine.getGSMInfoArray();
 
-                            String active = gsmInfo.isActive() ? "1"
-                                    : gsmInfoArray.get(0).getMcc() + "-" +
-                                    gsmInfoArray.get(0).getMnc() + "-" +
-                                    gsmInfoArray.get(0).getLac() + "-" +
-                                    gsmInfoArray.get(0).getCid();
+						for (GSMEngine.GSMInfo gsmInfo : gsmInfoArray) {
+							StringBuilder sb = new StringBuilder();
 
-    						sb.append("").append(MainActivity.CSV_SEPARATOR);
-                            sb.append(MainActivity.logDefaultName).append(MainActivity.CSV_SEPARATOR);
-    						sb.append(prefs.getString(MainActivity.PREF_USER_NAME, "User 1")).append(MainActivity.CSV_SEPARATOR);
-                            sb.append(gsmInfo.getTimeStamp()).append(MainActivity.CSV_SEPARATOR);
-    						sb.append(gsmInfo.networkGen()).append(MainActivity.CSV_SEPARATOR);
-    						sb.append(gsmInfo.networkType()).append(MainActivity.CSV_SEPARATOR);
-                            sb.append(active).append(MainActivity.CSV_SEPARATOR);
-                            sb.append(gsmInfo.getMcc()).append(MainActivity.CSV_SEPARATOR);
-                            sb.append(gsmInfo.getMnc()).append(MainActivity.CSV_SEPARATOR);
-                            sb.append(gsmInfo.getLac()).append(MainActivity.CSV_SEPARATOR);
-                            sb.append(gsmInfo.getCid()).append(MainActivity.CSV_SEPARATOR);
-    						sb.append(gsmInfo.getPsc()).append(MainActivity.CSV_SEPARATOR);
-                            sb.append(gsmInfo.getRssi());
+							String active = gsmInfo.isActive() ? "1" : gsmInfoArray.get(0).getMcc() + "-" + gsmInfoArray.get(0).getMnc() + "-"
+									+ gsmInfoArray.get(0).getLac() + "-" + gsmInfoArray.get(0).getCid();
 
-                            pw.println(sb.toString());
-                        }
+							sb.append("").append(MainActivity.CSV_SEPARATOR);
+							sb.append(MainActivity.logDefaultName).append(MainActivity.CSV_SEPARATOR);
+							sb.append(prefs.getString(MainActivity.PREF_USER_NAME, "User 1")).append(MainActivity.CSV_SEPARATOR);
+							sb.append(gsmInfo.getTimeStamp()).append(MainActivity.CSV_SEPARATOR);
+							sb.append(gsmInfo.networkGen()).append(MainActivity.CSV_SEPARATOR);
+							sb.append(gsmInfo.networkType()).append(MainActivity.CSV_SEPARATOR);
+							sb.append(active).append(MainActivity.CSV_SEPARATOR);
+							sb.append(gsmInfo.getMcc()).append(MainActivity.CSV_SEPARATOR);
+							sb.append(gsmInfo.getMnc()).append(MainActivity.CSV_SEPARATOR);
+							sb.append(gsmInfo.getLac()).append(MainActivity.CSV_SEPARATOR);
+							sb.append(gsmInfo.getCid()).append(MainActivity.CSV_SEPARATOR);
+							sb.append(gsmInfo.getPsc()).append(MainActivity.CSV_SEPARATOR);
+							sb.append(gsmInfo.getRssi());
 
-                        pw.close();
-                        
-                        if (isSensor)
-                        {
-                        	csvFile = new File(MainActivity.csvLogFilePathSensor);
-                        	isFileExist = csvFile.exists();
-                        	pw = new PrintWriter(new FileOutputStream(csvFile, true));
-                        	
-                        	if (!isFileExist)
-                                pw.println(MainActivity.csvHeaderSensor);
-                        	
-                        	StringBuilder sb = new StringBuilder();
+							pw.println(sb.toString());
+						}
 
-    						sb.append("").append(MainActivity.CSV_SEPARATOR);
-                            sb.append(MainActivity.logDefaultName).append(MainActivity.CSV_SEPARATOR);
-    						sb.append(prefs.getString(MainActivity.PREF_USER_NAME, "User 1")).append(MainActivity.CSV_SEPARATOR);
-                            sb.append(gsmInfoArray.get(0).getTimeStamp()).append(MainActivity.CSV_SEPARATOR);
-                            sb.append(sensorEngine.getSensorType()).append(MainActivity.CSV_SEPARATOR);
-                            sb.append(sensorEngine.getX()).append(MainActivity.CSV_SEPARATOR);
-                            sb.append(sensorEngine.getY()).append(MainActivity.CSV_SEPARATOR);
-                            sb.append(sensorEngine.getZ());
+						pw.close();
+						
+						Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(csvFile));
+				    	sendBroadcast(intent);
 
-                            pw.println(sb.toString());
-                        	pw.close();
-                        }
+						if (isSensor) {
+							csvFile = new File(MainActivity.csvLogFilePathSensor);
+							isFileExist = csvFile.exists();
+							pw = new PrintWriter(new FileOutputStream(csvFile, true));
 
-                        intentStatus
-                                .putExtra(
-                                        MainActivity.PARAM_SERVICE_STATUS,
-                                        MainActivity.STATUS_RUNNING)
-                                .putExtra(
-                                        MainActivity.PARAM_RECORDS_COUNT, ++recordsCount);
+							if (!isFileExist)
+								pw.println(MainActivity.csvHeaderSensor);
 
-                        sendBroadcast(intentStatus);
+							StringBuilder sb = new StringBuilder();
 
-                        Thread.sleep(prefs.getInt(MainActivity.PREF_PERIOD_SEC, 1) * 1000);
+							sb.append("").append(MainActivity.CSV_SEPARATOR);
+							sb.append(MainActivity.logDefaultName).append(MainActivity.CSV_SEPARATOR);
+							sb.append(prefs.getString(MainActivity.PREF_USER_NAME, "User 1")).append(MainActivity.CSV_SEPARATOR);
+							sb.append(gsmInfoArray.get(0).getTimeStamp()).append(MainActivity.CSV_SEPARATOR);
+							sb.append(sensorEngine.getSensorType()).append(MainActivity.CSV_SEPARATOR);
+							sb.append(sensorEngine.getX()).append(MainActivity.CSV_SEPARATOR);
+							sb.append(sensorEngine.getY()).append(MainActivity.CSV_SEPARATOR);
+							sb.append(sensorEngine.getZ());
 
-                    } catch (FileNotFoundException e) {
-                        isFileSystemError = true;
-                        break;
+							pw.println(sb.toString());
+							pw.close();
 
-                    } catch (InterruptedException e) {
-                        break;
-                    }
+							intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(csvFile));
+					    	sendBroadcast(intent);
+						}
 
-                    if (Thread.currentThread().isInterrupted())
-                        break;
-                }
-                
-                wakeLock.release();
+						intentStatus.putExtra(MainActivity.PARAM_SERVICE_STATUS, MainActivity.STATUS_RUNNING).putExtra(MainActivity.PARAM_RECORDS_COUNT,
+								++recordsCount);
 
-                if (isFileSystemError) {
-                    sendErrorNotification();
-                    intentStatus.putExtra(
-                            MainActivity.PARAM_SERVICE_STATUS, MainActivity.STATUS_ERROR);
+						sendBroadcast(intentStatus);
 
-                } else {
-                    intentStatus
-                            .putExtra(
-                                    MainActivity.PARAM_SERVICE_STATUS, MainActivity.STATUS_FINISHED)
-                            .putExtra(MainActivity.PARAM_TIME, System.currentTimeMillis());
+						Thread.sleep(prefs.getInt(MainActivity.PREF_PERIOD_SEC, 1) * 1000);
 
-                }
-                sendBroadcast(intentStatus);
+					} catch (FileNotFoundException e) {
+						isFileSystemError = true;
+						break;
 
-                stopSelf();
-            }
-        });
+					} catch (InterruptedException e) {
+						break;
+					}
 
-        thread.start();
-    }
+					if (Thread.currentThread().isInterrupted())
+						break;
+				}
+
+				wakeLock.release();
+
+				if (isFileSystemError) {
+					sendErrorNotification();
+					intentStatus.putExtra(MainActivity.PARAM_SERVICE_STATUS, MainActivity.STATUS_ERROR);
+
+				} else {
+					intentStatus.putExtra(MainActivity.PARAM_SERVICE_STATUS, MainActivity.STATUS_FINISHED).putExtra(MainActivity.PARAM_TIME,
+							System.currentTimeMillis());
+
+				}
+				sendBroadcast(intentStatus);
+
+				stopSelf();
+			}
+		});
+
+		thread.start();
+	}
 }

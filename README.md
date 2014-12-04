@@ -3,6 +3,12 @@ gsm_logger
 
 Productive GSM data logger for Android
 ***
+#### version 1.1.4 (04.12.2014)
+* Fixed signal strength for 3G network below API 17 method (RSCP shows instead 0)
+* Fixed results directory visibility on external storage through MTP
+* Portrait orientation only in main activity 
+* Improved categories file storage (may require reload file)
+
 #### version 1.1.3.1 (29.11.2014)
 * Fixed app crash while delete characters fast in Mark Name edit
 * Possibly fixed GSM log headers

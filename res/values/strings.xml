@@ -12,8 +12,8 @@
     <string name="settings_cells_api17">Try use API 17+ to find nearby cells</string>
     <string name="settings_cells_api17_sum">Available on Android 4.2 or above\r\nCould help for some devices if default method doesn\'t work</string>
     <string name="settings_cats">Use categories file</string>
-    <string name="settings_cats_sum">Load mark name presets from file</string>
-    <string name="settings_cat_path">Select categories file</string>
+    <string name="settings_cats_sum">Mark name presets for text field</string>
+    <string name="settings_cat_path">Load mark name presets from file…</string>
     <string name="settings_user_name">Identification string (optional)</string>
     <string name="settings_user_name_def">User 1</string>
     
@@ -33,6 +33,7 @@
     <string name="service_stopped">stopped</string>
     <string name="network_error">Current network IS NOT GSM.</string>
     <string name="sensor_error">No linear accelerometer found</string>
-    <string name="cat_file_error">Wrong categories file structure</string>
+    <string name="cat_file_structure_error">Wrong categories file structure</string>
+    <string name="cat_file_error">No categories, please reload presets</string>
     <string name="network_type">Network type:</string>
 </resources>
