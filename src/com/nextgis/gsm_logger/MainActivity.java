@@ -99,7 +99,7 @@ public class MainActivity extends Activity {
 	private GSMEngine gsmEngine;
 	private SensorEngine sensorEngine;
 	private ServiceConnection servConn = null;
-	CustomArrayAdapter substringMarkNameAdapter;
+//	CustomArrayAdapter substringMarkNameAdapter;
 
 	NetworkTypeChangeListener networkTypeListener;
 
@@ -180,7 +180,8 @@ public class MainActivity extends Activity {
 					}
 
 					String markName = markTextEditor.getText().toString();
-					String ID = substringMarkNameAdapter == null ? "" : substringMarkNameAdapter.getSelectedMarkNameID(markTextEditor.getText().toString());
+//					String ID = substringMarkNameAdapter == null ? "" : substringMarkNameAdapter.getSelectedMarkNameID(markTextEditor.getText().toString());
+					String ID = "";	// FIXME
 					markTextEditor.setText("");
 
 					if (markName.length() == 0) {
@@ -379,41 +380,41 @@ public class MainActivity extends Activity {
 		//		} else
 		//			errorMessage.setVisibility(View.GONE);
 
-		if (getPreferences(MODE_PRIVATE).getBoolean(PREF_USE_CATS, false)) { // reload file
-			List<MarkName> markNames = new ArrayList<MainActivity.MarkName>();
-
-			String internalPath = getFilesDir().getAbsolutePath();
-			File cats = new File(internalPath + "/" + CAT_FILE);
-
-			if (cats.isFile()) {
-				BufferedReader in;
-				String[] split;
-
-				try {
-					in = new BufferedReader(new FileReader(cats));
-					String line;
-
-					while ((line = in.readLine()) != null) {
-						split = line.split(",");
-						markNames.add(new MarkName(split[0], split[1]));
-					}
-					
-					in.close();
-					
-					if (markNames.size() == 0)
-						throw new ArrayIndexOutOfBoundsException();
-				} catch (IOException e) {
-					Toast.makeText(this, R.string.fs_error_msg, Toast.LENGTH_SHORT).show();
-				} catch (ArrayIndexOutOfBoundsException e) {
-					Toast.makeText(this, R.string.cat_file_error, Toast.LENGTH_SHORT).show();
-				}
-
-				substringMarkNameAdapter = new CustomArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, markNames);
-			}
-		} else
-			substringMarkNameAdapter = null;
-
-		markTextEditor.setAdapter(substringMarkNameAdapter);
+//		if (getPreferences(MODE_PRIVATE).getBoolean(PREF_USE_CATS, false)) { // reload file
+//			List<MarkName> markNames = new ArrayList<MainActivity.MarkName>();
+//
+//			String internalPath = getFilesDir().getAbsolutePath();
+//			File cats = new File(internalPath + "/" + CAT_FILE);
+//
+//			if (cats.isFile()) {
+//				BufferedReader in;
+//				String[] split;
+//
+//				try {
+//					in = new BufferedReader(new FileReader(cats));
+//					String line;
+//
+//					while ((line = in.readLine()) != null) {
+//						split = line.split(",");
+//						markNames.add(new MarkName(split[0], split[1]));
+//					}
+//					
+//					in.close();
+//					
+//					if (markNames.size() == 0)
+//						throw new ArrayIndexOutOfBoundsException();
+//				} catch (IOException e) {
+//					Toast.makeText(this, R.string.fs_error_msg, Toast.LENGTH_SHORT).show();
+//				} catch (ArrayIndexOutOfBoundsException e) {
+//					Toast.makeText(this, R.string.cat_file_error, Toast.LENGTH_SHORT).show();
+//				}
+//
+//				substringMarkNameAdapter = new CustomArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, markNames);
+//			}
+//		} else
+//			substringMarkNameAdapter = null;
+//
+//		markTextEditor.setAdapter(substringMarkNameAdapter);
 
 		((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).listen(networkTypeListener, PhoneStateListener.LISTEN_DATA_CONNECTION_STATE);
 	}
@@ -581,101 +582,6 @@ public class MainActivity extends Activity {
 		}
 	}
 	
-	public class CustomArrayAdapter extends ArrayAdapter<String> implements Filterable {
-		private List<MarkName> objects;
-		private ArrayList<MarkName> matches = new ArrayList<MarkName>();;
-		private final CustomFilter substringFilter = new CustomFilter();
-
-		public CustomArrayAdapter(final Context ctx, final int selectDialogItem, final List<MarkName> objects) {
-			super(ctx, selectDialogItem);
-			this.objects = objects;
-		}
-
-		@Override
-		public Filter getFilter() {
-			return substringFilter;
-		}
-
-		@Override
-		public int getCount() {
-			return matches.size();
-		}
-
-		@Override
-		public String getItem(int position) {
-			return matches.get(position).getCAT();
-		}
-
-		public String getSelectedMarkNameID(String prefix) {
-			for (MarkName item : objects) {
-				String CAT = substringFilter.getUpperString(item.getCAT());
-
-				if (CAT.equals(substringFilter.getUpperString(prefix)))
-					return item.getID();
-			}
-
-			return "";
-		}
-
-		private class CustomFilter extends Filter {
-			@Override
-			protected FilterResults performFiltering(final CharSequence prefix) {
-				final FilterResults results = new FilterResults();
-
-				if (prefix != null && prefix.length() > 0) {
-					ArrayList<MarkName> resultList = new ArrayList<MarkName>();
-
-					for (MarkName item : objects) {
-						String CAT = getUpperString(item.getCAT());
-						String substr = getUpperString(prefix.toString());
-
-						if (CAT.contains(substr))
-							resultList.add(item);
-					}
-
-					results.count = resultList.size();
-					results.values = resultList;
-				}
-
-				return results;
-			}
-
-			@SuppressWarnings("unchecked")
-			@Override
-			protected void publishResults(final CharSequence constraint, final FilterResults results) {
-				if (results != null && results.count > 0) {
-					matches.clear();
-					matches.addAll((ArrayList<MarkName>)results.values);
-					
-					notifyDataSetChanged();
-				} else
-					notifyDataSetInvalidated();
-			}
-
-			public String getUpperString(String str) {
-				return str.toUpperCase(Locale.getDefault());
-			}
-		}
-	}
-
-	public class MarkName {
-		private String ID = "";
-		private String CAT = "Mark";
-
-		public MarkName(String ID, String CAT) {
-			this.ID = ID;
-			this.CAT = CAT;
-		}
-
-		public String getID() {
-			return ID;
-		}
-
-		public String getCAT() {
-			return CAT;
-		}
-	}
-
 	private class NetworkTypeChangeListener extends PhoneStateListener {
 
 		TextView tv;

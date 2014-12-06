@@ -36,4 +36,6 @@
     <string name="cat_file_structure_error">Wrong categories file structure</string>
     <string name="cat_file_error">No categories, please reload presets</string>
     <string name="network_type">Network type:</string>
+    
+    <string name="menu_search">Markers</string>
 </resources>

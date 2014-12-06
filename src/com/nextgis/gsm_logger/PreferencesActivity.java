@@ -2,16 +2,11 @@ package com.nextgis.gsm_logger;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import com.nextgis.gsm_logger.MainActivity.CustomArrayAdapter;
-import com.nextgis.gsm_logger.MainActivity.MarkName;
-
-import android.animation.ArgbEvaluator;
 import android.app.Activity;
 import android.content.Context;
 import android.hardware.Sensor;
