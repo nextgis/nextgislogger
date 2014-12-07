@@ -51,7 +51,7 @@ public class LoggerService extends Service {
 		gsmEngine = new GSMEngine(this);
 		gsmEngine.onResume();
 
-		isSensor = getSharedPreferences(MainActivity.PREFERENCE_NAME, MODE_PRIVATE).getBoolean(MainActivity.PREF_SENSOR_STATE, true);
+		isSensor = getSharedPreferences(C.PREFERENCE_NAME, MODE_PRIVATE).getBoolean(C.PREF_SENSOR_STATE, true);
 
 		if (isSensor)
 			sensorEngine = new SensorEngine(this);
@@ -137,9 +137,9 @@ public class LoggerService extends Service {
 			public void run() {
 
 				boolean isFileSystemError = false;
-				Intent intentStatus = new Intent(MainActivity.BROADCAST_ACTION);
+				Intent intentStatus = new Intent(C.BROADCAST_ACTION);
 
-				intentStatus.putExtra(MainActivity.PARAM_SERVICE_STATUS, MainActivity.STATUS_STARTED).putExtra(MainActivity.PARAM_TIME, timeStart);
+				intentStatus.putExtra(C.PARAM_SERVICE_STATUS, C.STATUS_STARTED).putExtra(C.PARAM_TIME, timeStart);
 				sendBroadcast(intentStatus);
 
 				PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
@@ -149,13 +149,13 @@ public class LoggerService extends Service {
 				while (true) {
 
 					try {
-						SharedPreferences prefs = getSharedPreferences(MainActivity.PREFERENCE_NAME, MODE_PRIVATE);
-						File csvFile = new File(MainActivity.csvLogFilePath);
+						SharedPreferences prefs = getSharedPreferences(C.PREFERENCE_NAME, MODE_PRIVATE);
+						File csvFile = new File(C.csvLogFilePath);
 						boolean isFileExist = csvFile.exists();
 						PrintWriter pw = new PrintWriter(new FileOutputStream(csvFile, true));
 
 						if (!isFileExist) {
-							pw.println(MainActivity.csvMarkHeader);
+							pw.println(C.csvMarkHeader);
 						}
 
 						ArrayList<GSMEngine.GSMInfo> gsmInfoArray = gsmEngine.getGSMInfoArray();
@@ -166,18 +166,18 @@ public class LoggerService extends Service {
 							String active = gsmInfo.isActive() ? "1" : gsmInfoArray.get(0).getMcc() + "-" + gsmInfoArray.get(0).getMnc() + "-"
 									+ gsmInfoArray.get(0).getLac() + "-" + gsmInfoArray.get(0).getCid();
 
-							sb.append("").append(MainActivity.CSV_SEPARATOR);
-							sb.append(MainActivity.logDefaultName).append(MainActivity.CSV_SEPARATOR);
-							sb.append(prefs.getString(MainActivity.PREF_USER_NAME, "User 1")).append(MainActivity.CSV_SEPARATOR);
-							sb.append(gsmInfo.getTimeStamp()).append(MainActivity.CSV_SEPARATOR);
-							sb.append(gsmInfo.networkGen()).append(MainActivity.CSV_SEPARATOR);
-							sb.append(gsmInfo.networkType()).append(MainActivity.CSV_SEPARATOR);
-							sb.append(active).append(MainActivity.CSV_SEPARATOR);
-							sb.append(gsmInfo.getMcc()).append(MainActivity.CSV_SEPARATOR);
-							sb.append(gsmInfo.getMnc()).append(MainActivity.CSV_SEPARATOR);
-							sb.append(gsmInfo.getLac()).append(MainActivity.CSV_SEPARATOR);
-							sb.append(gsmInfo.getCid()).append(MainActivity.CSV_SEPARATOR);
-							sb.append(gsmInfo.getPsc()).append(MainActivity.CSV_SEPARATOR);
+							sb.append("").append(C.CSV_SEPARATOR);
+							sb.append(C.logDefaultName).append(C.CSV_SEPARATOR);
+							sb.append(prefs.getString(C.PREF_USER_NAME, "User 1")).append(C.CSV_SEPARATOR);
+							sb.append(gsmInfo.getTimeStamp()).append(C.CSV_SEPARATOR);
+							sb.append(gsmInfo.networkGen()).append(C.CSV_SEPARATOR);
+							sb.append(gsmInfo.networkType()).append(C.CSV_SEPARATOR);
+							sb.append(active).append(C.CSV_SEPARATOR);
+							sb.append(gsmInfo.getMcc()).append(C.CSV_SEPARATOR);
+							sb.append(gsmInfo.getMnc()).append(C.CSV_SEPARATOR);
+							sb.append(gsmInfo.getLac()).append(C.CSV_SEPARATOR);
+							sb.append(gsmInfo.getCid()).append(C.CSV_SEPARATOR);
+							sb.append(gsmInfo.getPsc()).append(C.CSV_SEPARATOR);
 							sb.append(gsmInfo.getRssi());
 
 							pw.println(sb.toString());
@@ -189,22 +189,22 @@ public class LoggerService extends Service {
 				    	sendBroadcast(intent);
 
 						if (isSensor) {
-							csvFile = new File(MainActivity.csvLogFilePathSensor);
+							csvFile = new File(C.csvLogFilePathSensor);
 							isFileExist = csvFile.exists();
 							pw = new PrintWriter(new FileOutputStream(csvFile, true));
 
 							if (!isFileExist)
-								pw.println(MainActivity.csvHeaderSensor);
+								pw.println(C.csvHeaderSensor);
 
 							StringBuilder sb = new StringBuilder();
 
-							sb.append("").append(MainActivity.CSV_SEPARATOR);
-							sb.append(MainActivity.logDefaultName).append(MainActivity.CSV_SEPARATOR);
-							sb.append(prefs.getString(MainActivity.PREF_USER_NAME, "User 1")).append(MainActivity.CSV_SEPARATOR);
-							sb.append(gsmInfoArray.get(0).getTimeStamp()).append(MainActivity.CSV_SEPARATOR);
-							sb.append(sensorEngine.getSensorType()).append(MainActivity.CSV_SEPARATOR);
-							sb.append(sensorEngine.getX()).append(MainActivity.CSV_SEPARATOR);
-							sb.append(sensorEngine.getY()).append(MainActivity.CSV_SEPARATOR);
+							sb.append("").append(C.CSV_SEPARATOR);
+							sb.append(C.logDefaultName).append(C.CSV_SEPARATOR);
+							sb.append(prefs.getString(C.PREF_USER_NAME, "User 1")).append(C.CSV_SEPARATOR);
+							sb.append(gsmInfoArray.get(0).getTimeStamp()).append(C.CSV_SEPARATOR);
+							sb.append(sensorEngine.getSensorType()).append(C.CSV_SEPARATOR);
+							sb.append(sensorEngine.getX()).append(C.CSV_SEPARATOR);
+							sb.append(sensorEngine.getY()).append(C.CSV_SEPARATOR);
 							sb.append(sensorEngine.getZ());
 
 							pw.println(sb.toString());
@@ -214,12 +214,12 @@ public class LoggerService extends Service {
 					    	sendBroadcast(intent);
 						}
 
-						intentStatus.putExtra(MainActivity.PARAM_SERVICE_STATUS, MainActivity.STATUS_RUNNING).putExtra(MainActivity.PARAM_RECORDS_COUNT,
+						intentStatus.putExtra(C.PARAM_SERVICE_STATUS, C.STATUS_RUNNING).putExtra(C.PARAM_RECORDS_COUNT,
 								++recordsCount);
 
 						sendBroadcast(intentStatus);
 
-						Thread.sleep(prefs.getInt(MainActivity.PREF_PERIOD_SEC, 1) * 1000);
+						Thread.sleep(prefs.getInt(C.PREF_PERIOD_SEC, 1) * 1000);
 
 					} catch (FileNotFoundException e) {
 						isFileSystemError = true;
@@ -237,10 +237,10 @@ public class LoggerService extends Service {
 
 				if (isFileSystemError) {
 					sendErrorNotification();
-					intentStatus.putExtra(MainActivity.PARAM_SERVICE_STATUS, MainActivity.STATUS_ERROR);
+					intentStatus.putExtra(C.PARAM_SERVICE_STATUS, C.STATUS_ERROR);
 
 				} else {
-					intentStatus.putExtra(MainActivity.PARAM_SERVICE_STATUS, MainActivity.STATUS_FINISHED).putExtra(MainActivity.PARAM_TIME,
+					intentStatus.putExtra(C.PARAM_SERVICE_STATUS, C.STATUS_FINISHED).putExtra(C.PARAM_TIME,
 							System.currentTimeMillis());
 
 				}

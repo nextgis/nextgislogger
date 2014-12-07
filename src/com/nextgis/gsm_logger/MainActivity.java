@@ -3,8 +3,6 @@ package com.nextgis.gsm_logger;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.*;
-import android.content.pm.PackageManager.NameNotFoundException;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
@@ -14,69 +12,19 @@ import android.telephony.TelephonyManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
-import android.widget.Filter;
-import android.widget.Filterable;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends Activity {
-
-	public static final String CSV_SEPARATOR = ";";
-
-	public static final String dataDirPath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "gsm_logger";
-	public static final String csvLogFilePath = dataDirPath + File.separator + "gsm_time_log.csv";
-	public static final String csvLogFilePathSensor = dataDirPath + File.separator + "sensor_time_log.csv";
-	public static final String csvMarkFilePath = dataDirPath + File.separator + "gsm_time_marks.csv";
-	public static final String csvMarkFilePathSensor = dataDirPath + File.separator + "sensor_time_marks.csv";
-
-	public static final String csvMarkHeader = "ID" + MainActivity.CSV_SEPARATOR + "Name" + MainActivity.CSV_SEPARATOR + "User" + MainActivity.CSV_SEPARATOR
-			+ "TimeStamp" + MainActivity.CSV_SEPARATOR + "NetworkGen" + MainActivity.CSV_SEPARATOR + "NetworkType" + MainActivity.CSV_SEPARATOR + "Active"
-			+ MainActivity.CSV_SEPARATOR + "MCC" + MainActivity.CSV_SEPARATOR + "MNC" + MainActivity.CSV_SEPARATOR + "LAC" + MainActivity.CSV_SEPARATOR + "CID"
-			+ MainActivity.CSV_SEPARATOR + "PSC" + MainActivity.CSV_SEPARATOR + "RSSI/RSCP";
-
-	public static final String csvHeaderSensor = "ID" + MainActivity.CSV_SEPARATOR + "Name" + MainActivity.CSV_SEPARATOR + "User" + MainActivity.CSV_SEPARATOR
-			+ "TimeStamp" + MainActivity.CSV_SEPARATOR + "Type" + MainActivity.CSV_SEPARATOR + "X" + MainActivity.CSV_SEPARATOR + "Y"
-			+ MainActivity.CSV_SEPARATOR + "Z";
-
-	public static final String logDefaultName = "ServiceLog";
-	public static final String markDefaultName = "Mark";
-
-	public static final String PREFERENCE_NAME = "MainActivity";
-	public static final String PREF_PERIOD_SEC = "periodSec";
-	public static final String PREF_SENSOR_STATE = "sensor_state";
-	public static final String PREF_SENSOR_MODE = "sensor_mode";
-	public static final String PREF_USE_API17 = "use_api17";
-	public static final String PREF_USE_CATS = "use_cats";
-	public static final String PREF_CAT_PATH = "cat_path";
-	public static final String PREF_USER_NAME = "user_name";
-	public static final String CAT_FILE = "categories.csv";
-
-	public static final String BROADCAST_ACTION = "com.nextgis.gsm_logger.MainActivity";
-
-	public static final String PARAM_SERVICE_STATUS = "serviceStatus";
-	public static final String PARAM_TIME = "time";
-	public static final String PARAM_RECORDS_COUNT = "recordsCount";
-
-	public static final int STATUS_STARTED = 100;
-	public static final int STATUS_RUNNING = 101;
-	public static final int STATUS_FINISHED = 102;
-	public static final int STATUS_ERROR = 103;
-
-	//    private static int loggerPeriodSec = minPeriodSec;
 	private static long timeStarted = 0;
 	private static int recordsCount = 0;
-	private static int marksCount = 0;
 
 	private BroadcastReceiver broadcastReceiver;
 
@@ -84,20 +32,14 @@ public class MainActivity extends Activity {
 	private ProgressBar serviceProgressBar;
 
 	private Button markButton;
-	private AutoCompleteTextView markTextEditor;
-
-	//    private Button setPeriodButton;
-	//    private EditText periodEditor;
 
 	private TextView loggerStartedTime;
 	private TextView loggerFinishedTime;
 	private TextView recordsCollectedCount;
-	private TextView marksCollectedCount;
+//	private TextView marksCollectedCount;
 
 	private TextView errorMessage;
 
-	private GSMEngine gsmEngine;
-	private SensorEngine sensorEngine;
 	private ServiceConnection servConn = null;
 //	CustomArrayAdapter substringMarkNameAdapter;
 
@@ -108,22 +50,20 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 
 		setContentView(R.layout.main_activity);
-		PreferenceManager.setDefaultValues(this, PREFERENCE_NAME, MODE_PRIVATE, R.xml.preferences, false);
+		PreferenceManager.setDefaultValues(this, C.PREFERENCE_NAME, MODE_PRIVATE, R.xml.preferences, false);
 
 		errorMessage = (TextView) findViewById(R.id.tv_error_message);
 		boolean isMediaMounted = true;
-
+		
 		if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
 			isMediaMounted = false;
 
 		} else {
-			File dataDir = new File(dataDirPath);
+			File dataDir = new File(C.dataDirPath);
 			if (!dataDir.exists()) {
 				dataDir.mkdirs();
 			}
 		}
-
-		gsmEngine = new GSMEngine(this);
 
 		boolean isServiceRunning = isLoggerServiceRunning();
 
@@ -157,147 +97,22 @@ public class MainActivity extends Activity {
 		markButton = (Button) findViewById(R.id.btn_mark);
 		markButton.setText(getString(R.string.btn_save_mark));
 
-		markTextEditor = (AutoCompleteTextView) findViewById(R.id.mark_text_editor);
-		markTextEditor.requestFocus();
-
 		final SharedPreferences pref = getPreferences(MODE_PRIVATE);
 		updateApplicationStructure(pref);
 		
-		if (pref.getBoolean(PREF_SENSOR_STATE, true))
-			sensorEngine = new SensorEngine(this);
-
 		markButton.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
-
-				try {
-					File csvFile = new File(csvMarkFilePath);
-					boolean isFileExist = csvFile.exists();
-					//					PrintWriter pw = new PrintWriter(new OutputStreamWriter(new FileOutputStream(csvFile, true), "UTF-8"));
-					PrintWriter pw = new PrintWriter(new FileOutputStream(csvFile, true));
-
-					if (!isFileExist) {
-						pw.println(csvMarkHeader);
-					}
-
-					String markName = markTextEditor.getText().toString();
-//					String ID = substringMarkNameAdapter == null ? "" : substringMarkNameAdapter.getSelectedMarkNameID(markTextEditor.getText().toString());
-					String ID = "";	// FIXME
-					markTextEditor.setText("");
-
-					if (markName.length() == 0) {
-						markName = markDefaultName;
-					}
-
-					ArrayList<GSMEngine.GSMInfo> gsmInfoArray = gsmEngine.getGSMInfoArray();
-
-					for (GSMEngine.GSMInfo gsmInfo : gsmInfoArray) {
-						StringBuilder sb = new StringBuilder();
-
-						String active = gsmInfo.isActive() ? "1" : gsmInfoArray.get(0).getMcc() + "-" + gsmInfoArray.get(0).getMnc() + "-"
-								+ gsmInfoArray.get(0).getLac() + "-" + gsmInfoArray.get(0).getCid();
-
-						sb.append(ID).append(MainActivity.CSV_SEPARATOR);
-						sb.append(markName).append(MainActivity.CSV_SEPARATOR);
-						sb.append(pref.getString(PREF_USER_NAME, "User 1")).append(MainActivity.CSV_SEPARATOR);
-						sb.append(gsmInfo.getTimeStamp()).append(MainActivity.CSV_SEPARATOR);
-						sb.append(gsmInfo.networkGen()).append(MainActivity.CSV_SEPARATOR);
-						sb.append(gsmInfo.networkType()).append(MainActivity.CSV_SEPARATOR);
-						sb.append(active).append(MainActivity.CSV_SEPARATOR);
-						sb.append(gsmInfo.getMcc()).append(MainActivity.CSV_SEPARATOR);
-						sb.append(gsmInfo.getMnc()).append(MainActivity.CSV_SEPARATOR);
-						sb.append(gsmInfo.getLac()).append(MainActivity.CSV_SEPARATOR);
-						sb.append(gsmInfo.getCid()).append(MainActivity.CSV_SEPARATOR);
-						sb.append(gsmInfo.getPsc()).append(MainActivity.CSV_SEPARATOR);
-						sb.append(gsmInfo.getRssi());
-
-						pw.println(sb.toString());
-					}
-
-					pw.close();
-					marksCollectedCount.setText(++marksCount + "");
-
-					Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(csvFile));
-			    	sendBroadcast(intent);
-
-					// checking accelerometer data state
-					if (pref.getBoolean(PREF_SENSOR_STATE, true)) {
-						csvFile = new File(csvMarkFilePathSensor);
-						isFileExist = csvFile.exists();
-						pw = new PrintWriter(new FileOutputStream(csvFile, true));
-
-						if (!isFileExist)
-							pw.println(csvHeaderSensor);
-
-						StringBuilder sb = new StringBuilder();
-
-						sb.append(ID).append(MainActivity.CSV_SEPARATOR);
-						sb.append(markName).append(CSV_SEPARATOR);
-						sb.append(pref.getString(PREF_USER_NAME, "User 1")).append(MainActivity.CSV_SEPARATOR);
-						sb.append(gsmInfoArray.get(0).getTimeStamp()).append(CSV_SEPARATOR);
-						sb.append(sensorEngine.getSensorType()).append(CSV_SEPARATOR);
-						sb.append(sensorEngine.getX()).append(CSV_SEPARATOR);
-						sb.append(sensorEngine.getY()).append(CSV_SEPARATOR);
-						sb.append(sensorEngine.getZ());
-
-						pw.println(sb.toString());
-						pw.close();
-
-						intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(csvFile));
-				    	sendBroadcast(intent);
-					}
-
-				} catch (FileNotFoundException e) {
-					setInterfaceState(R.string.fs_error_msg, true);
-				}
+				Intent markActivity = new Intent(getBaseContext(), MarkActivity.class);
+				startActivity(markActivity);
 			}
 		});
-
-		//        final Editor prefEd = pref.edit();
-
-		//        loggerPeriodSec = pref.getInt(PREF_PERIOD_SEC, minPeriodSec);
-
-		//        setPeriodButton = (Button) findViewById(R.id.btn_set_period);
-
-		//        periodEditor = (EditText) findViewById(R.id.period_editor);
-		//        periodEditor.setText(loggerPeriodSec + "");
-
-		//        setPeriodButton.setOnClickListener(new View.OnClickListener() {
-		//            public void onClick(View v) {
-		//
-		//                String sPeriod = periodEditor.getText().toString();
-		//
-		//                if (sPeriod.length() > 0) {
-		//                    int sec = Integer.parseInt(sPeriod);
-		//
-		//                    if (minPeriodSec <= sec && sec <= maxPeriodSec) {
-		//                        loggerPeriodSec = sec;
-		//                    } else if (sec < minPeriodSec) {
-		//                        loggerPeriodSec = minPeriodSec;
-		//                    } else if (sec > maxPeriodSec) {
-		//                        loggerPeriodSec = maxPeriodSec;
-		//                    }
-		//
-		//                } else {
-		//                    loggerPeriodSec = minPeriodSec;
-		//                }
-		//
-		//                prefEd.putInt(PREF_PERIOD_SEC, loggerPeriodSec);
-		//                prefEd.commit();
-		//
-		//                periodEditor.setText(loggerPeriodSec + "");
-		//            }
-		//        });
 
 		networkTypeListener = new NetworkTypeChangeListener((TextView) findViewById(R.id.tv_network_type_str));
 
 		loggerStartedTime = (TextView) findViewById(R.id.tv_logger_started_time);
 		loggerFinishedTime = (TextView) findViewById(R.id.tv_logger_finished_time);
 		recordsCollectedCount = (TextView) findViewById(R.id.tv_records_collected_count);
-		marksCollectedCount = (TextView) findViewById(R.id.tv_marks_collected_count);
-
-		if (marksCount > 0) {
-			marksCollectedCount.setText(marksCount + "");
-		}
+//		marksCollectedCount = (TextView) findViewById(R.id.tv_marks_collected_count);
 
 		if (!isServiceRunning) {
 			if (timeStarted > 0) {
@@ -329,34 +144,34 @@ public class MainActivity extends Activity {
 
 		broadcastReceiver = new BroadcastReceiver() {
 			public void onReceive(Context context, Intent intent) {
-				int serviceStatus = intent.getIntExtra(PARAM_SERVICE_STATUS, 0);
-				long time = intent.getLongExtra(PARAM_TIME, 0);
+				int serviceStatus = intent.getIntExtra(C.PARAM_SERVICE_STATUS, 0);
+				long time = intent.getLongExtra(C.PARAM_TIME, 0);
 
 				switch (serviceStatus) {
-				case STATUS_STARTED:
+				case C.STATUS_STARTED:
 					timeStarted = time;
 					loggerStartedTime.setText(millisToDate(time, "dd.MM.yyyy hh:mm:ss"));
 					loggerFinishedTime.setText(getText(R.string.service_running));
 					break;
 
-				case STATUS_RUNNING:
-					recordsCount = intent.getIntExtra(PARAM_RECORDS_COUNT, 0);
+				case C.STATUS_RUNNING:
+					recordsCount = intent.getIntExtra(C.PARAM_RECORDS_COUNT, 0);
 					recordsCollectedCount.setText(recordsCount + "");
 					loggerFinishedTime.setText(getText(R.string.service_running));
 					break;
 
-				case STATUS_FINISHED:
+				case C.STATUS_FINISHED:
 					loggerFinishedTime.setText(millisToDate(time, "dd.MM.yyyy hh:mm:ss"));
 					break;
 
-				case STATUS_ERROR:
+				case C.STATUS_ERROR:
 					loggerFinishedTime.setText(millisToDate(time, "dd.MM.yyyy hh:mm:ss"));
 					setInterfaceState(R.string.fs_error_msg, true);
 					break;
 				}
 			}
 		};
-		IntentFilter intentFilter = new IntentFilter(BROADCAST_ACTION);
+		IntentFilter intentFilter = new IntentFilter(C.BROADCAST_ACTION);
 		registerReceiver(broadcastReceiver, intentFilter);
 
 		setInterfaceState(R.string.ext_media_unmounted_msg, !isMediaMounted);
@@ -365,12 +180,10 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onResume() {
 		super.onResume();
-		gsmEngine.onResume();
 
-		if (sensorEngine != null)
-			sensorEngine.onResume(this);
-		else if (getPreferences(MODE_PRIVATE).getBoolean(PREF_SENSOR_STATE, true))
-			sensorEngine = new SensorEngine(this);
+//		if (marksCount > 0) {
+//			marksCollectedCount.setText(marksCount + "");
+//		}
 
 		//		int networkType = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getNetworkType();
 
@@ -380,55 +193,14 @@ public class MainActivity extends Activity {
 		//		} else
 		//			errorMessage.setVisibility(View.GONE);
 
-//		if (getPreferences(MODE_PRIVATE).getBoolean(PREF_USE_CATS, false)) { // reload file
-//			List<MarkName> markNames = new ArrayList<MainActivity.MarkName>();
-//
-//			String internalPath = getFilesDir().getAbsolutePath();
-//			File cats = new File(internalPath + "/" + CAT_FILE);
-//
-//			if (cats.isFile()) {
-//				BufferedReader in;
-//				String[] split;
-//
-//				try {
-//					in = new BufferedReader(new FileReader(cats));
-//					String line;
-//
-//					while ((line = in.readLine()) != null) {
-//						split = line.split(",");
-//						markNames.add(new MarkName(split[0], split[1]));
-//					}
-//					
-//					in.close();
-//					
-//					if (markNames.size() == 0)
-//						throw new ArrayIndexOutOfBoundsException();
-//				} catch (IOException e) {
-//					Toast.makeText(this, R.string.fs_error_msg, Toast.LENGTH_SHORT).show();
-//				} catch (ArrayIndexOutOfBoundsException e) {
-//					Toast.makeText(this, R.string.cat_file_error, Toast.LENGTH_SHORT).show();
-//				}
-//
-//				substringMarkNameAdapter = new CustomArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, markNames);
-//			}
-//		} else
-//			substringMarkNameAdapter = null;
-//
-//		markTextEditor.setAdapter(substringMarkNameAdapter);
-
 		((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).listen(networkTypeListener, PhoneStateListener.LISTEN_DATA_CONNECTION_STATE);
 	}
 
 	@Override
 	protected void onPause() {
-		gsmEngine.onPause();
-
-		if (sensorEngine != null)
-			sensorEngine.onPause();
-
-		((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).listen(networkTypeListener, PhoneStateListener.LISTEN_NONE);
-
 		super.onPause();
+		
+		((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).listen(networkTypeListener, PhoneStateListener.LISTEN_NONE);
 	}
 
 	@Override
@@ -467,22 +239,13 @@ public class MainActivity extends Activity {
 		return super.onOptionsItemSelected(item);
 	}
 
-	//    public static int getLoggerPeriodSec() {
-	//        return loggerPeriodSec;
-	//    }
-
 	private void setInterfaceState(int resId, boolean isError) {
-
 		if (isError) {
 			serviceOnOffButton.setText(getString(R.string.btn_service_start));
 
 			serviceOnOffButton.setEnabled(false);
 			markButton.setEnabled(false);
-			//            setPeriodButton.setEnabled(false);
-			//            periodEditor.setEnabled(false);
-
 			serviceProgressBar.setVisibility(View.INVISIBLE);
-			markTextEditor.setVisibility(View.GONE);
 
 			errorMessage.setText(resId);
 			errorMessage.setVisibility(View.VISIBLE);
@@ -490,10 +253,6 @@ public class MainActivity extends Activity {
 		} else {
 			serviceOnOffButton.setEnabled(true);
 			markButton.setEnabled(true);
-			//            setPeriodButton.setEnabled(true);
-			//            periodEditor.setEnabled(true);
-
-			markTextEditor.setVisibility(View.VISIBLE);
 			errorMessage.setVisibility(View.GONE);
 		}
 	}
@@ -531,21 +290,21 @@ public class MainActivity extends Activity {
 		return formatter.format(calendar.getTime());
 	}
 
-	private void updateApplicationStructure(SharedPreferences prefs)
+	private void updateApplicationStructure(SharedPreferences prefs)	// TODO remove when unnecessary
 	{
 //		String lastVersion = "version";
 		
 		//			if(prefs.getInt(lastVersion, 0) < getPackageManager().getPackageInfo(getPackageName(), 0).versionCode)
-		if(getPreferences(MODE_PRIVATE).contains(PREF_CAT_PATH))
+		if(getPreferences(MODE_PRIVATE).contains(C.PREF_CAT_PATH))
 		{	// update from previous version or clean install
 			// ==========Improvement==========
-			String catPath = getPreferences(MODE_PRIVATE).getString(PREF_CAT_PATH, "");
+			String catPath = getPreferences(MODE_PRIVATE).getString(C.PREF_CAT_PATH, "");
 			String info;
 			
 			File fromCats = new File(catPath);
 
 			String internalPath = getFilesDir().getAbsolutePath();
-			File toCats = new File(internalPath + "/" + MainActivity.CAT_FILE);
+			File toCats = new File(internalPath + "/" + C.CAT_FILE);
 
 			try {
 				PrintWriter pw = new PrintWriter(new FileOutputStream(toCats, false));
@@ -573,7 +332,7 @@ public class MainActivity extends Activity {
 				info = "Please reload categories file";
 			}
 			
-			prefs.edit().remove(PREF_CAT_PATH).commit();
+			prefs.edit().remove(C.PREF_CAT_PATH).commit();
 			Toast.makeText(this, info, Toast.LENGTH_LONG).show();
 			// ==========End Improvement==========
 			

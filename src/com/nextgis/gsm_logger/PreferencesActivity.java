@@ -28,18 +28,17 @@ public class PreferencesActivity extends PreferenceActivity {
 	@Override
 	protected void onCreate(Bundle savedInstance) {
 		super.onCreate(savedInstance);
-		getPreferenceManager().setSharedPreferencesName(MainActivity.PREFERENCE_NAME);
+		getPreferenceManager().setSharedPreferencesName(C.PREFERENCE_NAME);
 		addPreferencesFromResource(R.xml.preferences);
 		final Activity parent = this;
 
-		if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.GINGERBREAD
-				|| ((SensorManager) this.getSystemService(Context.SENSOR_SERVICE)).getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION) == null)
-			findPreference(MainActivity.PREF_SENSOR_MODE).setEnabled(false);
+		if (((SensorManager) this.getSystemService(Context.SENSOR_SERVICE)).getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION) == null)
+			findPreference(C.PREF_SENSOR_MODE).setEnabled(false);
 
 		if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.JELLY_BEAN_MR1)
-			findPreference(MainActivity.PREF_USE_API17).setEnabled(false);
+			findPreference(C.PREF_USE_API17).setEnabled(false);
 
-		EditTextPreference userName = (EditTextPreference) findPreference(MainActivity.PREF_USER_NAME);
+		EditTextPreference userName = (EditTextPreference) findPreference(C.PREF_USER_NAME);
 		userName.setSummary(userName.getText());
 		userName.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
 			@Override
@@ -50,7 +49,7 @@ public class PreferencesActivity extends PreferenceActivity {
 			}
 		});
 
-		IntEditTextPreference periodPreference = (IntEditTextPreference) findPreference(MainActivity.PREF_PERIOD_SEC);
+		IntEditTextPreference periodPreference = (IntEditTextPreference) findPreference(C.PREF_PERIOD_SEC);
 		periodPreference.setSummary(getString(R.string.settings_period_sum) + periodPreference.getPersistedString("1"));
 		periodPreference.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
 			@Override
@@ -81,7 +80,7 @@ public class PreferencesActivity extends PreferenceActivity {
 			}
 		});
 
-		Preference catPathPreference = findPreference(MainActivity.PREF_CAT_PATH);
+		Preference catPathPreference = findPreference(C.PREF_CAT_PATH);
 
 		catPathPreference.setOnPreferenceClickListener(new OnPreferenceClickListener() {
 			@Override
@@ -98,7 +97,7 @@ public class PreferencesActivity extends PreferenceActivity {
 							File fromCats = new File(chosenDir);
 
 							String internalPath = getFilesDir().getAbsolutePath();
-							File toCats = new File(internalPath + "/" + MainActivity.CAT_FILE);
+							File toCats = new File(internalPath + "/" + C.CAT_FILE);
 
 							try {
 								PrintWriter pw = new PrintWriter(new FileOutputStream(toCats, false));

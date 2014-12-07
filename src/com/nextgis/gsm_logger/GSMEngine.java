@@ -119,8 +119,8 @@ public class GSMEngine {
 		ArrayList<GSMInfo> gsmInfoArray = new ArrayList<GSMInfo>();
 
 		long timeStamp = System.currentTimeMillis();
-		boolean useAPI17 = mContext.getSharedPreferences(MainActivity.PREFERENCE_NAME, MainActivity.MODE_PRIVATE)
-				.getBoolean(MainActivity.PREF_USE_API17, false); // WCDMA uses API 18+, now min is 18
+		boolean useAPI17 = mContext.getSharedPreferences(C.PREFERENCE_NAME, MainActivity.MODE_PRIVATE)
+				.getBoolean(C.PREF_USE_API17, false); // WCDMA uses API 18+, now min is 18
 
 		// #2 using API 17 to get all cell towers around, including one which phone registered to
 		if (osVersion >= api17 && useAPI17) {

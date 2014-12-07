@@ -1,18 +1,16 @@
 package com.nextgis.gsm_logger;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.os.Build;
 import android.widget.Toast;
 
 public class SensorEngine implements SensorEventListener {
 	private float x, y, z;
 	private long lastUpdate = 0;
-	private int sensorType = Sensor.TYPE_ACCELEROMETER;
+	private int sensorType;
 
 	private boolean linearAcceleration;
 
@@ -30,12 +28,13 @@ public class SensorEngine implements SensorEventListener {
 		sm.unregisterListener(this);
 	}
 
-	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
 	protected void onResume(Context ctx) {
-		linearAcceleration = ctx.getSharedPreferences(MainActivity.PREFERENCE_NAME, Context.MODE_PRIVATE).getBoolean(MainActivity.PREF_SENSOR_MODE, false);
+		linearAcceleration = ctx.getSharedPreferences(C.PREFERENCE_NAME, Context.MODE_PRIVATE).getBoolean(C.PREF_SENSOR_MODE, false);
 		
-		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.GINGERBREAD && linearAcceleration)
+		if (linearAcceleration)
 			sensorType = Sensor.TYPE_LINEAR_ACCELERATION;
+		else
+			sensorType = Sensor.TYPE_ACCELEROMETER;
 		
 		sa = sm.getDefaultSensor(sensorType);
 		

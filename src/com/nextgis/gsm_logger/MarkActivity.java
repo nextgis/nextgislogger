@@ -2,67 +2,153 @@ package com.nextgis.gsm_logger;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
-import android.os.Build;
+import android.content.Intent;
+import android.hardware.Sensor;
+import android.net.Uri;
 import android.os.Bundle;
-import android.text.Layout;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Filter;
 import android.widget.Filterable;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.SearchView.OnCloseListener;
-import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.SearchView.OnQueryTextListener;
 
 public class MarkActivity extends Activity {
+	private static int marksCount = 0;
+	
 	MenuItem searchBox;
 	ListView lvCategories;
 	
 	CustomArrayAdapter substringMarkNameAdapter;
 
-	@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+	private GSMEngine gsmEngine;
+	private SensorEngine sensorEngine;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 		setContentView(R.layout.mark_activity);
 		
-		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-			getActionBar().setHomeButtonEnabled(true);
+		gsmEngine = new GSMEngine(this);
+
+		if (isSensorEnabled(Sensor.TYPE_ACCELEROMETER))
+			sensorEngine = new SensorEngine(this);
 
 		lvCategories = (ListView) findViewById(R.id.lv_categories);
+		final Activity base = this;
 		
 		lvCategories.setOnItemClickListener(new OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				// TODO Auto-generated method stub
+				String info = getString(R.string.mark_saved);
 				
+				try {
+					File csvFile = new File(C.csvMarkFilePath);
+					boolean isFileExist = csvFile.exists();
+					PrintWriter pw = new PrintWriter(new FileOutputStream(csvFile, true));
+
+					if (!isFileExist)
+						pw.println(C.csvMarkHeader);
+
+					String markName = substringMarkNameAdapter.getItem(position);
+					String ID = substringMarkNameAdapter.getSelectedMarkNameID(markName);
+
+					if (markName.length() == 0) {	// FIXME looks like doesn't need anymore
+						markName = C.markDefaultName;
+					}
+
+					ArrayList<GSMEngine.GSMInfo> gsmInfoArray = gsmEngine.getGSMInfoArray();
+					String userName = getSharedPreferences(C.PREFERENCE_NAME, MODE_PRIVATE).getString(C.PREF_USER_NAME, "User 1");
+
+					for (GSMEngine.GSMInfo gsmInfo : gsmInfoArray) {
+						StringBuilder sb = new StringBuilder();
+
+						String active = gsmInfo.isActive() ? "1" : gsmInfoArray.get(0).getMcc() + "-" + gsmInfoArray.get(0).getMnc() + "-"
+								+ gsmInfoArray.get(0).getLac() + "-" + gsmInfoArray.get(0).getCid();
+
+						sb.append(ID).append(C.CSV_SEPARATOR);
+						sb.append(markName).append(C.CSV_SEPARATOR);
+						sb.append(userName).append(C.CSV_SEPARATOR);
+						sb.append(gsmInfo.getTimeStamp()).append(C.CSV_SEPARATOR);
+						sb.append(gsmInfo.networkGen()).append(C.CSV_SEPARATOR);
+						sb.append(gsmInfo.networkType()).append(C.CSV_SEPARATOR);
+						sb.append(active).append(C.CSV_SEPARATOR);
+						sb.append(gsmInfo.getMcc()).append(C.CSV_SEPARATOR);
+						sb.append(gsmInfo.getMnc()).append(C.CSV_SEPARATOR);
+						sb.append(gsmInfo.getLac()).append(C.CSV_SEPARATOR);
+						sb.append(gsmInfo.getCid()).append(C.CSV_SEPARATOR);
+						sb.append(gsmInfo.getPsc()).append(C.CSV_SEPARATOR);
+						sb.append(gsmInfo.getRssi());
+
+						pw.println(sb.toString());
+					}
+
+					pw.close();
+					info += " (" + ++marksCount + ")";
+
+					Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(csvFile));
+			    	sendBroadcast(intent);	// update media for MTP
+
+					// checking accelerometer data state
+					if (isSensorEnabled(Sensor.TYPE_ACCELEROMETER)) {
+						csvFile = new File(C.csvMarkFilePathSensor);
+						isFileExist = csvFile.exists();
+						pw = new PrintWriter(new FileOutputStream(csvFile, true));
+
+						if (!isFileExist)
+							pw.println(C.csvHeaderSensor);
+
+						StringBuilder sb = new StringBuilder();
+
+						sb.append(ID).append(C.CSV_SEPARATOR);
+						sb.append(markName).append(C.CSV_SEPARATOR);
+						sb.append(userName).append(C.CSV_SEPARATOR);
+						sb.append(gsmInfoArray.get(0).getTimeStamp()).append(C.CSV_SEPARATOR);
+						sb.append(sensorEngine.getSensorType()).append(C.CSV_SEPARATOR);
+						sb.append(sensorEngine.getX()).append(C.CSV_SEPARATOR);
+						sb.append(sensorEngine.getY()).append(C.CSV_SEPARATOR);
+						sb.append(sensorEngine.getZ());
+
+						pw.println(sb.toString());
+						pw.close();
+
+						intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(csvFile));
+				    	sendBroadcast(intent);	// update media for MTP
+					}
+				} catch (FileNotFoundException e) {
+//					setInterfaceState(R.string.fs_error_msg, true);
+					info = getString(R.string.fs_error_msg);
+				}
+				
+				Toast.makeText(base, info, Toast.LENGTH_SHORT).show();
 			}
 		});
 		
 		List<MarkName> markNames = new ArrayList<MarkName>();
 		
-		if (getSharedPreferences(MainActivity.PREFERENCE_NAME, MODE_PRIVATE).getBoolean(MainActivity.PREF_USE_CATS, false)) {
+		if (getSharedPreferences(C.PREFERENCE_NAME, MODE_PRIVATE).getBoolean(C.PREF_USE_CATS, false)) {
 			String internalPath = getFilesDir().getAbsolutePath();
-			File cats = new File(internalPath + "/" + MainActivity.CAT_FILE);
+			File cats = new File(internalPath + "/" + C.CAT_FILE);
 
 			if (cats.isFile()) {
 				BufferedReader in;
@@ -93,7 +179,31 @@ public class MarkActivity extends Activity {
 		lvCategories.setAdapter(substringMarkNameAdapter);
 	}
 
-	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	@Override
+	protected void onResume() {
+		super.onResume();
+		
+		gsmEngine.onResume();
+
+		if (isSensorEnabled(Sensor.TYPE_ACCELEROMETER))
+			if (sensorEngine != null)
+				sensorEngine.onResume(this);
+			else
+				sensorEngine = new SensorEngine(this);
+		else
+			sensorEngine = null;
+	}
+	
+	@Override
+	protected void onPause() {
+		super.onPause();
+		
+		gsmEngine.onPause();
+
+		if (sensorEngine != null)
+			sensorEngine.onPause();
+	}
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.mark, menu);
@@ -103,28 +213,40 @@ public class MarkActivity extends Activity {
 		search.setQueryHint(getString(R.string.mark_editor_hint));
 		search.setIconifiedByDefault(true);	// set icon inside edit text view
 		search.setIconified(false);	// expand search view in action bar
-
-		int closeButtonId = getResources().getIdentifier("android:id/search_close_btn", null, null);
-		search.findViewById(closeButtonId).setVisibility(View.GONE);	// prevent collapse search view
+		
+		search.setOnCloseListener(new OnCloseListener() {
+			@Override
+			public boolean onClose() {
+				return true;	// prevent collapse search view
+			}
+		});
 		
 		search.requestFocus();
 		search.setOnQueryTextListener(new OnQueryTextListener() {
 			@Override
 			public boolean onQueryTextSubmit(String query) {
-				// TODO Auto-generated method stub
 				return false;
 			}
 
 			@Override
 			public boolean onQueryTextChange(String newText) {
 				substringMarkNameAdapter.getFilter().filter(newText);
-				return false;
+				return true;
 			}
 		});
 
 		return true;
 	}
 
+	private boolean isSensorEnabled(int sensorType) {
+		switch (sensorType) {
+		case Sensor.TYPE_ACCELEROMETER:
+			return getSharedPreferences(C.PREFERENCE_NAME, MODE_PRIVATE).getBoolean(C.PREF_SENSOR_STATE, true);
+		}
+		
+		return false;
+	}
+	
 	public class MarkName {
 		private String ID = "";
 		private String CAT = "Mark";
