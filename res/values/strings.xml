@@ -15,7 +15,6 @@
     <string name="settings_cats_sum">Mark name presets for text field</string>
     <string name="settings_cat_path">Load mark name presets from file…</string>
     <string name="settings_user_name">Identification string (optional)</string>
-    <string name="settings_user_name_def">User 1</string>
     
     <string name="service_notif_title">GSM Logger</string>
     <string name="service_notif_text">GSM Logger is running…</string>
@@ -41,4 +40,12 @@
     <string name="menu_search">Markers</string>
     <string name="mark_editor_hint">Enter Name of Mark</string>
     <string name="mark_saved">Mark saved</string>
+    
+    <string name="btn_ok">OK</string>
+    <string name="btn_cancel">Cancel</string>
+    <string name="btn_session_open">Open session</string>
+    <string name="btn_session_close">Close session</string>
+    <string name="session_name">Session name:</string>
+    <string name="session_incorrect_name">"Incorrect char "</string>
+    <string name="session_null_name">Name can not be blank</string>
 </resources>

@@ -136,7 +136,7 @@ public class SimpleFileDialog {
 
 		AlertDialog.Builder dialogBuilder = createDirectoryChooserDialog(dir, m_subdirs, new SimpleFileDialogOnClickListener());
 
-		dialogBuilder.setPositiveButton("OK", new OnClickListener() {
+		dialogBuilder.setPositiveButton(m_context.getString(R.string.btn_ok), new OnClickListener() {
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				// Current directory chosen
@@ -148,7 +148,7 @@ public class SimpleFileDialog {
 					}
 				}
 			}
-		}).setNegativeButton("Cancel", null);
+		}).setNegativeButton(m_context.getString(R.string.btn_cancel), null);
 
 		final AlertDialog dirsDialog = dialogBuilder.create();
 

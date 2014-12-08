@@ -147,10 +147,11 @@ public class LoggerService extends Service {
 				wakeLock.acquire();
 
 				while (true) {
+					MainActivity.checkOrCreateDirectory(MainActivity.dataDirPath);
 
 					try {
 						SharedPreferences prefs = getSharedPreferences(C.PREFERENCE_NAME, MODE_PRIVATE);
-						File csvFile = new File(C.csvLogFilePath);
+						File csvFile = new File(MainActivity.csvLogFilePath);
 						boolean isFileExist = csvFile.exists();
 						PrintWriter pw = new PrintWriter(new FileOutputStream(csvFile, true));
 
@@ -189,7 +190,7 @@ public class LoggerService extends Service {
 				    	sendBroadcast(intent);
 
 						if (isSensor) {
-							csvFile = new File(C.csvLogFilePathSensor);
+							csvFile = new File(MainActivity.csvLogFilePathSensor);
 							isFileExist = csvFile.exists();
 							pw = new PrintWriter(new FileOutputStream(csvFile, true));
 

@@ -97,7 +97,7 @@ public class PreferencesActivity extends PreferenceActivity {
 							File fromCats = new File(chosenDir);
 
 							String internalPath = getFilesDir().getAbsolutePath();
-							File toCats = new File(internalPath + "/" + C.CAT_FILE);
+							File toCats = new File(internalPath + "/" + C.categoriesFile);
 
 							try {
 								PrintWriter pw = new PrintWriter(new FileOutputStream(toCats, false));

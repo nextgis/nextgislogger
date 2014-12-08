@@ -2,7 +2,7 @@
     android:title="@string/app_settings" >
 
     <EditTextPreference
-        android:defaultValue="@string/settings_user_name_def"
+        android:defaultValue="User1"
         android:key="user_name"
         android:title="@string/settings_user_name" />
 

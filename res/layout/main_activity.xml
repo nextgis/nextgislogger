@@ -11,10 +11,16 @@
         android:layout_gravity="center"
         android:orientation="vertical" >
 
+        <Button
+            android:id="@+id/btn_session"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
         <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
+            android:layout_marginTop="10sp"
             android:orientation="horizontal" >
 
             <Button
@@ -32,19 +38,11 @@
                 android:visibility="invisible" />
         </LinearLayout>
 
-        <LinearLayout
-            android:layout_width="fill_parent"
+        <Button
+            android:id="@+id/btn_mark"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginTop="10sp"
-            android:orientation="horizontal" >
-
-            <Button
-                android:id="@+id/btn_mark"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="right" />
-        </LinearLayout>
+            android:layout_marginTop="10sp" />
 
         <TextView
             android:id="@+id/tv_error_message"
@@ -64,6 +62,28 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginTop="10sp"
+        android:orientation="horizontal" >
+
+        <TextView
+            android:id="@+id/tv_current_session"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:layout_marginRight="10sp"
+            android:text="@string/session_name" />
+
+        <TextView
+            android:id="@+id/tv_current_session_name"
+            android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="5sp"
         android:orientation="horizontal" >
 
         <TextView
@@ -125,27 +145,27 @@
             android:layout_weight="1" />
     </LinearLayout>
 
-<!--     <LinearLayout -->
-<!--         android:layout_width="fill_parent" -->
-<!--         android:layout_height="wrap_content" -->
-<!--         android:layout_gravity="center" -->
-<!--         android:layout_marginTop="5sp" -->
-<!--         android:orientation="horizontal" > -->
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="5sp"
+        android:orientation="horizontal" >
 
-<!--         <TextView -->
-<!--             android:id="@+id/tv_marks_collected" -->
-<!--             android:layout_width="wrap_content" -->
-<!--             android:layout_height="wrap_content" -->
-<!--             android:layout_gravity="left" -->
-<!--             android:layout_marginRight="10sp" -->
-<!--             android:text="@string/marks_collected" /> -->
+        <TextView
+            android:id="@+id/tv_marks_collected"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:layout_marginRight="10sp"
+            android:text="@string/marks_collected" />
 
-<!--         <TextView -->
-<!--             android:id="@+id/tv_marks_collected_count" -->
-<!--             android:layout_width="0dip" -->
-<!--             android:layout_height="wrap_content" -->
-<!--             android:layout_weight="1" /> -->
-<!--     </LinearLayout> -->
+        <TextView
+            android:id="@+id/tv_marks_collected_count"
+            android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="fill_parent"

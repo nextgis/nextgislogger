@@ -7,13 +7,13 @@ import android.os.Environment;
 
 public class C extends Activity {
 	public static final String CSV_SEPARATOR = ";";
-
-	public static final String dataDirPath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "gsm_logger";
-	public static final String csvLogFilePath = dataDirPath + File.separator + "gsm_time_log.csv";
-	public static final String csvLogFilePathSensor = dataDirPath + File.separator + "sensor_time_log.csv";
-	public static final String csvMarkFilePath = dataDirPath + File.separator + "gsm_time_marks.csv";
-	public static final String csvMarkFilePathSensor = dataDirPath + File.separator + "sensor_time_marks.csv";
-
+	public static final String csvLogFile = "gsm_time_log.csv";
+	public static final String csvLogFileSensor = "sensor_time_log.csv";
+	public static final String csvMarkFile = "gsm_time_marks.csv";
+	public static final String csvMarkFileSensor = "sensor_time_marks.csv";
+	public static final String categoriesFile = "categories.csv";
+	public static final String dataBasePath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "nextgis_logger";	
+	
 	public static final String csvMarkHeader = "ID" + CSV_SEPARATOR + "Name" + CSV_SEPARATOR + "User" + CSV_SEPARATOR + "TimeStamp" + CSV_SEPARATOR
 			+ "NetworkGen" + CSV_SEPARATOR + "NetworkType" + CSV_SEPARATOR + "Active" + CSV_SEPARATOR + "MCC" + CSV_SEPARATOR + "MNC" + CSV_SEPARATOR + "LAC"
 			+ CSV_SEPARATOR + "CID" + CSV_SEPARATOR + "PSC" + CSV_SEPARATOR + "RSSI/RSCP";
@@ -32,8 +32,10 @@ public class C extends Activity {
 	public static final String PREF_USE_CATS = "use_cats";
 	public static final String PREF_CAT_PATH = "cat_path";
 	public static final String PREF_USER_NAME = "user_name";
-	public static final String CAT_FILE = "categories.csv";
-
+	public static final String PREF_SESSION_NAME = "session_name";
+	public static final String PREF_MARKS_COUNT = "marks_count";
+	public static final String PREF_RECORDS_COUNT = "records_count";
+	
 	public static final String BROADCAST_ACTION = "com.nextgis.gsm_logger.MainActivity";
 
 	public static final String PARAM_SERVICE_STATUS = "serviceStatus";

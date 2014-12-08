@@ -14,6 +14,7 @@ import java.util.Locale;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -43,11 +44,15 @@ public class MarkActivity extends Activity {
 	private GSMEngine gsmEngine;
 	private SensorEngine sensorEngine;
 	
+	SharedPreferences prefs;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 		setContentView(R.layout.mark_activity);
+		
+		prefs = getSharedPreferences(C.PREFERENCE_NAME, MODE_PRIVATE);
 		
 		gsmEngine = new GSMEngine(this);
 
@@ -57,13 +62,16 @@ public class MarkActivity extends Activity {
 		lvCategories = (ListView) findViewById(R.id.lv_categories);
 		final Activity base = this;
 		
+		marksCount = prefs.getInt(C.PREF_MARKS_COUNT, 0);
+		
 		lvCategories.setOnItemClickListener(new OnItemClickListener() {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				String info = getString(R.string.mark_saved);
+				MainActivity.checkOrCreateDirectory(MainActivity.dataDirPath);
 				
 				try {
-					File csvFile = new File(C.csvMarkFilePath);
+					File csvFile = new File(MainActivity.csvMarkFilePath);
 					boolean isFileExist = csvFile.exists();
 					PrintWriter pw = new PrintWriter(new FileOutputStream(csvFile, true));
 
@@ -78,7 +86,7 @@ public class MarkActivity extends Activity {
 					}
 
 					ArrayList<GSMEngine.GSMInfo> gsmInfoArray = gsmEngine.getGSMInfoArray();
-					String userName = getSharedPreferences(C.PREFERENCE_NAME, MODE_PRIVATE).getString(C.PREF_USER_NAME, "User 1");
+					String userName = prefs.getString(C.PREF_USER_NAME, "User 1");
 
 					for (GSMEngine.GSMInfo gsmInfo : gsmInfoArray) {
 						StringBuilder sb = new StringBuilder();
@@ -111,7 +119,7 @@ public class MarkActivity extends Activity {
 
 					// checking accelerometer data state
 					if (isSensorEnabled(Sensor.TYPE_ACCELEROMETER)) {
-						csvFile = new File(C.csvMarkFilePathSensor);
+						csvFile = new File(MainActivity.csvMarkFilePathSensor);
 						isFileExist = csvFile.exists();
 						pw = new PrintWriter(new FileOutputStream(csvFile, true));
 
@@ -146,9 +154,9 @@ public class MarkActivity extends Activity {
 		
 		List<MarkName> markNames = new ArrayList<MarkName>();
 		
-		if (getSharedPreferences(C.PREFERENCE_NAME, MODE_PRIVATE).getBoolean(C.PREF_USE_CATS, false)) {
+		if (prefs.getBoolean(C.PREF_USE_CATS, false)) {
 			String internalPath = getFilesDir().getAbsolutePath();
-			File cats = new File(internalPath + "/" + C.CAT_FILE);
+			File cats = new File(internalPath + "/" + C.categoriesFile);
 
 			if (cats.isFile()) {
 				BufferedReader in;
@@ -202,6 +210,8 @@ public class MarkActivity extends Activity {
 
 		if (sensorEngine != null)
 			sensorEngine.onPause();
+
+		prefs.edit().putInt(C.PREF_MARKS_COUNT, marksCount).commit();
 	}
 	
 	@Override
@@ -241,7 +251,7 @@ public class MarkActivity extends Activity {
 	private boolean isSensorEnabled(int sensorType) {
 		switch (sensorType) {
 		case Sensor.TYPE_ACCELEROMETER:
-			return getSharedPreferences(C.PREFERENCE_NAME, MODE_PRIVATE).getBoolean(C.PREF_SENSOR_STATE, true);
+			return prefs.getBoolean(C.PREF_SENSOR_STATE, true);
 		}
 		
 		return false;

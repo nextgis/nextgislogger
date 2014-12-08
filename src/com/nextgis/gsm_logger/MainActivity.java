@@ -2,6 +2,7 @@ package com.nextgis.gsm_logger;
 
 import android.app.Activity;
 import android.app.ActivityManager;
+import android.app.AlertDialog;
 import android.content.*;
 import android.os.Bundle;
 import android.os.Environment;
@@ -12,7 +13,10 @@ import android.telephony.TelephonyManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -22,9 +26,19 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements OnClickListener {
+	public static String dataDirPath = C.dataBasePath;
+	public static String csvLogFilePath = dataDirPath + File.separator + C.csvLogFile;
+	public static String csvLogFilePathSensor = dataDirPath + File.separator + C.csvLogFileSensor;
+	public static String csvMarkFilePath = dataDirPath + File.separator + C.csvMarkFile;
+	public static String csvMarkFilePathSensor = dataDirPath + File.separator + C.csvMarkFileSensor;
+
 	private static long timeStarted = 0;
 	private static int recordsCount = 0;
+
+	private static enum INTERFACE_STATE {
+		SESSION_NONE, SESSION_STARTED, ERROR, OK
+	};
 
 	private BroadcastReceiver broadcastReceiver;
 
@@ -32,18 +46,21 @@ public class MainActivity extends Activity {
 	private ProgressBar serviceProgressBar;
 
 	private Button markButton;
+	private Button sessionButton;
 
 	private TextView loggerStartedTime;
 	private TextView loggerFinishedTime;
 	private TextView recordsCollectedCount;
-//	private TextView marksCollectedCount;
+	private TextView sessionName;
+	private TextView marksCollectedCount;
 
 	private TextView errorMessage;
 
 	private ServiceConnection servConn = null;
-//	CustomArrayAdapter substringMarkNameAdapter;
 
 	NetworkTypeChangeListener networkTypeListener;
+	
+	private SharedPreferences prefs;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -53,67 +70,44 @@ public class MainActivity extends Activity {
 		PreferenceManager.setDefaultValues(this, C.PREFERENCE_NAME, MODE_PRIVATE, R.xml.preferences, false);
 
 		errorMessage = (TextView) findViewById(R.id.tv_error_message);
-		boolean isMediaMounted = true;
-		
-		if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-			isMediaMounted = false;
-
-		} else {
-			File dataDir = new File(C.dataDirPath);
-			if (!dataDir.exists()) {
-				dataDir.mkdirs();
-			}
-		}
 
 		boolean isServiceRunning = isLoggerServiceRunning();
 
 		serviceOnOffButton = (Button) findViewById(R.id.btn_service_onoff);
 		serviceOnOffButton.setText(getString(isServiceRunning ? R.string.btn_service_stop : R.string.btn_service_start));
+		serviceOnOffButton.setOnClickListener(this);
 
 		serviceProgressBar = (ProgressBar) findViewById(R.id.service_progress_bar);
 		serviceProgressBar.setVisibility(isServiceRunning ? View.VISIBLE : View.INVISIBLE);
 
-		serviceOnOffButton.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View v) {
-
-				// Service can be stopped, but still visible in the system as working,
-				// therefore, we need to use isLoggerServiceRunning()
-				if (isLoggerServiceRunning()) {
-					stopService(new Intent(getApplicationContext(), LoggerService.class));
-					serviceOnOffButton.setText(getString(R.string.btn_service_start));
-					serviceProgressBar.setVisibility(View.INVISIBLE);
-
-				} else {
-					Intent intent = new Intent(getApplicationContext(), LoggerService.class);
-					startService(intent);
-
-					serviceOnOffButton.setText(getString(R.string.btn_service_stop));
-					serviceProgressBar.setVisibility(View.VISIBLE);
-					;
-				}
-			}
-		});
-
 		markButton = (Button) findViewById(R.id.btn_mark);
 		markButton.setText(getString(R.string.btn_save_mark));
+		markButton.setOnClickListener(this);
 
-		final SharedPreferences pref = getPreferences(MODE_PRIVATE);
-		updateApplicationStructure(pref);
-		
-		markButton.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View v) {
-				Intent markActivity = new Intent(getBaseContext(), MarkActivity.class);
-				startActivity(markActivity);
-			}
-		});
+		prefs = getPreferences(MODE_PRIVATE);
+		updateApplicationStructure();
+		String session = prefs.getString(C.PREF_SESSION_NAME, "");
+
+		setDataDirPath(session);
+		setInterfaceState(0, session.equals("") ? INTERFACE_STATE.SESSION_NONE : INTERFACE_STATE.SESSION_STARTED);
+
+		sessionName = (TextView) findViewById(R.id.tv_current_session_name);
+		sessionName.setText(session);
+
+		sessionButton = (Button) findViewById(R.id.btn_session);
+		sessionButton.setText(getString(session.equals("") ? R.string.btn_session_open : R.string.btn_session_close));
+		sessionButton.setEnabled(!isServiceRunning);
+		sessionButton.setOnClickListener(this);
 
 		networkTypeListener = new NetworkTypeChangeListener((TextView) findViewById(R.id.tv_network_type_str));
 
 		loggerStartedTime = (TextView) findViewById(R.id.tv_logger_started_time);
 		loggerFinishedTime = (TextView) findViewById(R.id.tv_logger_finished_time);
 		recordsCollectedCount = (TextView) findViewById(R.id.tv_records_collected_count);
-//		marksCollectedCount = (TextView) findViewById(R.id.tv_marks_collected_count);
+		marksCollectedCount = (TextView) findViewById(R.id.tv_marks_collected_count);
 
+		recordsCount = prefs.getInt(C.PREF_RECORDS_COUNT, 0);
+		
 		if (!isServiceRunning) {
 			if (timeStarted > 0) {
 				loggerStartedTime.setText(millisToDate(timeStarted, "dd.MM.yyyy hh:mm:ss"));
@@ -130,7 +124,7 @@ public class MainActivity extends Activity {
 				public void onServiceConnected(ComponentName name, IBinder binder) {
 					LoggerService loggerService = ((LoggerService.LocalBinder) binder).getService();
 					loggerStartedTime.setText(millisToDate(loggerService.getTimeStart(), "dd.MM.yyyy hh:mm:ss"));
-					recordsCollectedCount.setText(loggerService.getRecordsCount() + "");
+					recordsCollectedCount.setText(recordsCount + loggerService.getRecordsCount() + "");
 				}
 
 				public void onServiceDisconnected(ComponentName name) {
@@ -155,18 +149,16 @@ public class MainActivity extends Activity {
 					break;
 
 				case C.STATUS_RUNNING:
-					recordsCount = intent.getIntExtra(C.PARAM_RECORDS_COUNT, 0);
-					recordsCollectedCount.setText(recordsCount + "");
+					recordsCollectedCount.setText(recordsCount + intent.getIntExtra(C.PARAM_RECORDS_COUNT, 0) + "");
 					loggerFinishedTime.setText(getText(R.string.service_running));
 					break;
 
-				case C.STATUS_FINISHED:
-					loggerFinishedTime.setText(millisToDate(time, "dd.MM.yyyy hh:mm:ss"));
-					break;
-
 				case C.STATUS_ERROR:
+					setInterfaceState(R.string.fs_error_msg, INTERFACE_STATE.ERROR);
+				case C.STATUS_FINISHED:
+					recordsCount += intent.getIntExtra(C.PARAM_RECORDS_COUNT, 0);
 					loggerFinishedTime.setText(millisToDate(time, "dd.MM.yyyy hh:mm:ss"));
-					setInterfaceState(R.string.fs_error_msg, true);
+					prefs.edit().putInt(C.PREF_RECORDS_COUNT, recordsCount).commit();
 					break;
 				}
 			}
@@ -174,16 +166,16 @@ public class MainActivity extends Activity {
 		IntentFilter intentFilter = new IntentFilter(C.BROADCAST_ACTION);
 		registerReceiver(broadcastReceiver, intentFilter);
 
-		setInterfaceState(R.string.ext_media_unmounted_msg, !isMediaMounted);
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
 
-//		if (marksCount > 0) {
-//			marksCollectedCount.setText(marksCount + "");
-//		}
+		int marksCount = prefs.getInt(C.PREF_MARKS_COUNT, 0);
+		
+		if (marksCount > 0)
+			marksCollectedCount.setText(marksCount + "");
 
 		//		int networkType = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getNetworkType();
 
@@ -199,7 +191,7 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onPause() {
 		super.onPause();
-		
+
 		((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).listen(networkTypeListener, PhoneStateListener.LISTEN_NONE);
 	}
 
@@ -210,6 +202,7 @@ public class MainActivity extends Activity {
 		}
 
 		unregisterReceiver(broadcastReceiver);
+		
 		super.onDestroy();
 	}
 
@@ -239,21 +232,125 @@ public class MainActivity extends Activity {
 		return super.onOptionsItemSelected(item);
 	}
 
-	private void setInterfaceState(int resId, boolean isError) {
-		if (isError) {
-			serviceOnOffButton.setText(getString(R.string.btn_service_start));
+	@Override
+	public void onClick(View view) {
+		switch (view.getId()) {
+		case R.id.btn_session:
+			final SharedPreferences pref = prefs;
 
-			serviceOnOffButton.setEnabled(false);
-			markButton.setEnabled(false);
-			serviceProgressBar.setVisibility(View.INVISIBLE);
+			if (pref.getString(C.PREF_SESSION_NAME, "").equals("")) {
+				AlertDialog.Builder alert = new AlertDialog.Builder(this);
+				alert.setTitle(getString(R.string.session_name));
+
+				final EditText input = new EditText(this);
+				input.setText(millisToDate(Calendar.getInstance().getTimeInMillis(), "yyyy-MM-dd--HH-mm-ss") + "--" + pref.getString(C.PREF_USER_NAME, "User1")); // default session name
+				input.setSelection(input.getText().length()); // move cursor at the end
+				alert.setView(input);
+
+				alert.setPositiveButton(getString(R.string.btn_ok), new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int whichButton) {
+						String value = input.getText().toString();
+
+						if (isCorrectName(value)) { // open session
+							pref.edit().putString(C.PREF_SESSION_NAME, value).commit();
+							setInterfaceState(0, INTERFACE_STATE.SESSION_STARTED);
+							setDataDirPath(value);
+							sessionButton.setText(R.string.btn_session_close);
+							sessionName.setText(value);
+						}
+					}
+				});
+
+				alert.setNegativeButton(getString(R.string.btn_cancel), new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int whichButton) {
+					}
+				});
+
+				AlertDialog dialog = alert.create();
+				dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE); // show keyboard
+				dialog.show();
+			} else { // close session
+				prefs.edit().putString(C.PREF_SESSION_NAME, "").putInt(C.PREF_MARKS_COUNT, 0).putInt(C.PREF_RECORDS_COUNT, 0).commit();
+				setInterfaceState(0, INTERFACE_STATE.SESSION_NONE);
+				setDataDirPath("");
+				sessionButton.setText(R.string.btn_session_open);
+				sessionName.setText("");
+				
+				marksCollectedCount.setText("");
+				recordsCollectedCount.setText("");
+			}
+			break;
+		case R.id.btn_service_onoff:
+			// Service can be stopped, but still visible in the system as working,
+			// therefore, we need to use isLoggerServiceRunning()
+			if (isLoggerServiceRunning()) {
+				stopService(new Intent(getApplicationContext(), LoggerService.class));
+				serviceOnOffButton.setText(getString(R.string.btn_service_start));
+				serviceProgressBar.setVisibility(View.INVISIBLE);
+				sessionButton.setEnabled(true);
+			} else {
+				Intent intent = new Intent(getApplicationContext(), LoggerService.class);
+				startService(intent);
+
+				serviceOnOffButton.setText(getString(R.string.btn_service_stop));
+				serviceProgressBar.setVisibility(View.VISIBLE);
+				sessionButton.setEnabled(false);
+			}
+			break;
+		case R.id.btn_mark:
+			Intent markActivity = new Intent(getBaseContext(), MarkActivity.class);
+			startActivity(markActivity);
+			break;
+		}
+	}
+
+	private void setDataDirPath(String directory) {
+		directory = directory.equals("") ? C.dataBasePath : C.dataBasePath + File.separator + directory;
+		dataDirPath = directory;
+		csvLogFilePath = directory + File.separator + C.csvLogFile;
+		csvLogFilePathSensor = directory + File.separator + C.csvLogFileSensor;
+		csvMarkFilePath = directory + File.separator + C.csvMarkFile;
+		csvMarkFilePathSensor = directory + File.separator + C.csvMarkFileSensor;
+
+		if (!checkOrCreateDirectory(dataDirPath))
+			setInterfaceState(R.string.ext_media_unmounted_msg, INTERFACE_STATE.ERROR);
+	}
+
+	private boolean isCorrectName(String value) {
+		final char[] ILLEGAL_CHARACTERS = { '/', '\n', '\r', '\t', '\0', '\f', '`', '?', '*', '\\', '<', '>', '|', '\"', ':' };
+
+		if (value == null || value.length() == 0) {
+			Toast.makeText(this, R.string.session_null_name, Toast.LENGTH_SHORT).show();
+			return false;
+		}
+
+		for (int i = 0; i < ILLEGAL_CHARACTERS.length; i++)
+			if (value.contains(String.valueOf(ILLEGAL_CHARACTERS[i]))) {
+				Toast.makeText(this, getString(R.string.session_incorrect_name) + ILLEGAL_CHARACTERS[i], Toast.LENGTH_SHORT).show();
+				return false;
+			}
+
+		return true;
+	}
+
+	private void setInterfaceState(int resId, INTERFACE_STATE state) {
+		switch (state) {
+		case ERROR:
+			serviceOnOffButton.setText(getString(R.string.btn_service_start));
 
 			errorMessage.setText(resId);
 			errorMessage.setVisibility(View.VISIBLE);
-
-		} else {
+		case SESSION_NONE:
+			serviceOnOffButton.setEnabled(false);
+			markButton.setEnabled(false);
+			serviceProgressBar.setVisibility(View.INVISIBLE);
+			break;
+		case SESSION_STARTED:
+		default:
 			serviceOnOffButton.setEnabled(true);
 			markButton.setEnabled(true);
 			errorMessage.setVisibility(View.GONE);
+			break;
 		}
 	}
 
@@ -290,21 +387,40 @@ public class MainActivity extends Activity {
 		return formatter.format(calendar.getTime());
 	}
 
-	private void updateApplicationStructure(SharedPreferences prefs)	// TODO remove when unnecessary
+	/**
+	 * Check directory existence or create it (with parents if missing).
+	 * 
+	 * @param path
+	 *            Path to directory
+	 * @return boolean signing success or fail
+	 */
+	public static boolean checkOrCreateDirectory(String path) {
+		if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+			return false;
+		} else {
+			File dataDir = new File(path);
+
+			if (!dataDir.exists())
+				return dataDir.mkdirs();
+		}
+
+		return true;
+	}
+
+	private void updateApplicationStructure() // TODO remove when unnecessary
 	{
-//		String lastVersion = "version";
-		
+		//		String lastVersion = "version";
+
 		//			if(prefs.getInt(lastVersion, 0) < getPackageManager().getPackageInfo(getPackageName(), 0).versionCode)
-		if(getPreferences(MODE_PRIVATE).contains(C.PREF_CAT_PATH))
-		{	// update from previous version or clean install
-			// ==========Improvement==========
-			String catPath = getPreferences(MODE_PRIVATE).getString(C.PREF_CAT_PATH, "");
+		if (prefs.contains(C.PREF_CAT_PATH)) { // update from previous version or clean install
+																		// ==========Improvement==========
+			String catPath = prefs.getString(C.PREF_CAT_PATH, "");
 			String info;
-			
+
 			File fromCats = new File(catPath);
 
 			String internalPath = getFilesDir().getAbsolutePath();
-			File toCats = new File(internalPath + "/" + C.CAT_FILE);
+			File toCats = new File(internalPath + "/" + C.categoriesFile);
 
 			try {
 				PrintWriter pw = new PrintWriter(new FileOutputStream(toCats, false));
@@ -331,16 +447,16 @@ public class MainActivity extends Activity {
 			} catch (Exception e) {
 				info = "Please reload categories file";
 			}
-			
+
 			prefs.edit().remove(C.PREF_CAT_PATH).commit();
 			Toast.makeText(this, info, Toast.LENGTH_LONG).show();
 			// ==========End Improvement==========
-			
+
 			// save current version to preferences
-//				prefs.edit().putInt(lastVersion, getPackageManager().getPackageInfo(getPackageName(), 0).versionCode).commit();
+			//				prefs.edit().putInt(lastVersion, getPackageManager().getPackageInfo(getPackageName(), 0).versionCode).commit();
 		}
 	}
-	
+
 	private class NetworkTypeChangeListener extends PhoneStateListener {
 
 		TextView tv;
