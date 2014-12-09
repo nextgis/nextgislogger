@@ -2,14 +2,12 @@ package com.nextgis.logger;
 
 import java.util.ArrayList;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.os.Build;
 import android.preference.PreferenceManager;
 import android.widget.Toast;
 
@@ -37,7 +35,7 @@ public class SensorEngine implements SensorEventListener {
 		sm.unregisterListener(this);
 	}
 
-	@TargetApi(Build.VERSION_CODES.KITKAT)
+	@SuppressWarnings("deprecation")
 	protected void onResume(Context ctx) {
 		boolean noSensor = false;
 		ArrayList<String> noSensors = new ArrayList<String>();
@@ -113,6 +111,7 @@ public class SensorEngine implements SensorEventListener {
 		// TODO Auto-generated method stub
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void onSensorChanged(SensorEvent event) {
 		long curTime = System.currentTimeMillis();
@@ -192,6 +191,7 @@ public class SensorEngine implements SensorEventListener {
 		return roll;
 	}
 
+	@SuppressWarnings("deprecation")
 	private boolean isSensorEnabled(int sensorType) {
 		switch (sensorType) {
 		case Sensor.TYPE_ACCELEROMETER:
@@ -207,6 +207,7 @@ public class SensorEngine implements SensorEventListener {
 		return false;
 	}
 
+	@SuppressWarnings("deprecation")
 	public boolean isAnySensorEnabled() {
 		return isSensorEnabled(Sensor.TYPE_ACCELEROMETER) || isSensorEnabled(Sensor.TYPE_GYROSCOPE)
 				|| isSensorEnabled(Sensor.TYPE_ORIENTATION) || isSensorEnabled(Sensor.TYPE_MAGNETIC_FIELD);

@@ -19,8 +19,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
-import android.net.wifi.ScanResult;
-import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -49,6 +47,7 @@ public class MarkActivity extends Activity {
 
 	private CellEngine gsmEngine;
 	private SensorEngine sensorEngine;
+//	private WiFiEngine wifiEngine;
 	
 	SharedPreferences prefs;
 	
@@ -62,6 +61,7 @@ public class MarkActivity extends Activity {
 		
 		gsmEngine = new CellEngine(this);
 		sensorEngine = new SensorEngine(this);
+//		wifiEngine = new WiFiEngine(this);
 
 		lvCategories = (ListView) findViewById(R.id.lv_categories);
 		final Activity base = this;
@@ -121,12 +121,6 @@ public class MarkActivity extends Activity {
 						intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(csvFile));
 				    	sendBroadcast(intent);	// update media for MTP
 					}
-					
-					boolean i = ((WifiManager) getSystemService(Context.WIFI_SERVICE)).isScanAlwaysAvailable();
-					boolean e = ((WifiManager) getSystemService(Context.WIFI_SERVICE)).isWifiEnabled();
-					((WifiManager) getSystemService(Context.WIFI_SERVICE)).startScan();
-					List<ScanResult> wifis = ((WifiManager) getSystemService(Context.WIFI_SERVICE)).getScanResults();
-					int ss = wifis.get(0).level;
 				} catch (FileNotFoundException e) {
 					info = getString(R.string.fs_error_msg);
 				}
@@ -176,6 +170,7 @@ public class MarkActivity extends Activity {
 		
 		gsmEngine.onResume();
 		sensorEngine.onResume(this);
+//		wifiEngine.onResume();
 	}
 	
 	@Override
@@ -184,6 +179,7 @@ public class MarkActivity extends Activity {
 		
 		gsmEngine.onPause();
 		sensorEngine.onPause();
+//		wifiEngine.onPause();
 
 		prefs.edit().putInt(C.PREF_MARKS_COUNT, marksCount).commit();
 	}

@@ -33,7 +33,7 @@
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/settings_sensors" >
         <CheckBoxPreference
-            android:defaultValue="true"
+            android:defaultValue="false"
             android:key="sensor_state"
             android:title="@string/settings_sensor_state" />
         <CheckBoxPreference

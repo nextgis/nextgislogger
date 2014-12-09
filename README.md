@@ -1,8 +1,19 @@
-gsm_logger
+NextGIS Logger
 ==========
 
-Productive GSM data logger for Android
+Productive data logger for Android
 ***
+#### version 1.2 (09.12.2014)
+* Added [sessions](https://github.com/nextgis/nextgislogger/wiki/About)
+* Added [separate activity for marks](https://github.com/nextgis/nextgislogger/wiki/About)
+* Added data from [sensors](https://github.com/nextgis/nextgislogger/wiki/Overview): orientation, magnetic_field, gyroscope
+* Added device info in [device_info.txt](https://github.com/nextgis/nextgislogger/wiki/Overview) for each session
+* Added marks count and records count info for each session.
+* Changed minimum Android version to 3.0 - Honeycomb (API 11), maximum 5.0 - Lollipop (API 21)
+* Changed package name to "NextGIS Logger" (com.nextgis.logger). Please reconfigure your preferences.
+* Changed cell data: "Power" in header instead RSSI, "-1" instead Integer.MAX_VALUE on API 17+
+* Сode refactoring
+
 #### version 1.1.4 (04.12.2014)
 * Fixed signal strength for 3G network below API 17 method (RSCP shows instead 0)
 * Fixed results directory visibility on external storage through MTP
