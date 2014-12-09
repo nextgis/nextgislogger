@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.nextgis.gsm_logger"
+    package="com.nextgis.logger"
     android:versionCode="8"
     android:versionName="1.2" >
 
@@ -34,26 +34,26 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".PreferencesActivity"
+            android:name="com.nextgis.logger.PreferencesActivity"
             android:label="@string/app_settings"
-            android:parentActivityName="com.nextgis.gsm_logger.MainActivity" >
+            android:parentActivityName="com.nextgis.logger.MainActivity" >
 
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.nextgis.gsm_logger.MainActivity" />
+                android:value="com.nextgis.logger.MainActivity" />
         </activity>
         <activity
-            android:name=".MarkActivity"
+            android:name="com.nextgis.logger.MarkActivity"
             android:label="@string/menu_search"
-            android:parentActivityName="com.nextgis.gsm_logger.MainActivity"
+            android:parentActivityName="com.nextgis.logger.MainActivity"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="stateVisible" >
 
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.nextgis.gsm_logger.MainActivity" />
+                android:value="com.nextgis.logger.MainActivity" />
         </activity>
 
         <service

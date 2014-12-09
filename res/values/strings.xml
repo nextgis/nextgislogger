@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">GSM Logger</string>
+    <string name="app_name">NextGIS Logger</string>
     <string name="app_settings">Settings</string>
     
     <string name="settings_sensor_state">Enable accelerometer data</string>
@@ -16,8 +16,8 @@
     <string name="settings_cat_path">Load mark name presets from file…</string>
     <string name="settings_user_name">Identification string (optional)</string>
     
-    <string name="service_notif_title">GSM Logger</string>
-    <string name="service_notif_text">GSM Logger is running…</string>
+    <string name="service_notif_title">NextGIS Logger</string>
+    <string name="service_notif_text">Logger is running…</string>
     <string name="btn_service_start">Start Logger</string>
     <string name="btn_service_stop">Stop Logger</string>
     
@@ -31,10 +31,12 @@
     
     <string name="ext_media_unmounted_msg">External Media is NOT MOUNTED</string>
     <string name="fs_error_msg">File system ERROR.</string>
-    <string name="network_error">Current network IS NOT GSM.</string>
+<!--     <string name="network_error">Current network IS NOT GSM.</string> -->
     <string name="sensor_error">No linear accelerometer found</string>
     <string name="cat_file_structure_error">Wrong categories file structure</string>
     <string name="cat_file_error">No categories, please reload presets</string>
+    <string name="error_no_file">No file selected</string>
+    <string name="file_loaded">"Loaded from "</string>
     
     <string name="btn_save_mark">Markers mode</string>
     <string name="menu_search">Markers</string>

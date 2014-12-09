@@ -1,4 +1,4 @@
-package com.nextgis.gsm_logger;
+package com.nextgis.logger;
 
 import android.app.Activity;
 import android.app.ActivityManager;
@@ -25,6 +25,8 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
+
+import com.nextgis.logger.R;
 
 public class MainActivity extends Activity implements OnClickListener {
 	public static String dataDirPath = C.dataBasePath;
@@ -67,7 +69,7 @@ public class MainActivity extends Activity implements OnClickListener {
 		super.onCreate(savedInstanceState);
 
 		setContentView(R.layout.main_activity);
-		PreferenceManager.setDefaultValues(this, C.PREFERENCE_NAME, MODE_PRIVATE, R.xml.preferences, false);
+		PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 
 		errorMessage = (TextView) findViewById(R.id.tv_error_message);
 
@@ -84,8 +86,7 @@ public class MainActivity extends Activity implements OnClickListener {
 		markButton.setText(getString(R.string.btn_save_mark));
 		markButton.setOnClickListener(this);
 
-		prefs = getPreferences(MODE_PRIVATE);
-		updateApplicationStructure();
+		prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		String session = prefs.getString(C.PREF_SESSION_NAME, "");
 
 		setDataDirPath(session);
@@ -243,7 +244,9 @@ public class MainActivity extends Activity implements OnClickListener {
 				alert.setTitle(getString(R.string.session_name));
 
 				final EditText input = new EditText(this);
-				input.setText(millisToDate(Calendar.getInstance().getTimeInMillis(), "yyyy-MM-dd--HH-mm-ss") + "--" + pref.getString(C.PREF_USER_NAME, "User1")); // default session name
+				String defaultName = millisToDate(Calendar.getInstance().getTimeInMillis(), "yyyy-MM-dd--HH-mm-ss");
+				defaultName += pref.getString(C.PREF_USER_NAME, "User1").equals("") ? "" : "--" + pref.getString(C.PREF_USER_NAME, "User1");
+				input.setText(defaultName); // default session name
 				input.setSelection(input.getText().length()); // move cursor at the end
 				alert.setView(input);
 
@@ -407,56 +410,6 @@ public class MainActivity extends Activity implements OnClickListener {
 		return true;
 	}
 
-	private void updateApplicationStructure() // TODO remove when unnecessary
-	{
-		//		String lastVersion = "version";
-
-		//			if(prefs.getInt(lastVersion, 0) < getPackageManager().getPackageInfo(getPackageName(), 0).versionCode)
-		if (prefs.contains(C.PREF_CAT_PATH)) { // update from previous version or clean install
-																		// ==========Improvement==========
-			String catPath = prefs.getString(C.PREF_CAT_PATH, "");
-			String info;
-
-			File fromCats = new File(catPath);
-
-			String internalPath = getFilesDir().getAbsolutePath();
-			File toCats = new File(internalPath + "/" + C.categoriesFile);
-
-			try {
-				PrintWriter pw = new PrintWriter(new FileOutputStream(toCats, false));
-				BufferedReader in = new BufferedReader(new FileReader(fromCats));
-
-				String[] split;
-				String line;
-
-				while ((line = in.readLine()) != null) {
-					split = line.split(",");
-
-					if (split.length != 2) {
-						in.close();
-						pw.close();
-						throw new ArrayIndexOutOfBoundsException("Must be two columns splitted by ','!");
-					} else
-						pw.println(line);
-				}
-
-				in.close();
-				pw.close();
-
-				info = "Categories loaded from " + catPath;
-			} catch (Exception e) {
-				info = "Please reload categories file";
-			}
-
-			prefs.edit().remove(C.PREF_CAT_PATH).commit();
-			Toast.makeText(this, info, Toast.LENGTH_LONG).show();
-			// ==========End Improvement==========
-
-			// save current version to preferences
-			//				prefs.edit().putInt(lastVersion, getPackageManager().getPackageInfo(getPackageName(), 0).versionCode).commit();
-		}
-	}
-
 	private class NetworkTypeChangeListener extends PhoneStateListener {
 
 		TextView tv;
@@ -469,7 +422,7 @@ public class MainActivity extends Activity implements OnClickListener {
 		public void onDataConnectionStateChanged(int state, int networkType) {
 			super.onDataConnectionStateChanged(state, networkType);
 
-			tv.setText(GSMEngine.getNetworkGen(networkType) + " / " + GSMEngine.getNetworkType(networkType));
+			tv.setText(CellEngine.getNetworkGen(networkType) + " / " + CellEngine.getNetworkType(networkType));
 		}
 	}
 }

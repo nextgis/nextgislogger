@@ -1,4 +1,4 @@
-package com.nextgis.gsm_logger;
+package com.nextgis.logger;
 
 import android.content.Context;
 import android.preference.EditTextPreference;

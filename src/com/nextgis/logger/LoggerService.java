@@ -1,4 +1,4 @@
-package com.nextgis.gsm_logger;
+package com.nextgis.logger;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -10,24 +10,28 @@ import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.preference.PreferenceManager;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+
+import com.nextgis.logger.R;
 
 public class LoggerService extends Service {
 
 	private static long timeStart = 0;
 	private static int recordsCount = 0;
+	private static int interval = 1;
 
 	private boolean isRunning = false;
 	private boolean isSensor = true;
 
-	private GSMEngine gsmEngine;
+	private String userName = "User1";
+	
+	private CellEngine gsmEngine;
 	private SensorEngine sensorEngine;
 	private Thread thread = null;
 	private LocalBinder localBinder = new LocalBinder();
@@ -48,10 +52,13 @@ public class LoggerService extends Service {
 			timeStart = System.currentTimeMillis();
 		}
 
-		gsmEngine = new GSMEngine(this);
+		gsmEngine = new CellEngine(this);
 		gsmEngine.onResume();
 
-		isSensor = getSharedPreferences(C.PREFERENCE_NAME, MODE_PRIVATE).getBoolean(C.PREF_SENSOR_STATE, true);
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+		isSensor = prefs.getBoolean(C.PREF_SENSOR_STATE, true);
+		userName = prefs.getString(C.PREF_USER_NAME, "userName");
+		interval = prefs.getInt(C.PREF_PERIOD_SEC, interval);
 
 		if (isSensor)
 			sensorEngine = new SensorEngine(this);
@@ -150,7 +157,6 @@ public class LoggerService extends Service {
 					MainActivity.checkOrCreateDirectory(MainActivity.dataDirPath);
 
 					try {
-						SharedPreferences prefs = getSharedPreferences(C.PREFERENCE_NAME, MODE_PRIVATE);
 						File csvFile = new File(MainActivity.csvLogFilePath);
 						boolean isFileExist = csvFile.exists();
 						PrintWriter pw = new PrintWriter(new FileOutputStream(csvFile, true));
@@ -159,29 +165,13 @@ public class LoggerService extends Service {
 							pw.println(C.csvMarkHeader);
 						}
 
-						ArrayList<GSMEngine.GSMInfo> gsmInfoArray = gsmEngine.getGSMInfoArray();
+						ArrayList<CellEngine.GSMInfo> gsmInfoArray = gsmEngine.getGSMInfoArray();
 
-						for (GSMEngine.GSMInfo gsmInfo : gsmInfoArray) {
-							StringBuilder sb = new StringBuilder();
-
+						for (CellEngine.GSMInfo gsmInfo : gsmInfoArray) {
 							String active = gsmInfo.isActive() ? "1" : gsmInfoArray.get(0).getMcc() + "-" + gsmInfoArray.get(0).getMnc() + "-"
 									+ gsmInfoArray.get(0).getLac() + "-" + gsmInfoArray.get(0).getCid();
-
-							sb.append("").append(C.CSV_SEPARATOR);
-							sb.append(C.logDefaultName).append(C.CSV_SEPARATOR);
-							sb.append(prefs.getString(C.PREF_USER_NAME, "User 1")).append(C.CSV_SEPARATOR);
-							sb.append(gsmInfo.getTimeStamp()).append(C.CSV_SEPARATOR);
-							sb.append(gsmInfo.networkGen()).append(C.CSV_SEPARATOR);
-							sb.append(gsmInfo.networkType()).append(C.CSV_SEPARATOR);
-							sb.append(active).append(C.CSV_SEPARATOR);
-							sb.append(gsmInfo.getMcc()).append(C.CSV_SEPARATOR);
-							sb.append(gsmInfo.getMnc()).append(C.CSV_SEPARATOR);
-							sb.append(gsmInfo.getLac()).append(C.CSV_SEPARATOR);
-							sb.append(gsmInfo.getCid()).append(C.CSV_SEPARATOR);
-							sb.append(gsmInfo.getPsc()).append(C.CSV_SEPARATOR);
-							sb.append(gsmInfo.getRssi());
-
-							pw.println(sb.toString());
+							
+							pw.println(CellEngine.getItem(gsmInfo, active, "", C.logDefaultName, userName));
 						}
 
 						pw.close();
@@ -197,18 +187,7 @@ public class LoggerService extends Service {
 							if (!isFileExist)
 								pw.println(C.csvHeaderSensor);
 
-							StringBuilder sb = new StringBuilder();
-
-							sb.append("").append(C.CSV_SEPARATOR);
-							sb.append(C.logDefaultName).append(C.CSV_SEPARATOR);
-							sb.append(prefs.getString(C.PREF_USER_NAME, "User 1")).append(C.CSV_SEPARATOR);
-							sb.append(gsmInfoArray.get(0).getTimeStamp()).append(C.CSV_SEPARATOR);
-							sb.append(sensorEngine.getSensorType()).append(C.CSV_SEPARATOR);
-							sb.append(sensorEngine.getX()).append(C.CSV_SEPARATOR);
-							sb.append(sensorEngine.getY()).append(C.CSV_SEPARATOR);
-							sb.append(sensorEngine.getZ());
-
-							pw.println(sb.toString());
+							pw.println(SensorEngine.getItem(sensorEngine, "", C.logDefaultName, userName, gsmInfoArray.get(0).getTimeStamp()));
 							pw.close();
 
 							intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(csvFile));
@@ -220,8 +199,7 @@ public class LoggerService extends Service {
 
 						sendBroadcast(intentStatus);
 
-						Thread.sleep(prefs.getInt(C.PREF_PERIOD_SEC, 1) * 1000);
-
+						Thread.sleep(interval * 1000);
 					} catch (FileNotFoundException e) {
 						isFileSystemError = true;
 						break;

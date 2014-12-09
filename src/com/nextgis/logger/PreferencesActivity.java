@@ -1,4 +1,4 @@
-package com.nextgis.gsm_logger;
+package com.nextgis.logger;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -6,6 +6,8 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+
+import com.nextgis.logger.R;
 
 import android.app.Activity;
 import android.content.Context;
@@ -23,12 +25,9 @@ public class PreferencesActivity extends PreferenceActivity {
 	public static final int minPeriodSec = 1;
 	public static final int maxPeriodSec = 3600;
 
-	private final String NO_FILE = "No file selected"; // FIXME hardcoded
-
 	@Override
 	protected void onCreate(Bundle savedInstance) {
 		super.onCreate(savedInstance);
-		getPreferenceManager().setSharedPreferencesName(C.PREFERENCE_NAME);
 		addPreferencesFromResource(R.xml.preferences);
 		final Activity parent = this;
 
@@ -89,11 +88,9 @@ public class PreferencesActivity extends PreferenceActivity {
 					@Override
 					public void onChosenDir(String chosenDir) {
 						// The code in this function will be executed when the dialog OK button is pushed
-						String info = NO_FILE;
+						String info = getString(R.string.error_no_file);
 
-						if (!new File(chosenDir).isFile())
-							info = "No such file"; // FIXME hardcoded string
-						else {
+						if (new File(chosenDir).isFile()) {
 							File fromCats = new File(chosenDir);
 
 							String internalPath = getFilesDir().getAbsolutePath();
@@ -120,15 +117,13 @@ public class PreferencesActivity extends PreferenceActivity {
 								in.close();
 								pw.close();
 
-								info = "Loaded from " + chosenDir;
+								info = getString(R.string.file_loaded) + chosenDir;
 							} catch (IOException e) {
 								info = getString(R.string.fs_error_msg);
 							} catch (ArrayIndexOutOfBoundsException e) {
 								info = getString(R.string.cat_file_structure_error);
 							}
 						}
-
-						//						preference.getEditor().putString(preference.getKey(), chosenDir).commit();
 
 						Toast.makeText(parent, info, Toast.LENGTH_SHORT).show();
 					}
@@ -139,12 +134,5 @@ public class PreferencesActivity extends PreferenceActivity {
 				return true;
 			}
 		});
-
-		//		String selectedFile = catPathPreference.getSharedPreferences().getString(catPathPreference.getKey(), "");
-		//		
-		//		if (!new File(selectedFile).isFile())
-		//			selectedFile = NO_FILE;
-		//		
-		//		catPathPreference.setSummary(selectedFile);
 	}
 }

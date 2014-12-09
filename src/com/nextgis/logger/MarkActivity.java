@@ -1,4 +1,4 @@
-package com.nextgis.gsm_logger;
+package com.nextgis.logger;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import com.nextgis.logger.R;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -18,6 +20,7 @@ import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -41,7 +44,7 @@ public class MarkActivity extends Activity {
 	
 	CustomArrayAdapter substringMarkNameAdapter;
 
-	private GSMEngine gsmEngine;
+	private CellEngine gsmEngine;
 	private SensorEngine sensorEngine;
 	
 	SharedPreferences prefs;
@@ -52,9 +55,9 @@ public class MarkActivity extends Activity {
 
 		setContentView(R.layout.mark_activity);
 		
-		prefs = getSharedPreferences(C.PREFERENCE_NAME, MODE_PRIVATE);
+		prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		
-		gsmEngine = new GSMEngine(this);
+		gsmEngine = new CellEngine(this);
 
 		if (isSensorEnabled(Sensor.TYPE_ACCELEROMETER))
 			sensorEngine = new SensorEngine(this);
@@ -85,30 +88,14 @@ public class MarkActivity extends Activity {
 						markName = C.markDefaultName;
 					}
 
-					ArrayList<GSMEngine.GSMInfo> gsmInfoArray = gsmEngine.getGSMInfoArray();
+					ArrayList<CellEngine.GSMInfo> gsmInfoArray = gsmEngine.getGSMInfoArray();
 					String userName = prefs.getString(C.PREF_USER_NAME, "User 1");
 
-					for (GSMEngine.GSMInfo gsmInfo : gsmInfoArray) {
-						StringBuilder sb = new StringBuilder();
-
+					for (CellEngine.GSMInfo gsmInfo : gsmInfoArray) {
 						String active = gsmInfo.isActive() ? "1" : gsmInfoArray.get(0).getMcc() + "-" + gsmInfoArray.get(0).getMnc() + "-"
 								+ gsmInfoArray.get(0).getLac() + "-" + gsmInfoArray.get(0).getCid();
-
-						sb.append(ID).append(C.CSV_SEPARATOR);
-						sb.append(markName).append(C.CSV_SEPARATOR);
-						sb.append(userName).append(C.CSV_SEPARATOR);
-						sb.append(gsmInfo.getTimeStamp()).append(C.CSV_SEPARATOR);
-						sb.append(gsmInfo.networkGen()).append(C.CSV_SEPARATOR);
-						sb.append(gsmInfo.networkType()).append(C.CSV_SEPARATOR);
-						sb.append(active).append(C.CSV_SEPARATOR);
-						sb.append(gsmInfo.getMcc()).append(C.CSV_SEPARATOR);
-						sb.append(gsmInfo.getMnc()).append(C.CSV_SEPARATOR);
-						sb.append(gsmInfo.getLac()).append(C.CSV_SEPARATOR);
-						sb.append(gsmInfo.getCid()).append(C.CSV_SEPARATOR);
-						sb.append(gsmInfo.getPsc()).append(C.CSV_SEPARATOR);
-						sb.append(gsmInfo.getRssi());
-
-						pw.println(sb.toString());
+						
+						pw.println(CellEngine.getItem(gsmInfo, active, ID, markName, userName));
 					}
 
 					pw.close();
@@ -126,18 +113,7 @@ public class MarkActivity extends Activity {
 						if (!isFileExist)
 							pw.println(C.csvHeaderSensor);
 
-						StringBuilder sb = new StringBuilder();
-
-						sb.append(ID).append(C.CSV_SEPARATOR);
-						sb.append(markName).append(C.CSV_SEPARATOR);
-						sb.append(userName).append(C.CSV_SEPARATOR);
-						sb.append(gsmInfoArray.get(0).getTimeStamp()).append(C.CSV_SEPARATOR);
-						sb.append(sensorEngine.getSensorType()).append(C.CSV_SEPARATOR);
-						sb.append(sensorEngine.getX()).append(C.CSV_SEPARATOR);
-						sb.append(sensorEngine.getY()).append(C.CSV_SEPARATOR);
-						sb.append(sensorEngine.getZ());
-
-						pw.println(sb.toString());
+						pw.println(SensorEngine.getItem(sensorEngine, ID, markName, userName, gsmInfoArray.get(0).getTimeStamp()));
 						pw.close();
 
 						intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(csvFile));

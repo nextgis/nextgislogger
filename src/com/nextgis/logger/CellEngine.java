@@ -1,15 +1,16 @@
-package com.nextgis.gsm_logger;
+package com.nextgis.logger;
 
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
+import android.preference.PreferenceManager;
 import android.telephony.*;
 import android.telephony.gsm.GsmCellLocation;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class GSMEngine {
+public class CellEngine {
 	Context mContext;
 
 	public final static int SIGNAL_STRENGTH_NONE = 0;
@@ -18,7 +19,7 @@ public class GSMEngine {
 	private GSMPhoneStateListener mSignalListener;
 	private int signalStrength = SIGNAL_STRENGTH_NONE;
 
-	public GSMEngine(Context context) {
+	public CellEngine(Context context) {
 		mContext = context;
 		mTelephonyManager = (TelephonyManager) mContext.getSystemService(Context.TELEPHONY_SERVICE);
 		mSignalListener = new GSMPhoneStateListener();
@@ -91,20 +92,20 @@ public class GSMEngine {
 		case TelephonyManager.NETWORK_TYPE_HSUPA: // API 5+
 		case TelephonyManager.NETWORK_TYPE_HSPAP: // API 5+
 			// getRssi() returns RSCP for UMTS
-//			if (-5 <= asu && asu <= 91) {
-//				return asu - 116;
-//			} else if (asu == 255) {
-//				return 0;
-//			}
-			return asu; 
-//			break;
+			//			if (-5 <= asu && asu <= 91) {
+			//				return asu - 116;
+			//			} else if (asu == 255) {
+			//				return 0;
+			//			}
+			return asu;
+			//			break;
 
-		// 4G -- LTE network
-		//            case TelephonyManager.NETWORK_TYPE_LTE : // API 11+
-		//                if (0 <= asu && asu <= 97) {
-		//                    return asu - 141;
-		//                }
-		//                break;
+			// 4G -- LTE network
+			//            case TelephonyManager.NETWORK_TYPE_LTE : // API 11+
+			//                if (0 <= asu && asu <= 97) {
+			//                    return asu - 141;
+			//                }
+			//                break;
 		}
 
 		return 0;
@@ -119,8 +120,7 @@ public class GSMEngine {
 		ArrayList<GSMInfo> gsmInfoArray = new ArrayList<GSMInfo>();
 
 		long timeStamp = System.currentTimeMillis();
-		boolean useAPI17 = mContext.getSharedPreferences(C.PREFERENCE_NAME, MainActivity.MODE_PRIVATE)
-				.getBoolean(C.PREF_USE_API17, false); // WCDMA uses API 18+, now min is 18
+		boolean useAPI17 = PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean(C.PREF_USE_API17, false); // WCDMA uses API 18+, now min is 18
 
 		// #2 using API 17 to get all cell towers around, including one which phone registered to
 		if (osVersion >= api17 && useAPI17) {
@@ -142,8 +142,8 @@ public class GSMEngine {
 						CellInfoWcdma wcdma = (CellInfoWcdma) cell;
 						CellIdentityWcdma wcdmaIdentity = wcdma.getCellIdentity();
 
-						gsmInfoArray.add(new GSMInfo(timeStamp, wcdma.isRegistered(), nwType, wcdmaIdentity.getMcc(), wcdmaIdentity.getMnc(), wcdmaIdentity.getLac(),
-								wcdmaIdentity.getCid(), wcdmaIdentity.getPsc(), wcdma.getCellSignalStrength().getDbm()));
+						gsmInfoArray.add(new GSMInfo(timeStamp, wcdma.isRegistered(), nwType, wcdmaIdentity.getMcc(), wcdmaIdentity.getMnc(), wcdmaIdentity
+								.getLac(), wcdmaIdentity.getCid(), wcdmaIdentity.getPsc(), wcdma.getCellSignalStrength().getDbm()));
 					}
 				}
 		}
@@ -174,8 +174,8 @@ public class GSMEngine {
 				}
 
 				if (gsmCellLocation != null) {
-					gsmInfoArray.add(new GSMInfo(timeStamp, true, mTelephonyManager.getNetworkType(), mcc, mnc, gsmCellLocation.getLac(), gsmCellLocation.getCid(), gsmCellLocation.getPsc(),
-							signalStrength));
+					gsmInfoArray.add(new GSMInfo(timeStamp, true, mTelephonyManager.getNetworkType(), mcc, mnc, gsmCellLocation.getLac(), gsmCellLocation
+							.getCid(), gsmCellLocation.getPsc(), signalStrength));
 				}
 			}
 
@@ -185,8 +185,8 @@ public class GSMEngine {
 				int nbNetworkType = neighbor.getNetworkType();
 
 				//				if (nbNetworkType == TelephonyManager.NETWORK_TYPE_GPRS || nbNetworkType == TelephonyManager.NETWORK_TYPE_EDGE) {
-				gsmInfoArray.add(new GSMInfo(timeStamp, false, nbNetworkType, mcc, mnc, neighbor.getLac(), neighbor.getCid(), neighbor.getPsc(), signalStrengthAsuToDbm(
-						neighbor.getRssi(), nbNetworkType)));
+				gsmInfoArray.add(new GSMInfo(timeStamp, false, nbNetworkType, mcc, mnc, neighbor.getLac(), neighbor.getCid(), neighbor.getPsc(),
+						signalStrengthAsuToDbm(neighbor.getRssi(), nbNetworkType)));
 				//				}
 			}
 		}
@@ -198,13 +198,13 @@ public class GSMEngine {
 		return gsmInfoArray;
 	}
 
-//	public static boolean isGSMNetwork(int network) {
-//		return network == TelephonyManager.NETWORK_TYPE_EDGE || network == TelephonyManager.NETWORK_TYPE_GPRS;
-//	}
+	//	public static boolean isGSMNetwork(int network) {
+	//		return network == TelephonyManager.NETWORK_TYPE_EDGE || network == TelephonyManager.NETWORK_TYPE_GPRS;
+	//	}
 
 	public static String getNetworkGen(int type) {
 		String gen;
-		
+
 		switch (type) {
 		case TelephonyManager.NETWORK_TYPE_EDGE:
 		case TelephonyManager.NETWORK_TYPE_GPRS:
@@ -224,10 +224,10 @@ public class GSMEngine {
 			gen = "unknown";
 			break;
 		}
-		
+
 		return gen;
 	}
-	
+
 	public static String getNetworkType(int type) {
 		String network;
 
@@ -272,6 +272,26 @@ public class GSMEngine {
 		return network;
 	}
 
+	public static String getItem(GSMInfo gsmInfo, String active, String ID, String markName, String userName) {
+		StringBuilder sb = new StringBuilder();
+
+		sb.append(ID).append(C.CSV_SEPARATOR);
+		sb.append(markName).append(C.CSV_SEPARATOR);
+		sb.append(userName).append(C.CSV_SEPARATOR);
+		sb.append(gsmInfo.getTimeStamp()).append(C.CSV_SEPARATOR);
+		sb.append(gsmInfo.networkGen()).append(C.CSV_SEPARATOR);
+		sb.append(gsmInfo.networkType()).append(C.CSV_SEPARATOR);
+		sb.append(active).append(C.CSV_SEPARATOR);
+		sb.append(gsmInfo.getMcc()).append(C.CSV_SEPARATOR);
+		sb.append(gsmInfo.getMnc()).append(C.CSV_SEPARATOR);
+		sb.append(gsmInfo.getLac()).append(C.CSV_SEPARATOR);
+		sb.append(gsmInfo.getCid()).append(C.CSV_SEPARATOR);
+		sb.append(gsmInfo.getPsc()).append(C.CSV_SEPARATOR);
+		sb.append(gsmInfo.getRssi());
+		
+		return sb.toString();
+	}
+	
 	public class GSMInfo {
 		private long timeStamp;
 		private boolean active;
@@ -318,11 +338,11 @@ public class GSMEngine {
 		public String networkType() {
 			return getNetworkType(networkType);
 		}
-		
+
 		public String networkGen() {
 			return getNetworkGen(networkType);
 		}
-		
+
 		public int getMcc() {
 			return mcc;
 		}

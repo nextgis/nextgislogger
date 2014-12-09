@@ -6,10 +6,10 @@
         android:key="user_name"
         android:title="@string/settings_user_name" />
 
-    <com.nextgis.gsm_logger.IntEditTextPreference
+    <com.nextgis.logger.IntEditTextPreference
         android:defaultValue="1"
         android:inputType="number"
-        android:key="periodSec"
+        android:key="period_sec"
         android:numeric="integer"
         android:title="@string/settings_period" />
 

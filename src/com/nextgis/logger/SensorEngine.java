@@ -1,10 +1,13 @@
-package com.nextgis.gsm_logger;
+package com.nextgis.logger;
+
+import com.nextgis.logger.R;
 
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.preference.PreferenceManager;
 import android.widget.Toast;
 
 public class SensorEngine implements SensorEventListener {
@@ -29,7 +32,7 @@ public class SensorEngine implements SensorEventListener {
 	}
 
 	protected void onResume(Context ctx) {
-		linearAcceleration = ctx.getSharedPreferences(C.PREFERENCE_NAME, Context.MODE_PRIVATE).getBoolean(C.PREF_SENSOR_MODE, false);
+		linearAcceleration = PreferenceManager.getDefaultSharedPreferences(ctx).getBoolean(C.PREF_SENSOR_MODE, false);
 		
 		if (linearAcceleration)
 			sensorType = Sensor.TYPE_LINEAR_ACCELERATION;
@@ -80,5 +83,20 @@ public class SensorEngine implements SensorEventListener {
 	
 	public String getSensorType() {
 		return linearAcceleration ? "Linear" : "Raw";
+	}
+	
+	public static String getItem(SensorEngine sensorEngine, String ID, String markName, String userName, long timeStamp) {
+		StringBuilder sb = new StringBuilder();
+
+		sb.append(ID).append(C.CSV_SEPARATOR);
+		sb.append(markName).append(C.CSV_SEPARATOR);
+		sb.append(userName).append(C.CSV_SEPARATOR);
+		sb.append(timeStamp).append(C.CSV_SEPARATOR);
+		sb.append(sensorEngine.getSensorType()).append(C.CSV_SEPARATOR);
+		sb.append(sensorEngine.getX()).append(C.CSV_SEPARATOR);
+		sb.append(sensorEngine.getY()).append(C.CSV_SEPARATOR);
+		sb.append(sensorEngine.getZ());
+		
+		return sb.toString();
 	}
 }
