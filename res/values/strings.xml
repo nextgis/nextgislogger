@@ -15,6 +15,12 @@
     <string name="settings_cats_sum">Mark name presets for text field</string>
     <string name="settings_cat_path">Load mark name presets from file…</string>
     <string name="settings_user_name">Identification string (optional)</string>
+    <string name="settings_sensors">Sensors</string>
+    <string name="settings_main">Main</string>
+    <string name="settings_sensor_sum">Available if device has sensor</string>
+    <string name="settings_sensor_gyroscope_state">Enable gyroscope data</string>
+    <string name="settings_sensor_magnetic_state">Enable magnetometer data</string>
+    <string name="settings_sensor_orientation_state">Enable orientation data</string>
     
     <string name="service_notif_title">NextGIS Logger</string>
     <string name="service_notif_text">Logger is running…</string>
@@ -32,7 +38,13 @@
     <string name="ext_media_unmounted_msg">External Media is NOT MOUNTED</string>
     <string name="fs_error_msg">File system ERROR.</string>
 <!--     <string name="network_error">Current network IS NOT GSM.</string> -->
-    <string name="sensor_error">No linear accelerometer found</string>
+    <string name="sensor_error">"No sensors found: "</string>
+    <string name="sensor_accelerometer">accelerometer</string>
+    <string name="sensor_linear">linear accelerometer</string>
+    <string name="sensor_gyroscope">gyroscope</string>
+    <string name="sensor_magnetic">magnetometer</string>
+    <string name="sensor_orientation">orientation</string>
+    
     <string name="cat_file_structure_error">Wrong categories file structure</string>
     <string name="cat_file_error">No categories, please reload presets</string>
     <string name="error_no_file">No file selected</string>

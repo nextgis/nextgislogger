@@ -1,43 +1,62 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     android:title="@string/app_settings" >
 
-    <EditTextPreference
-        android:defaultValue="User1"
-        android:key="user_name"
-        android:title="@string/settings_user_name" />
+    <PreferenceCategory android:title="@string/settings_main" >
+        <EditTextPreference
+            android:defaultValue="User1"
+            android:key="user_name"
+            android:title="@string/settings_user_name" />
 
-    <com.nextgis.logger.IntEditTextPreference
-        android:defaultValue="1"
-        android:inputType="number"
-        android:key="period_sec"
-        android:numeric="integer"
-        android:title="@string/settings_period" />
+        <com.nextgis.logger.IntEditTextPreference
+            android:defaultValue="1"
+            android:inputType="number"
+            android:key="period_sec"
+            android:numeric="integer"
+            android:title="@string/settings_period" />
 
-    <CheckBoxPreference
-        android:defaultValue="false"
-        android:key="use_cats"
-        android:summary="@string/settings_cats_sum"
-        android:title="@string/settings_cats" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="use_cats"
+            android:summary="@string/settings_cats_sum"
+            android:title="@string/settings_cats" />
 
-    <Preference
-        android:dependency="use_cats"
-        android:key="cat_path"
-        android:title="@string/settings_cat_path" />
+        <Preference
+            android:dependency="use_cats"
+            android:key="cat_path"
+            android:title="@string/settings_cat_path" />
 
-    <CheckBoxPreference
-        android:defaultValue="true"
-        android:key="sensor_state"
-        android:title="@string/settings_sensor_state" />
-    <CheckBoxPreference
-        android:defaultValue="false"
-        android:dependency="sensor_state"
-        android:key="sensor_mode"
-        android:summary="@string/settings_sensor_mode_sum"
-        android:title="@string/settings_sensor_mode" />
-    <CheckBoxPreference
-        android:defaultValue="true"
-        android:key="use_api17"
-        android:summary="@string/settings_cells_api17_sum"
-        android:title="@string/settings_cells_api17" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="use_api17"
+            android:summary="@string/settings_cells_api17_sum"
+            android:title="@string/settings_cells_api17" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/settings_sensors" >
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="sensor_state"
+            android:title="@string/settings_sensor_state" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:dependency="sensor_state"
+            android:key="sensor_mode"
+            android:summary="@string/settings_sensor_mode_sum"
+            android:title="@string/settings_sensor_mode" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="sensor_magnetic_state"
+            android:summary="@string/settings_sensor_sum"
+            android:title="@string/settings_sensor_magnetic_state" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="sensor_orientation_state"
+            android:summary="@string/settings_sensor_sum"
+            android:title="@string/settings_sensor_orientation_state" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="sensor_gyroscope_state"
+            android:summary="@string/settings_sensor_sum"
+            android:title="@string/settings_sensor_gyroscope_state" />
+    </PreferenceCategory>
 
 </PreferenceScreen>

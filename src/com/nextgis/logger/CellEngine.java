@@ -282,11 +282,20 @@ public class CellEngine {
 		sb.append(gsmInfo.networkGen()).append(C.CSV_SEPARATOR);
 		sb.append(gsmInfo.networkType()).append(C.CSV_SEPARATOR);
 		sb.append(active).append(C.CSV_SEPARATOR);
-		sb.append(gsmInfo.getMcc()).append(C.CSV_SEPARATOR);
-		sb.append(gsmInfo.getMnc()).append(C.CSV_SEPARATOR);
-		sb.append(gsmInfo.getLac()).append(C.CSV_SEPARATOR);
-		sb.append(gsmInfo.getCid()).append(C.CSV_SEPARATOR);
-		sb.append(gsmInfo.getPsc()).append(C.CSV_SEPARATOR);
+		
+		int psc = gsmInfo.getPsc();
+		boolean max = gsmInfo.getMcc() == Integer.MAX_VALUE && psc != -1;
+		sb.append(max ? "-1" : gsmInfo.getMcc()).append(C.CSV_SEPARATOR);
+		
+		max = gsmInfo.getMnc() == Integer.MAX_VALUE && psc != -1;
+		sb.append(max ? "-1" : gsmInfo.getMnc()).append(C.CSV_SEPARATOR);
+
+		max = gsmInfo.getLac() == Integer.MAX_VALUE && psc != -1;
+		sb.append(max ? "-1" : gsmInfo.getLac()).append(C.CSV_SEPARATOR);
+
+		max = gsmInfo.getCid() == Integer.MAX_VALUE && psc != -1;
+		sb.append(max ? "-1" : gsmInfo.getCid()).append(C.CSV_SEPARATOR);
+		sb.append(psc).append(C.CSV_SEPARATOR);
 		sb.append(gsmInfo.getRssi());
 		
 		return sb.toString();

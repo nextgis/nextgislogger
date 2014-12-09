@@ -13,12 +13,15 @@ import java.util.Locale;
 
 import com.nextgis.logger.R;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.hardware.Sensor;
 import android.net.Uri;
+import android.net.wifi.ScanResult;
+import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.Menu;
@@ -58,9 +61,7 @@ public class MarkActivity extends Activity {
 		prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		
 		gsmEngine = new CellEngine(this);
-
-		if (isSensorEnabled(Sensor.TYPE_ACCELEROMETER))
-			sensorEngine = new SensorEngine(this);
+		sensorEngine = new SensorEngine(this);
 
 		lvCategories = (ListView) findViewById(R.id.lv_categories);
 		final Activity base = this;
@@ -68,6 +69,7 @@ public class MarkActivity extends Activity {
 		marksCount = prefs.getInt(C.PREF_MARKS_COUNT, 0);
 		
 		lvCategories.setOnItemClickListener(new OnItemClickListener() {
+			@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				String info = getString(R.string.mark_saved);
@@ -105,7 +107,7 @@ public class MarkActivity extends Activity {
 			    	sendBroadcast(intent);	// update media for MTP
 
 					// checking accelerometer data state
-					if (isSensorEnabled(Sensor.TYPE_ACCELEROMETER)) {
+					if (sensorEngine.isAnySensorEnabled()) {
 						csvFile = new File(MainActivity.csvMarkFilePathSensor);
 						isFileExist = csvFile.exists();
 						pw = new PrintWriter(new FileOutputStream(csvFile, true));
@@ -119,8 +121,13 @@ public class MarkActivity extends Activity {
 						intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(csvFile));
 				    	sendBroadcast(intent);	// update media for MTP
 					}
+					
+					boolean i = ((WifiManager) getSystemService(Context.WIFI_SERVICE)).isScanAlwaysAvailable();
+					boolean e = ((WifiManager) getSystemService(Context.WIFI_SERVICE)).isWifiEnabled();
+					((WifiManager) getSystemService(Context.WIFI_SERVICE)).startScan();
+					List<ScanResult> wifis = ((WifiManager) getSystemService(Context.WIFI_SERVICE)).getScanResults();
+					int ss = wifis.get(0).level;
 				} catch (FileNotFoundException e) {
-//					setInterfaceState(R.string.fs_error_msg, true);
 					info = getString(R.string.fs_error_msg);
 				}
 				
@@ -168,14 +175,7 @@ public class MarkActivity extends Activity {
 		super.onResume();
 		
 		gsmEngine.onResume();
-
-		if (isSensorEnabled(Sensor.TYPE_ACCELEROMETER))
-			if (sensorEngine != null)
-				sensorEngine.onResume(this);
-			else
-				sensorEngine = new SensorEngine(this);
-		else
-			sensorEngine = null;
+		sensorEngine.onResume(this);
 	}
 	
 	@Override
@@ -183,9 +183,7 @@ public class MarkActivity extends Activity {
 		super.onPause();
 		
 		gsmEngine.onPause();
-
-		if (sensorEngine != null)
-			sensorEngine.onPause();
+		sensorEngine.onPause();
 
 		prefs.edit().putInt(C.PREF_MARKS_COUNT, marksCount).commit();
 	}
@@ -224,15 +222,6 @@ public class MarkActivity extends Activity {
 		return true;
 	}
 
-	private boolean isSensorEnabled(int sensorType) {
-		switch (sensorType) {
-		case Sensor.TYPE_ACCELEROMETER:
-			return prefs.getBoolean(C.PREF_SENSOR_STATE, true);
-		}
-		
-		return false;
-	}
-	
 	public class MarkName {
 		private String ID = "";
 		private String CAT = "Mark";

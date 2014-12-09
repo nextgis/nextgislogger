@@ -12,14 +12,16 @@ public class C extends Activity {
 	public static final String csvMarkFile = "cell_time_marks.csv";
 	public static final String csvMarkFileSensor = "sensor_time_marks.csv";
 	public static final String categoriesFile = "categories.csv";
-	public static final String dataBasePath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "nextgis_logger";	
-	
+	public static final String deviceInfoFile = "device_info.txt";
+	public static final String dataBasePath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "nextgis_logger";
+
 	public static final String csvMarkHeader = "ID" + CSV_SEPARATOR + "Name" + CSV_SEPARATOR + "User" + CSV_SEPARATOR + "TimeStamp" + CSV_SEPARATOR
 			+ "NetworkGen" + CSV_SEPARATOR + "NetworkType" + CSV_SEPARATOR + "Active" + CSV_SEPARATOR + "MCC" + CSV_SEPARATOR + "MNC" + CSV_SEPARATOR + "LAC"
 			+ CSV_SEPARATOR + "CID" + CSV_SEPARATOR + "PSC" + CSV_SEPARATOR + "Power";
 
 	public static final String csvHeaderSensor = "ID" + CSV_SEPARATOR + "Name" + CSV_SEPARATOR + "User" + CSV_SEPARATOR + "TimeStamp" + CSV_SEPARATOR + "Type"
-			+ CSV_SEPARATOR + "X" + CSV_SEPARATOR + "Y" + CSV_SEPARATOR + "Z";
+			+ CSV_SEPARATOR + "Accel_X" + CSV_SEPARATOR + "Accel_Y" + CSV_SEPARATOR + "Accel_Z" + CSV_SEPARATOR + "Azimuth" + CSV_SEPARATOR + "Pitch" + CSV_SEPARATOR + "Roll"
+			+ CSV_SEPARATOR + "Magnetic" + CSV_SEPARATOR + "Gyro_X" + CSV_SEPARATOR + "Gyro_Y" + CSV_SEPARATOR + "Gyro_Z";
 
 	public static final String logDefaultName = "ServiceLog";
 	public static final String markDefaultName = "Mark";
@@ -27,6 +29,9 @@ public class C extends Activity {
 	public static final String PREF_PERIOD_SEC = "period_sec";
 	public static final String PREF_SENSOR_STATE = "sensor_state";
 	public static final String PREF_SENSOR_MODE = "sensor_mode";
+	public static final String PREF_SENSOR_GYRO = "sensor_gyroscope_state";
+	public static final String PREF_SENSOR_MAG = "sensor_magnetic_state";
+	public static final String PREF_SENSOR_ORIENT = "sensor_orientation_state";
 	public static final String PREF_USE_API17 = "use_api17";
 	public static final String PREF_USE_CATS = "use_cats";
 	public static final String PREF_CAT_PATH = "cat_path";
@@ -34,7 +39,7 @@ public class C extends Activity {
 	public static final String PREF_SESSION_NAME = "session_name";
 	public static final String PREF_MARKS_COUNT = "marks_count";
 	public static final String PREF_RECORDS_COUNT = "records_count";
-	
+
 	public static final String BROADCAST_ACTION = "com.nextgis.gsm_logger.MainActivity";
 
 	public static final String PARAM_SERVICE_STATUS = "serviceStatus";

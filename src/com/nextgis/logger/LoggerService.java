@@ -27,7 +27,6 @@ public class LoggerService extends Service {
 	private static int interval = 1;
 
 	private boolean isRunning = false;
-	private boolean isSensor = true;
 
 	private String userName = "User1";
 	
@@ -56,12 +55,10 @@ public class LoggerService extends Service {
 		gsmEngine.onResume();
 
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-		isSensor = prefs.getBoolean(C.PREF_SENSOR_STATE, true);
 		userName = prefs.getString(C.PREF_USER_NAME, "userName");
 		interval = prefs.getInt(C.PREF_PERIOD_SEC, interval);
 
-		if (isSensor)
-			sensorEngine = new SensorEngine(this);
+		sensorEngine = new SensorEngine(this);
 	}
 
 	@Override
@@ -71,6 +68,7 @@ public class LoggerService extends Service {
 
 		if (!isRunning) {
 			isRunning = true;
+			recordsCount = 0;
 			sendNotification();
 			RunTask();
 		}
@@ -85,9 +83,7 @@ public class LoggerService extends Service {
 		//android.os.Debug.waitForDebugger();
 
 		gsmEngine.onPause();
-
-		if (sensorEngine != null)
-			sensorEngine.onPause();
+		sensorEngine.onPause();
 
 		if (thread != null) {
 			thread.interrupt();
@@ -179,7 +175,7 @@ public class LoggerService extends Service {
 						Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(csvFile));
 				    	sendBroadcast(intent);
 
-						if (isSensor) {
+						if (sensorEngine.isAnySensorEnabled()) {
 							csvFile = new File(MainActivity.csvLogFilePathSensor);
 							isFileExist = csvFile.exists();
 							pw = new PrintWriter(new FileOutputStream(csvFile, true));

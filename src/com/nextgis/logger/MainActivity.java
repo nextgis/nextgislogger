@@ -1,9 +1,11 @@
 package com.nextgis.logger;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.*;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
@@ -260,6 +262,18 @@ public class MainActivity extends Activity implements OnClickListener {
 							setDataDirPath(value);
 							sessionButton.setText(R.string.btn_session_close);
 							sessionName.setText(value);
+							
+							File deviceInfoFile = new File(dataDirPath + File.separator + C.deviceInfoFile);
+							
+							PrintWriter pw;
+							try {
+								pw = new PrintWriter(new FileOutputStream(deviceInfoFile, true));
+								pw.println(getDeviceInfo());
+								pw.close();
+							} catch (FileNotFoundException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
 						}
 					}
 				});
@@ -274,6 +288,7 @@ public class MainActivity extends Activity implements OnClickListener {
 				dialog.show();
 			} else { // close session
 				prefs.edit().putString(C.PREF_SESSION_NAME, "").putInt(C.PREF_MARKS_COUNT, 0).putInt(C.PREF_RECORDS_COUNT, 0).commit();
+				recordsCount = 0;
 				setInterfaceState(0, INTERFACE_STATE.SESSION_NONE);
 				setDataDirPath("");
 				sessionButton.setText(R.string.btn_session_open);
@@ -305,6 +320,28 @@ public class MainActivity extends Activity implements OnClickListener {
 			startActivity(markActivity);
 			break;
 		}
+	}
+
+	@SuppressWarnings("deprecation")
+	@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+	private String getDeviceInfo() {
+		StringBuilder result = new StringBuilder();
+		
+		result.append("Manufacturer:\t").append(Build.MANUFACTURER).append("\r\n");
+		result.append("Brand:\t").append(Build.BRAND).append("\r\n");
+		result.append("Model:\t").append(Build.MODEL).append("\r\n");
+		result.append("Product:\t").append(Build.PRODUCT).append("\r\n");
+		result.append("Android:\t").append(Build.VERSION.RELEASE).append("\r\n");
+		result.append("API:\t").append(Build.VERSION.SDK_INT).append("\r\n");
+		
+		result.append("Kernel version:\t").append(System.getProperty("os.version")).append("\r\n");
+		
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+			result.append("Radio firmware:\t").append(Build.getRadioVersion()).append("\r\n");
+		else
+			result.append("Radio firmware:\t").append(Build.RADIO).append("\r\n");
+		
+		return result.toString();
 	}
 
 	private void setDataDirPath(String directory) {

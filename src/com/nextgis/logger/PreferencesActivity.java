@@ -30,10 +30,21 @@ public class PreferencesActivity extends PreferenceActivity {
 		super.onCreate(savedInstance);
 		addPreferencesFromResource(R.xml.preferences);
 		final Activity parent = this;
+		
+		SensorManager sm = (SensorManager) this.getSystemService(Context.SENSOR_SERVICE);
 
-		if (((SensorManager) this.getSystemService(Context.SENSOR_SERVICE)).getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION) == null)
+		if (sm.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION) == null)
 			findPreference(C.PREF_SENSOR_MODE).setEnabled(false);
 
+		if (sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD) == null)
+			findPreference(C.PREF_SENSOR_MAG).setEnabled(false);
+		
+		if (sm.getDefaultSensor(Sensor.TYPE_ORIENTATION) == null)
+			findPreference(C.PREF_SENSOR_ORIENT).setEnabled(false);
+		
+		if (sm.getDefaultSensor(Sensor.TYPE_GYROSCOPE) == null)
+			findPreference(C.PREF_SENSOR_GYRO).setEnabled(false);
+		
 		if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.JELLY_BEAN_MR1)
 			findPreference(C.PREF_USE_API17).setEnabled(false);
 
