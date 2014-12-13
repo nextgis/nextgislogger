@@ -34,7 +34,7 @@ public class SimpleLogsChooser extends DialogFragment implements android.content
 					selectedLogs.remove(Integer.valueOf(which));
 				}
 			}
-		}).setPositiveButton(R.string.btn_ok, this).setNegativeButton(R.string.btn_cancel, this).setTitle(R.string.share_logs_msg);
+		}).setPositiveButton(R.string.btn_ok, this).setNegativeButton(R.string.btn_cancel, this).setTitle(getArguments().getString("title"));
 		
 		return builder.create();
 	}

@@ -232,15 +232,22 @@ public class MainActivity extends Activity implements OnClickListener, SimpleLog
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
+		int res = 0;
+		
 		switch (item.getItemId()) {
 		case R.id.action_settings:
 			Intent preferencesActivity = new Intent(this, PreferencesActivity.class);
 			startActivity(preferencesActivity);
 			break;
 		case R.id.action_share:
+			res++;
 		case R.id.action_delete:
 			slcMenuType = item.getItemId();
 			SimpleLogsChooser SLC = new SimpleLogsChooser();
+			Bundle args = new Bundle();
+			res = res == 0 ? R.string.delete_logs_msg : R.string.share_logs_msg;
+			args.putString("title", getString(res));
+			SLC.setArguments(args);
 			SLC.show(getFragmentManager(), "SimpleLogsChooser");
 			SLC.setOnChosenLogs(this);
 			break;

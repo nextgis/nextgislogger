@@ -42,6 +42,8 @@ public class PreferencesActivity extends PreferenceActivity {
 
 			final Activity parent = getActivity();
 
+			findPreference(C.PREF_SENSOR_MODE).setSummary(getString(R.string.settings_sensor_mode_sum) + "\r\n" + getString(R.string.settings_sensor_sum));
+			
 			SensorManager sm = (SensorManager) parent.getSystemService(Context.SENSOR_SERVICE);
 
 			if (sm.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION) == null)

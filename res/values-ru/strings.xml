@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">NextGIS Logger</string>
+    <string name="app_settings">Настройки</string>
+
+    <string name="settings_sensors">Сенсоры</string>
+    <string name="settings_main">Основное</string>
+
+    <string name="settings_sensor_mode">Использовать линейный акселерометр</string>
+    <string name="settings_sensor_mode_sum">Без силы притяжения по всем осям</string>
+
+    <string name="settings_period">Задать период (сек)</string>
+    <string name="settings_period_sum">"Текущий: "</string>
+    <string name="settings_period_toast">Минимальный 1, максимальный 3600</string>
+    
+    <string name="settings_cells_api17">Использовать API 17+ для поиска вышек</string>
+    <string name="settings_cells_api17_sum">Доступно на Android 4.2+\r\nМожет помочь для некоторых устройств если данные не собираютя</string>
+
+    <string name="settings_cats">Использовать файлы категорий</string>
+    <string name="settings_cats_sum">Предзаданные имена меток из файла</string>
+
+    <string name="settings_cat_path">Загрузить имена из файла…</string>
+    <string name="settings_user_name">Строка идентификации (дополн.)</string>
+    <string name="settings_sensor_state">Включить данные с акселерометра</string>
+    <string name="settings_sensor_gyroscope_state">Включить данные с гироскопа</string>
+    <string name="settings_sensor_magnetic_state">Включить данные с магнетометра</string>
+    <string name="settings_sensor_orientation_state">Включить данные ориентации</string>
+    <string name="settings_sensor_sum">Доступно если имеется этот сенсор</string>
+
+    <string name="service_notif_title">NextGIS Logger</string>
+    <string name="service_notif_text">Логгер запущен…</string>
+
+    <string name="btn_service_start">Запустить логгер</string>
+    <string name="btn_service_stop">Остановить логгер</string>
+    <string name="logger_started">Логгер запущен:</string>
+    <string name="logger_finished">Логер остановлен:</string>
+    <string name="records_collected">Записей собрано:</string>
+    <string name="marks_collected">Меток собрано:</string>
+    <string name="service_running">запущен</string>
+    <string name="service_stopped">остановлен</string>
+    <string name="network_type">Тип сети:</string>
+    <string name="btn_save_mark">Перейти к меткам</string>
+    
+    <string name="btn_session_open">Новая сессия</string>
+    <string name="btn_session_close">Закрыть сессию</string>
+    <string name="session_name">Имя сессии:</string>
+    <string name="session_incorrect_name">"Неверный символ "</string>
+    <string name="session_null_name">Имя не может быть пустым</string>
+    
+    <string name="scl_current_session">текущая сессия</string>
+    <string name="delete_logs_done">Логи удалены</string>
+    <string name="delete_logs_title">Удалить логи…</string>
+    <string name="delete_logs_msg">Выбрать логи для удаления</string>
+    <string name="share_logs_title">Отправить логи…</string>
+    <string name="share_logs_msg">Выбрать логи для отправки</string>
+    
+    <string name="ext_media_unmounted_msg">Нет доступа к внешней памяти</string>
+    <string name="fs_error_msg">Ошибка файловой системы</string>
+    
+    <string name="sensor_error">"Сенсоры не найдены: "</string>
+    <string name="sensor_accelerometer">акселерометр</string>
+    <string name="sensor_linear">линейный акселерометр</string>
+    <string name="sensor_gyroscope">гироскоп</string>
+    <string name="sensor_magnetic">магнетометр</string>
+    <string name="sensor_orientation">ориентация</string>
+    
+    <string name="cat_file_structure_error">Неверная структура файла категорий</string>
+    <string name="cat_file_error">Нет категорий, перезагрузите файл</string>
+    <string name="error_no_file">Файл не выбран</string>
+    <string name="file_loaded">"Загружено из "</string>
+    
+    <string name="menu_search">Метки</string>
+    <string name="mark_editor_hint">Имя метки</string>
+    <string name="mark_saved">Метка сохранена</string>
+    
+    <string name="btn_ok">OK</string>
+    <string name="btn_cancel">Отмена</string>
+</resources>

@@ -7,7 +7,7 @@
     <string name="settings_main">Main</string>
 
     <string name="settings_sensor_mode">Use linear accelerometer</string>
-    <string name="settings_sensor_mode_sum">Without gravity of Earth (in all dims)\r\nAvailable if device has linear sensor</string>
+    <string name="settings_sensor_mode_sum">Without gravity of Earth (in all dims)</string>
 
     <string name="settings_period">Set Period (sec)</string>
     <string name="settings_period_sum">"Current is "</string>

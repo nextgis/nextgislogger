@@ -3,6 +3,11 @@ NextGIS Logger
 
 Productive data logger for Android
 ***
+#### version 1.2.1 (13.12.2014)
+* Added sharing logs to menu
+* Added deleting logs to menu
+* Added Russian localization
+
 #### version 1.2 (09.12.2014)
 * Added [sessions](https://github.com/nextgis/nextgislogger/wiki/About)
 * Added [separate activity for marks](https://github.com/nextgis/nextgislogger/wiki/About)
