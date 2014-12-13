@@ -35,6 +35,11 @@
     <string name="service_stopped">stopped</string>
     <string name="network_type">Network type:</string>
     
+    <string name="delete_logs_title">Delete logs…</string>
+    <string name="delete_logs_msg">Select logs to delete</string>
+    <string name="share_logs_title">Share logs…</string>
+    <string name="share_logs_msg">Select logs to share</string>
+    
     <string name="ext_media_unmounted_msg">External Media is NOT MOUNTED</string>
     <string name="fs_error_msg">File system ERROR.</string>
 <!--     <string name="network_error">Current network IS NOT GSM.</string> -->

@@ -14,6 +14,7 @@ public class C extends Activity {
 	public static final String categoriesFile = "categories.csv";
 	public static final String deviceInfoFile = "device_info.txt";
 	public static final String dataBasePath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "nextgis_logger";
+	public static final String tempPath = dataBasePath + File.separator + ".temp";
 
 	public static final String csvMarkHeader = "ID" + CSV_SEPARATOR + "Name" + CSV_SEPARATOR + "User" + CSV_SEPARATOR + "TimeStamp" + CSV_SEPARATOR
 			+ "NetworkGen" + CSV_SEPARATOR + "NetworkType" + CSV_SEPARATOR + "Active" + CSV_SEPARATOR + "MCC" + CSV_SEPARATOR + "MNC" + CSV_SEPARATOR + "LAC"

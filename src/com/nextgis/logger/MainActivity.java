@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.*;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -25,12 +26,16 @@ import android.widget.Toast;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import com.nextgis.logger.R;
+import com.nextgis.logger.SimpleLogsChooser.SimpleLogsChooserListener;
 
-public class MainActivity extends Activity implements OnClickListener {
+public class MainActivity extends Activity implements OnClickListener, SimpleLogsChooserListener {
 	public static String dataDirPath = C.dataBasePath;
 	public static String csvLogFilePath = dataDirPath + File.separator + C.csvLogFile;
 	public static String csvLogFilePathSensor = dataDirPath + File.separator + C.csvLogFileSensor;
@@ -63,7 +68,7 @@ public class MainActivity extends Activity implements OnClickListener {
 	private ServiceConnection servConn = null;
 
 	NetworkTypeChangeListener networkTypeListener;
-	
+
 	private SharedPreferences prefs;
 
 	@Override
@@ -110,7 +115,7 @@ public class MainActivity extends Activity implements OnClickListener {
 		marksCollectedCount = (TextView) findViewById(R.id.tv_marks_collected_count);
 
 		recordsCount = prefs.getInt(C.PREF_RECORDS_COUNT, 0);
-		
+
 		if (!isServiceRunning) {
 			if (timeStarted > 0) {
 				loggerStartedTime.setText(millisToDate(timeStarted, "dd.MM.yyyy hh:mm:ss"));
@@ -176,7 +181,7 @@ public class MainActivity extends Activity implements OnClickListener {
 		super.onResume();
 
 		int marksCount = prefs.getInt(C.PREF_MARKS_COUNT, 0);
-		
+
 		if (marksCount > 0)
 			marksCollectedCount.setText(marksCount + "");
 
@@ -206,6 +211,8 @@ public class MainActivity extends Activity implements OnClickListener {
 
 		unregisterReceiver(broadcastReceiver);
 		
+		deleteFiles(new File(C.tempPath).listFiles());	// clear cache directory
+
 		super.onDestroy();
 	}
 
@@ -227,6 +234,13 @@ public class MainActivity extends Activity implements OnClickListener {
 		case R.id.action_settings:
 			Intent preferencesActivity = new Intent(this, PreferencesActivity.class);
 			startActivity(preferencesActivity);
+			break;
+		case R.id.action_share:
+//			deleteFiles(new File(C.tempPath).listFiles());	// clear cache directory
+
+			SimpleLogsChooser SLC = new SimpleLogsChooser();
+			SLC.show(getFragmentManager(), "SimpleLogsChooser");
+			SLC.setOnChosenLogs(this);
 			break;
 		default:
 			break;
@@ -262,9 +276,9 @@ public class MainActivity extends Activity implements OnClickListener {
 							setDataDirPath(value);
 							sessionButton.setText(R.string.btn_session_close);
 							sessionName.setText(value);
-							
+
 							File deviceInfoFile = new File(dataDirPath + File.separator + C.deviceInfoFile);
-							
+
 							PrintWriter pw;
 							try {
 								pw = new PrintWriter(new FileOutputStream(deviceInfoFile, true));
@@ -293,7 +307,7 @@ public class MainActivity extends Activity implements OnClickListener {
 				setDataDirPath("");
 				sessionButton.setText(R.string.btn_session_open);
 				sessionName.setText("");
-				
+
 				marksCollectedCount.setText("");
 				recordsCollectedCount.setText("");
 			}
@@ -322,25 +336,89 @@ public class MainActivity extends Activity implements OnClickListener {
 		}
 	}
 
+	@Override
+	public void onChosenLogs(ArrayList<String> logsDirectories) {
+		ArrayList<Uri> logsZips = new ArrayList<Uri>();
+		
+		try {
+			byte[] buffer = new byte[1024];
+
+			if (!checkOrCreateDirectory(C.tempPath))
+				return;	// FIXME Toast?
+			
+			for (int i = 0; i < logsDirectories.size(); i++) {	// for each selected logs directory
+				String fileName = logsDirectories.get(i).toString();	// get directory name
+				File currentDir = new File(C.dataBasePath + File.separator + fileName);	// get path to it
+				String tempFileName = C.tempPath + File.separator + fileName + ".zip";	// set temp zip file path
+				
+				File[] files = currentDir.listFiles();	// get all files in current log directory
+				
+				if(files.length == 0)	// skip empty directories
+					continue;
+
+				FileOutputStream fos = new FileOutputStream(tempFileName);
+				ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(fos));
+
+				for (int j = 0; j < files.length; j++) {	// for each log-file in directory
+					FileInputStream fis = new FileInputStream(files[j]);
+					zos.putNextEntry(new ZipEntry(files[j].getName()));	// put it in zip
+
+					int length;
+
+					while ((length = fis.read(buffer)) > 0)	// write it to zip
+						zos.write(buffer, 0, length);
+
+					zos.closeEntry();
+					fis.close();
+				}
+
+				zos.close();
+				logsZips.add(Uri.parse(tempFileName));	// add file's uri to share list
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		Intent shareIntent = new Intent();
+		shareIntent.setAction(Intent.ACTION_SEND_MULTIPLE);	// multiple sharing
+		shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, logsZips);	// set data
+		shareIntent.setType("application/zip");	//set mime type
+		startActivityForResult(Intent.createChooser(shareIntent, getString(R.string.share_logs_title)), 0);
+	}
+	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		deleteFiles(new File(C.tempPath).listFiles());	// clear cache directory
+
+		super.onActivityResult(requestCode, resultCode, data);
+	}
+	
+	private void deleteFiles(File[] files) {
+		if (files != null)	// there are something
+		    for (File file : files)
+		       file.delete();	// delete them
+	}
+
 	@SuppressWarnings("deprecation")
 	@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 	private String getDeviceInfo() {
 		StringBuilder result = new StringBuilder();
-		
+
 		result.append("Manufacturer:\t").append(Build.MANUFACTURER).append("\r\n");
 		result.append("Brand:\t").append(Build.BRAND).append("\r\n");
 		result.append("Model:\t").append(Build.MODEL).append("\r\n");
 		result.append("Product:\t").append(Build.PRODUCT).append("\r\n");
 		result.append("Android:\t").append(Build.VERSION.RELEASE).append("\r\n");
 		result.append("API:\t").append(Build.VERSION.SDK_INT).append("\r\n");
-		
+
 		result.append("Kernel version:\t").append(System.getProperty("os.version")).append("\r\n");
-		
+
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 			result.append("Radio firmware:\t").append(Build.getRadioVersion()).append("\r\n");
 		else
 			result.append("Radio firmware:\t").append(Build.RADIO).append("\r\n");
-		
+
 		return result.toString();
 	}
 

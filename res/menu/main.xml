@@ -1,6 +1,16 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <item
+        android:id="@+id/action_share"
+        android:icon="@android:drawable/ic_menu_share"
+        android:showAsAction="ifRoom"
+        android:title="@string/share_logs_title"/>
+<!--     <item -->
+<!--         android:id="@+id/action_delete" -->
+<!--         android:icon="@android:drawable/ic_menu_delete" -->
+<!--         android:showAsAction="ifRoom" -->
+<!--         android:title="@string/delete_logs_title"/> -->
+    <item
         android:id="@+id/action_settings"
         android:showAsAction="never"
         android:title="@string/app_settings"/>
