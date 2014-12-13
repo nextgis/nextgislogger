@@ -49,6 +49,8 @@ public class MainActivity extends Activity implements OnClickListener, SimpleLog
 		SESSION_NONE, SESSION_STARTED, ERROR, OK
 	};
 
+	private int slcMenuType;
+
 	private BroadcastReceiver broadcastReceiver;
 
 	private Button serviceOnOffButton;
@@ -210,8 +212,8 @@ public class MainActivity extends Activity implements OnClickListener, SimpleLog
 		}
 
 		unregisterReceiver(broadcastReceiver);
-		
-		deleteFiles(new File(C.tempPath).listFiles());	// clear cache directory
+
+		deleteFiles(new File(C.tempPath).listFiles()); // clear cache directory
 
 		super.onDestroy();
 	}
@@ -236,8 +238,8 @@ public class MainActivity extends Activity implements OnClickListener, SimpleLog
 			startActivity(preferencesActivity);
 			break;
 		case R.id.action_share:
-//			deleteFiles(new File(C.tempPath).listFiles());	// clear cache directory
-
+		case R.id.action_delete:
+			slcMenuType = item.getItemId();
 			SimpleLogsChooser SLC = new SimpleLogsChooser();
 			SLC.show(getFragmentManager(), "SimpleLogsChooser");
 			SLC.setOnChosenLogs(this);
@@ -338,66 +340,115 @@ public class MainActivity extends Activity implements OnClickListener, SimpleLog
 
 	@Override
 	public void onChosenLogs(ArrayList<String> logsDirectories) {
-		ArrayList<Uri> logsZips = new ArrayList<Uri>();
-		
-		try {
-			byte[] buffer = new byte[1024];
+		ArrayList<File> logFiles = new ArrayList<File>();
 
-			if (!checkOrCreateDirectory(C.tempPath))
-				return;	// FIXME Toast?
-			
-			for (int i = 0; i < logsDirectories.size(); i++) {	// for each selected logs directory
-				String fileName = logsDirectories.get(i).toString();	// get directory name
-				File currentDir = new File(C.dataBasePath + File.separator + fileName);	// get path to it
-				String tempFileName = C.tempPath + File.separator + fileName + ".zip";	// set temp zip file path
-				
-				File[] files = currentDir.listFiles();	// get all files in current log directory
-				
-				if(files.length == 0)	// skip empty directories
-					continue;
+		for (String log : logsDirectories)
+			logFiles.add(new File(C.dataBasePath + File.separator + log));
 
-				FileOutputStream fos = new FileOutputStream(tempFileName);
-				ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(fos));
+		switch (slcMenuType) {
+		case R.id.action_delete:
+			deleteFiles((File[]) logFiles.toArray(new File[logFiles.size()]));
+			Toast.makeText(this, R.string.delete_logs_done, Toast.LENGTH_SHORT).show();
+			break;
+		case R.id.action_share:
+			ArrayList<Uri> logsZips = new ArrayList<Uri>();
 
-				for (int j = 0; j < files.length; j++) {	// for each log-file in directory
-					FileInputStream fis = new FileInputStream(files[j]);
-					zos.putNextEntry(new ZipEntry(files[j].getName()));	// put it in zip
+			try {
+				byte[] buffer = new byte[1024];
 
-					int length;
+				checkOrCreateDirectory(C.tempPath);
 
-					while ((length = fis.read(buffer)) > 0)	// write it to zip
-						zos.write(buffer, 0, length);
+				for (File file : logFiles) { // for each selected logs directory
+					String tempFileName = C.tempPath + File.separator + file.getName() + ".zip"; // set temp zip file path
 
-					zos.closeEntry();
-					fis.close();
+					File[] files = file.listFiles(); // get all files in current log directory
+
+					if (files.length == 0) // skip empty directories
+						continue;
+
+					FileOutputStream fos = new FileOutputStream(tempFileName);
+					ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(fos));
+
+					for (int j = 0; j < files.length; j++) { // for each log-file in directory
+						FileInputStream fis = new FileInputStream(files[j]);
+						zos.putNextEntry(new ZipEntry(files[j].getName())); // put it in zip
+
+						int length;
+
+						while ((length = fis.read(buffer)) > 0)
+							// write it to zip
+							zos.write(buffer, 0, length);
+
+						zos.closeEntry();
+						fis.close();
+					}
+
+					zos.close();
+					logsZips.add(Uri.parse(tempFileName)); // add file's uri to share list
 				}
-
-				zos.close();
-				logsZips.add(Uri.parse(tempFileName));	// add file's uri to share list
+			} catch (IOException e) {
+				Toast.makeText(this, R.string.fs_error_msg, Toast.LENGTH_SHORT).show();
 			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 
-		Intent shareIntent = new Intent();
-		shareIntent.setAction(Intent.ACTION_SEND_MULTIPLE);	// multiple sharing
-		shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, logsZips);	// set data
-		shareIntent.setType("application/zip");	//set mime type
-		startActivityForResult(Intent.createChooser(shareIntent, getString(R.string.share_logs_title)), 0);
+			Intent shareIntent = new Intent();
+			shareIntent.setAction(Intent.ACTION_SEND_MULTIPLE); // multiple sharing
+			shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, logsZips); // set data
+			shareIntent.setType("application/zip"); //set mime type
+			startActivityForResult(Intent.createChooser(shareIntent, getString(R.string.share_logs_title)), 0);
+			break;
+		default:
+			break;
+		}
 	}
-	
+
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		deleteFiles(new File(C.tempPath).listFiles());	// clear cache directory
+		deleteFiles(new File(C.tempPath).listFiles()); // clear cache directory
 
 		super.onActivityResult(requestCode, resultCode, data);
 	}
-	
-	private void deleteFiles(File[] files) {
-		if (files != null)	// there are something
-		    for (File file : files)
-		       file.delete();	// delete them
+
+	/**
+	 * Delete set of any files or directories.
+	 * 
+	 * @param files
+	 *            File[] with all data to delete
+	 * @return void
+	 */
+	public static void deleteFiles(File[] files) {
+		if (files != null) { // there are something to delete
+			for (File file : files)
+				deleteDirectoryOrFile(file);
+		}
+	}
+
+	/**
+	 * Delete single file or directory recursively (deleting anything inside it).
+	 * 
+	 * @param dir
+	 *            The file / dir to delete
+	 * @return true if the file / dir was successfully deleted
+	 */
+	public static boolean deleteDirectoryOrFile(File dir) {
+		if (!dir.exists())
+			return false;
+
+		if (!dir.isDirectory())
+			return dir.delete();
+		else {
+			String[] files = dir.list();
+
+			for (int i = 0, len = files.length; i < len; i++) {
+				File f = new File(dir, files[i]);
+
+				if (f.isDirectory())
+					deleteDirectoryOrFile(f);
+				else
+					f.delete();
+			}
+		}
+
+		return dir.delete();
 	}
 
 	@SuppressWarnings("deprecation")

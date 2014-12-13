@@ -75,13 +75,13 @@ public class SimpleLogsChooser extends DialogFragment implements android.content
 			for (File file : baseDir.listFiles())
 				if (file.isDirectory() && !file.isHidden())
 					if (file.getName().equals(PreferenceManager.getDefaultSharedPreferences(getActivity()).getString(C.PREF_SESSION_NAME, "")))
-						logs.add(file.getName() + " *current session*");
+						logs.add(file.getName() + " *" + getString(R.string.scl_current_session) + "*");
 					else
 						logs.add(file.getName());
 		} catch (Exception e) {
 		}
 		
-		Collections.sort(logs, Collections.reverseOrder()); 
+		Collections.sort(logs, Collections.reverseOrder());	// descending sort
 
 		return logs;
 	}
