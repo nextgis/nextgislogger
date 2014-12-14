@@ -2,6 +2,13 @@
 <resources>
     <string name="app_name">NextGIS Logger</string>
     <string name="app_settings">Настройки</string>
+    <string name="app_about">О программе</string>
+    
+    <string name="about_info">Эта программа собирает текущие данные о БС и с датчиков устройства (акселерометр, гироскоп, и т.д.) постоянно и в определенные моменты (метки).</string>
+    <string name="about_more">Подробнее:</string>
+    <string name="about_authors">Информация об авторстве:</string>
+    <string name="about_authors_names">Никита Кирин, Станислав Петряков</string>
+    <string name="about_license">Лицензия:</string>
 
     <string name="settings_sensors">Сенсоры</string>
     <string name="settings_main">Основное</string>

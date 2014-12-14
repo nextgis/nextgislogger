@@ -233,7 +233,7 @@ public class MainActivity extends Activity implements OnClickListener, SimpleLog
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		int res = 0;
-		
+
 		switch (item.getItemId()) {
 		case R.id.action_settings:
 			Intent preferencesActivity = new Intent(this, PreferencesActivity.class);
@@ -250,6 +250,10 @@ public class MainActivity extends Activity implements OnClickListener, SimpleLog
 			SLC.setArguments(args);
 			SLC.show(getFragmentManager(), "SimpleLogsChooser");
 			SLC.setOnChosenLogs(this);
+			break;
+		case R.id.action_about:
+			Intent aboutActivity = new Intent(this, AboutActivity.class);
+			startActivity(aboutActivity);
 			break;
 		default:
 			break;
@@ -430,7 +434,8 @@ public class MainActivity extends Activity implements OnClickListener, SimpleLog
 	}
 
 	/**
-	 * Delete single file or directory recursively (deleting anything inside it).
+	 * Delete single file or directory recursively (deleting anything inside
+	 * it).
 	 * 
 	 * @param dir
 	 *            The file / dir to delete

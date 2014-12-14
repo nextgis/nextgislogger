@@ -14,5 +14,10 @@
         android:id="@+id/action_settings"
         android:showAsAction="never"
         android:title="@string/app_settings"/>
+    <item
+        android:id="@+id/action_about"
+        android:showAsAction="ifRoom"
+        android:icon="@android:drawable/ic_menu_info_details"
+        android:title="@string/app_about"/>
 
 </menu>

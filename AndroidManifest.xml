@@ -56,6 +56,17 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.nextgis.logger.MainActivity" />
         </activity>
+        <activity
+            android:name="com.nextgis.logger.AboutActivity"
+            android:label="@string/app_about"
+            android:parentActivityName="com.nextgis.logger.MainActivity"
+            android:screenOrientation="portrait" >
+
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.nextgis.logger.MainActivity" />
+        </activity>
 
         <service
             android:name="LoggerService"
