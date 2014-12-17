@@ -31,7 +31,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         android:orientation="vertical" >
 
         <Button
+            android:id="@+id/btn_sessions"
+            android:text="@string/title_activity_sessions"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <Button
             android:id="@+id/btn_session"
+            android:layout_marginTop="10sp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 

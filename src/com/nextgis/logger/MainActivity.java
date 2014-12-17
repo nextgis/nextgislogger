@@ -36,7 +36,7 @@ import java.util.zip.ZipOutputStream;
 import com.nextgis.logger.R;
 import com.nextgis.logger.SimpleLogsChooser.SimpleLogsChooserListener;
 
-public class MainActivity extends Activity implements OnClickListener, SimpleLogsChooserListener {
+public class MainActivity extends Activity implements OnClickListener {
 	public static String dataDirPath = C.dataBasePath;
 	public static String csvLogFilePath = dataDirPath + File.separator + C.csvLogFile;
 	public static String csvLogFilePathSensor = dataDirPath + File.separator + C.csvLogFileSensor;
@@ -49,8 +49,6 @@ public class MainActivity extends Activity implements OnClickListener, SimpleLog
 	private static enum INTERFACE_STATE {
 		SESSION_NONE, SESSION_STARTED, ERROR, OK
 	};
-
-	private int slcMenuType;
 
 	private BroadcastReceiver broadcastReceiver;
 
@@ -101,6 +99,8 @@ public class MainActivity extends Activity implements OnClickListener, SimpleLog
 
 		setDataDirPath(session);
 		setInterfaceState(0, session.equals("") ? INTERFACE_STATE.SESSION_NONE : INTERFACE_STATE.SESSION_STARTED);
+
+        findViewById(R.id.btn_sessions).setOnClickListener(this);
 
 		sessionName = (TextView) findViewById(R.id.tv_current_session_name);
 		sessionName.setText(session);
@@ -176,9 +176,9 @@ public class MainActivity extends Activity implements OnClickListener, SimpleLog
 				}
 			}
 		};
+
 		IntentFilter intentFilter = new IntentFilter(C.BROADCAST_ACTION);
 		registerReceiver(broadcastReceiver, intentFilter);
-
 	}
 
 	@Override
@@ -219,8 +219,6 @@ public class MainActivity extends Activity implements OnClickListener, SimpleLog
 
 		unregisterReceiver(broadcastReceiver);
 
-		deleteFiles(new File(C.tempPath).listFiles()); // clear cache directory
-
 		super.onDestroy();
 	}
 
@@ -238,24 +236,11 @@ public class MainActivity extends Activity implements OnClickListener, SimpleLog
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		int res = 0;
 
 		switch (item.getItemId()) {
 		case R.id.action_settings:
 			Intent preferencesActivity = new Intent(this, PreferencesActivity.class);
 			startActivity(preferencesActivity);
-			break;
-		case R.id.action_share:
-			res++;
-		case R.id.action_delete:
-			slcMenuType = item.getItemId();
-			SimpleLogsChooser SLC = new SimpleLogsChooser();
-			Bundle args = new Bundle();
-			res = res == 0 ? R.string.delete_logs_msg : R.string.share_logs_msg;
-			args.putString("title", getString(res));
-			SLC.setArguments(args);
-			SLC.show(getFragmentManager(), "SimpleLogsChooser");
-			SLC.setOnChosenLogs(this);
 			break;
 		case R.id.action_about:
 			Intent aboutActivity = new Intent(this, AboutActivity.class);
@@ -350,130 +335,20 @@ public class MainActivity extends Activity implements OnClickListener, SimpleLog
 			}
 			break;
 		case R.id.btn_mark:
-			Intent markActivity = new Intent(getBaseContext(), MarkActivity.class);
+			Intent markActivity = new Intent(this, MarkActivity.class);
 			startActivity(markActivity);
 			break;
+        case R.id.btn_sessions:
+            Intent sessionsActivity = new Intent(this, SessionsActivity.class);
+            startActivity(sessionsActivity);
+            break;
 		}
-	}
-
-	@Override
-	public void onChosenLogs(ArrayList<String> logsDirectories) {
-		ArrayList<File> logFiles = new ArrayList<File>();
-
-		for (String log : logsDirectories)
-			logFiles.add(new File(C.dataBasePath + File.separator + log));
-
-		switch (slcMenuType) {
-		case R.id.action_delete:
-			deleteFiles((File[]) logFiles.toArray(new File[logFiles.size()]));
-			Toast.makeText(this, R.string.delete_logs_done, Toast.LENGTH_SHORT).show();
-			break;
-		case R.id.action_share:
-			ArrayList<Uri> logsZips = new ArrayList<Uri>();
-
-			try {
-				byte[] buffer = new byte[1024];
-
-				checkOrCreateDirectory(C.tempPath);
-
-				for (File file : logFiles) { // for each selected logs directory
-					String tempFileName = C.tempPath + File.separator + file.getName() + ".zip"; // set temp zip file path
-
-					File[] files = file.listFiles(); // get all files in current log directory
-
-					if (files.length == 0) // skip empty directories
-						continue;
-
-					FileOutputStream fos = new FileOutputStream(tempFileName);
-					ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(fos));
-
-					for (int j = 0; j < files.length; j++) { // for each log-file in directory
-						FileInputStream fis = new FileInputStream(files[j]);
-						zos.putNextEntry(new ZipEntry(files[j].getName())); // put it in zip
-
-						int length;
-
-						while ((length = fis.read(buffer)) > 0)
-							// write it to zip
-							zos.write(buffer, 0, length);
-
-						zos.closeEntry();
-						fis.close();
-					}
-
-					zos.close();
-					logsZips.add(Uri.parse(tempFileName)); // add file's uri to share list
-				}
-			} catch (IOException e) {
-				Toast.makeText(this, R.string.fs_error_msg, Toast.LENGTH_SHORT).show();
-			}
-
-			Intent shareIntent = new Intent();
-			shareIntent.setAction(Intent.ACTION_SEND_MULTIPLE); // multiple sharing
-			shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, logsZips); // set data
-			shareIntent.setType("application/zip"); //set mime type
-			startActivityForResult(Intent.createChooser(shareIntent, getString(R.string.share_logs_title)), 0);
-			break;
-		default:
-			break;
-		}
-	}
-
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		deleteFiles(new File(C.tempPath).listFiles()); // clear cache directory
-
-		super.onActivityResult(requestCode, resultCode, data);
 	}
 
     public void updateFileForMTP(String path) {
         Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.parse(path));
         sendBroadcast(intent);	// update media for MTP
     }
-
-	/**
-	 * Delete set of any files or directories.
-	 * 
-	 * @param files
-	 *            File[] with all data to delete
-	 * @return void
-	 */
-	public static void deleteFiles(File[] files) {
-		if (files != null) { // there are something to delete
-			for (File file : files)
-				deleteDirectoryOrFile(file);
-		}
-	}
-
-	/**
-	 * Delete single file or directory recursively (deleting anything inside
-	 * it).
-	 * 
-	 * @param dir
-	 *            The file / dir to delete
-	 * @return true if the file / dir was successfully deleted
-	 */
-	public static boolean deleteDirectoryOrFile(File dir) {
-		if (!dir.exists())
-			return false;
-
-		if (!dir.isDirectory())
-			return dir.delete();
-		else {
-			String[] files = dir.list();
-
-			for (int i = 0, len = files.length; i < len; i++) {
-				File f = new File(dir, files[i]);
-
-				if (f.isDirectory())
-					deleteDirectoryOrFile(f);
-				else
-					f.delete();
-			}
-		}
-
-		return dir.delete();
-	}
 
 	@SuppressWarnings("deprecation")
 	@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)

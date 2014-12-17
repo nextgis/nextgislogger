@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <string name="app_name">NextGIS Logger</string>
     <string name="app_settings">Settings</string>
     <string name="app_about">About</string>
+    <string name="title_activity_sessions">Sessions</string>
 
     <string name="about_info">This app collects cell and sensors (orientation, accelerometer, gyroscope, etc) data continiously and at specified points (markers).</string>
     <string name="about_more">See more:</string>
@@ -12,23 +14,18 @@
     <string name="about_nextgis_url">http://nextgis.com/</string>
     <string name="about_license">License:</string>
     <string name="about_license_info"><a href="http://www.gnu.org/licenses/">GPL v2</a></string>
-    
+
     <string name="settings_sensors">Sensors</string>
     <string name="settings_main">Main</string>
-
     <string name="settings_sensor_mode">Use linear accelerometer</string>
     <string name="settings_sensor_mode_sum">Without gravity of Earth (in all dims)</string>
-
     <string name="settings_period">Set Period (sec)</string>
     <string name="settings_period_sum">"Current is "</string>
     <string name="settings_period_toast">Min is 1, max is 3600</string>
-    
     <string name="settings_cells_api17">Try use API 17+ to find nearby cells</string>
     <string name="settings_cells_api17_sum">Available on Android 4.2+\r\nCould help for some devices if cells data doesn\'t collect</string>
-
     <string name="settings_cats">Use categories file</string>
     <string name="settings_cats_sum">Mark name presets for text field</string>
-
     <string name="settings_cat_path">Load mark name presets from file…</string>
     <string name="settings_user_name">Identification string (optional)</string>
     <string name="settings_sensor_state">Enable accelerometer data</string>
@@ -39,7 +36,6 @@
 
     <string name="service_notif_title">NextGIS Logger</string>
     <string name="service_notif_text">Logger is running…</string>
-
     <string name="btn_service_start">Start Logger</string>
     <string name="btn_service_stop">Stop Logger</string>
     <string name="logger_started">Logger started:</string>
@@ -50,39 +46,35 @@
     <string name="service_stopped">stopped</string>
     <string name="network_type">Network type:</string>
     <string name="btn_save_mark">Markers mode</string>
-    
     <string name="btn_session_open">Open session</string>
     <string name="btn_session_close">Close session</string>
     <string name="session_name">Session name:</string>
     <string name="session_incorrect_name">"Incorrect char "</string>
     <string name="session_null_name">Name can not be blank</string>
-    
+
     <string name="scl_current_session">current session</string>
-    <string name="delete_logs_done">Logs deleted</string>
-    <string name="delete_logs_title">Delete logs…</string>
-    <string name="delete_logs_msg">Select logs to delete</string>
-    <string name="share_logs_title">Share logs…</string>
-    <string name="share_logs_msg">Select logs to share</string>
-    
+    <string name="delete_sessions_done">Sessions deleted</string>
+    <string name="delete_sessions_title">Delete sessions…</string>
+    <string name="share_sessions_title">Share sessions…</string>
+    <string name="sessions_nothing_selected">Nothing is selected</string>
+
     <string name="ext_media_unmounted_msg">External Media is NOT MOUNTED</string>
     <string name="fs_error_msg">File system ERROR.</string>
-    
     <string name="sensor_error">"No sensors found: "</string>
     <string name="sensor_accelerometer">accelerometer</string>
     <string name="sensor_linear">linear accelerometer</string>
     <string name="sensor_gyroscope">gyroscope</string>
     <string name="sensor_magnetic">magnetometer</string>
     <string name="sensor_orientation">orientation</string>
-    
     <string name="cat_file_structure_error">Wrong categories file structure</string>
     <string name="cat_file_error">No categories, please reload presets</string>
     <string name="error_no_file">No file selected</string>
     <string name="file_loaded">"Loaded from "</string>
-    
+
     <string name="menu_search">Markers</string>
     <string name="mark_editor_hint">Enter Name of Mark</string>
     <string name="mark_saved">Mark saved</string>
-    
     <string name="btn_ok">OK</string>
     <string name="btn_cancel">Cancel</string>
+
 </resources>
