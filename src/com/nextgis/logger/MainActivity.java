@@ -27,14 +27,8 @@ import android.widget.Toast;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-
-import com.nextgis.logger.R;
-import com.nextgis.logger.SimpleLogsChooser.SimpleLogsChooserListener;
 
 public class MainActivity extends Activity implements OnClickListener {
 	public static String dataDirPath = C.dataBasePath;
