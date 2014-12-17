@@ -103,9 +103,6 @@ public class MarkActivity extends Activity {
 					pw.close();
 					info += " (" + ++marksCount + ")";
 
-					Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(csvFile));
-			    	sendBroadcast(intent);	// update media for MTP
-
 					// checking accelerometer data state
 					if (sensorEngine.isAnySensorEnabled()) {
 						csvFile = new File(MainActivity.csvMarkFilePathSensor);
@@ -117,9 +114,6 @@ public class MarkActivity extends Activity {
 
 						pw.println(SensorEngine.getItem(sensorEngine, ID, markName, userName, gsmInfoArray.get(0).getTimeStamp()));
 						pw.close();
-
-						intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(csvFile));
-				    	sendBroadcast(intent);	// update media for MTP
 					}
 				} catch (FileNotFoundException e) {
 					info = getString(R.string.fs_error_msg);

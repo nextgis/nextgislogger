@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.*;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -166,6 +167,8 @@ public class MainActivity extends Activity implements OnClickListener, SimpleLog
 				case C.STATUS_ERROR:
 					setInterfaceState(R.string.fs_error_msg, INTERFACE_STATE.ERROR);
 				case C.STATUS_FINISHED:
+                    updateFileForMTP(csvLogFilePath);
+                    updateFileForMTP(csvLogFilePathSensor);
 					recordsCount += intent.getIntExtra(C.PARAM_RECORDS_COUNT, 0);
 					loggerFinishedTime.setText(millisToDate(time, "dd.MM.yyyy hh:mm:ss"));
 					prefs.edit().putInt(C.PREF_RECORDS_COUNT, recordsCount).commit();
@@ -184,8 +187,11 @@ public class MainActivity extends Activity implements OnClickListener, SimpleLog
 
 		int marksCount = prefs.getInt(C.PREF_MARKS_COUNT, 0);
 
-		if (marksCount > 0)
-			marksCollectedCount.setText(marksCount + "");
+		if (marksCount > 0) {
+            marksCollectedCount.setText(marksCount + "");
+            updateFileForMTP(csvMarkFilePath);
+            updateFileForMTP(csvMarkFilePathSensor);
+        }
 
 		//		int networkType = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getNetworkType();
 
@@ -297,6 +303,7 @@ public class MainActivity extends Activity implements OnClickListener, SimpleLog
 								pw = new PrintWriter(new FileOutputStream(deviceInfoFile, true));
 								pw.println(getDeviceInfo());
 								pw.close();
+                                updateFileForMTP(deviceInfoFile.getPath());
 							} catch (FileNotFoundException e) {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
@@ -419,6 +426,11 @@ public class MainActivity extends Activity implements OnClickListener, SimpleLog
 		super.onActivityResult(requestCode, resultCode, data);
 	}
 
+    public void updateFileForMTP(String path) {
+        Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.parse(path));
+        sendBroadcast(intent);	// update media for MTP
+    }
+
 	/**
 	 * Delete set of any files or directories.
 	 * 
@@ -481,6 +493,13 @@ public class MainActivity extends Activity implements OnClickListener, SimpleLog
 			result.append("Radio firmware:\t").append(Build.getRadioVersion()).append("\r\n");
 		else
 			result.append("Radio firmware:\t").append(Build.RADIO).append("\r\n");
+
+        try {
+            result.append("Logger version name:\t").append(getPackageManager().getPackageInfo(getPackageName(), 0).versionName).append("\r\n");
+            result.append("Logger version code:\t").append(getPackageManager().getPackageInfo(getPackageName(), 0).versionCode).append("\r\n");
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
 
 		return result.toString();
 	}

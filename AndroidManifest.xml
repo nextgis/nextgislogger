@@ -48,8 +48,7 @@
             android:name="com.nextgis.logger.MarkActivity"
             android:label="@string/menu_search"
             android:parentActivityName="com.nextgis.logger.MainActivity"
-            android:screenOrientation="portrait"
-            android:windowSoftInputMode="stateVisible" >
+            android:screenOrientation="portrait" >
 
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data

@@ -11,7 +11,7 @@
     <string name="about_authors_names">Nikita Kirin, Stanislav Petriakov</string>
     <string name="about_nextgis_url">http://nextgis.com/</string>
     <string name="about_license">License:</string>
-    <string name="about_license_info"><a href="http://www.gnu.org/licenses/>">GPL v2</a></string>
+    <string name="about_license_info"><a href="http://www.gnu.org/licenses/">GPL v2</a></string>
     
     <string name="settings_sensors">Sensors</string>
     <string name="settings_main">Main</string>

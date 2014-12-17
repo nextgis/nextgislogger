@@ -171,9 +171,6 @@ public class LoggerService extends Service {
 						}
 
 						pw.close();
-						
-						Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(csvFile));
-				    	sendBroadcast(intent);
 
 						if (sensorEngine.isAnySensorEnabled()) {
 							csvFile = new File(MainActivity.csvLogFilePathSensor);
@@ -185,9 +182,6 @@ public class LoggerService extends Service {
 
 							pw.println(SensorEngine.getItem(sensorEngine, "", C.logDefaultName, userName, gsmInfoArray.get(0).getTimeStamp()));
 							pw.close();
-
-							intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(csvFile));
-					    	sendBroadcast(intent);
 						}
 
 						intentStatus.putExtra(C.PARAM_SERVICE_STATUS, C.STATUS_RUNNING).putExtra(C.PARAM_RECORDS_COUNT,
@@ -199,7 +193,6 @@ public class LoggerService extends Service {
 					} catch (FileNotFoundException e) {
 						isFileSystemError = true;
 						break;
-
 					} catch (InterruptedException e) {
 						break;
 					}
