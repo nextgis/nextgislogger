@@ -1,3 +1,23 @@
+/******************************************************************************
+ * Project: NextGIS Logger
+ * Purpose: Productive data logger for Android
+ * Authors: Stanislav Petriakov
+ ******************************************************************************
+ * Copyright © 2014 NextGIS
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *****************************************************************************/
 package com.nextgis.logger;
 
 import java.io.BufferedReader;
@@ -105,59 +125,59 @@ public class PreferencesActivity extends PreferenceActivity {
 
 			Preference catPathPreference = findPreference(C.PREF_CAT_PATH);
 
-			catPathPreference.setOnPreferenceClickListener(new OnPreferenceClickListener() {
-				@Override
-				public boolean onPreferenceClick(final Preference preference) {
-					SimpleFileDialog FileOpenDialog = new SimpleFileDialog(parent, new SimpleFileDialog.SimpleFileDialogListener() {
-						@Override
-						public void onChosenDir(String chosenDir) {
-							// The code in this function will be executed when the dialog OK button is pushed
-							String info = getString(R.string.error_no_file);
-
-							if (new File(chosenDir).isFile()) {
-								File fromCats = new File(chosenDir);
-
-								String internalPath = parent.getFilesDir().getAbsolutePath();
-								File toCats = new File(internalPath + "/" + C.categoriesFile);
-
-								try {
-									PrintWriter pw = new PrintWriter(new FileOutputStream(toCats, false));
-									BufferedReader in = new BufferedReader(new FileReader(fromCats));
-
-									String[] split;
-									String line;
-
-									while ((line = in.readLine()) != null) {
-										split = line.split(",");
-
-										if (split.length != 2) {
-											in.close();
-											pw.close();
-											throw new ArrayIndexOutOfBoundsException("Must be two columns splitted by ','!");
-										} else
-											pw.println(line);
-									}
-
-									in.close();
-									pw.close();
-
-									info = getString(R.string.file_loaded) + chosenDir;
-								} catch (IOException e) {
-									info = getString(R.string.fs_error_msg);
-								} catch (ArrayIndexOutOfBoundsException e) {
-									info = getString(R.string.cat_file_structure_error);
-								}
-							}
-
-							Toast.makeText(parent, info, Toast.LENGTH_SHORT).show();
-						}
-					});
-
-					FileOpenDialog.chooseFile_or_Dir();
-
-					return true;
-				}
-			});
+//			catPathPreference.setOnPreferenceClickListener(new OnPreferenceClickListener() {
+//				@Override
+//				public boolean onPreferenceClick(final Preference preference) {
+//					SimpleFileDialog FileOpenDialog = new SimpleFileDialog(parent, new SimpleFileDialog.SimpleFileDialogListener() {
+//						@Override
+//						public void onChosenDir(String chosenDir) {
+//							// The code in this function will be executed when the dialog OK button is pushed
+//							String info = getString(R.string.error_no_file);
+//
+//							if (new File(chosenDir).isFile()) {
+//								File fromCats = new File(chosenDir);
+//
+//								String internalPath = parent.getFilesDir().getAbsolutePath();
+//								File toCats = new File(internalPath + "/" + C.categoriesFile);
+//
+//								try {
+//									PrintWriter pw = new PrintWriter(new FileOutputStream(toCats, false));
+//									BufferedReader in = new BufferedReader(new FileReader(fromCats));
+//
+//									String[] split;
+//									String line;
+//
+//									while ((line = in.readLine()) != null) {
+//										split = line.split(",");
+//
+//										if (split.length != 2) {
+//											in.close();
+//											pw.close();
+//											throw new ArrayIndexOutOfBoundsException("Must be two columns splitted by ','!");
+//										} else
+//											pw.println(line);
+//									}
+//
+//									in.close();
+//									pw.close();
+//
+//									info = getString(R.string.file_loaded) + chosenDir;
+//								} catch (IOException e) {
+//									info = getString(R.string.fs_error_msg);
+//								} catch (ArrayIndexOutOfBoundsException e) {
+//									info = getString(R.string.cat_file_structure_error);
+//								}
+//							}
+//
+//							Toast.makeText(parent, info, Toast.LENGTH_SHORT).show();
+//						}
+//					});
+//
+//					FileOpenDialog.chooseFile_or_Dir();
+//
+//					return true;
+//				}
+//			});
 		}
 	}
 }
