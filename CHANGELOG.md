@@ -1,10 +1,12 @@
 Changelog
 ***
 ## version 1.2.2 (18.12.2014)
-* Added logs screen
+* Added sessions screen
 * Added about screen
 * Added current log version to device_info.txt
-* Changed select file dialog
+* Added new styles for main screen
+* Fixed sharing fail to Google Drive and GMail
+* Changed select categories file dialog
 * Keyboard not shows again after it was hidden
 
 ## version 1.2.1 (13.12.2014)
