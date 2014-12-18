@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">NextGIS Logger</string>
     <string name="app_settings">Настройки</string>
     <string name="app_about">О программе</string>
     <string name="title_activity_sessions">Сессии</string>
@@ -14,21 +13,18 @@
     <string name="settings_sensors">Сенсоры</string>
     <string name="settings_main">Основное</string>
 
-    <string name="settings_sensor_mode">Использовать линейный акселерометр</string>
-    <string name="settings_sensor_mode_sum">Без силы притяжения по всем осям</string>
-
     <string name="settings_period">Задать период (сек)</string>
     <string name="settings_period_sum">"Текущий: "</string>
     <string name="settings_period_toast">Минимальный 1, максимальный 3600</string>
-    
     <string name="settings_cells_api17">Использовать API 17+ для поиска вышек</string>
     <string name="settings_cells_api17_sum">Доступно на Android 4.2+\r\nМожет помочь для некоторых устройств если данные не собираютя</string>
-
     <string name="settings_cats">Использовать файлы категорий</string>
     <string name="settings_cats_sum">Предзаданные имена меток из файла</string>
-
     <string name="settings_cat_path">Загрузить имена из файла…</string>
     <string name="settings_user_name">Строка идентификации (дополн.)</string>
+
+    <string name="settings_sensor_mode">Использовать линейный акселерометр</string>
+    <string name="settings_sensor_mode_sum">Без силы притяжения по всем осям</string>
     <string name="settings_sensor_state">Включить данные с акселерометра</string>
     <string name="settings_sensor_gyroscope_state">Включить данные с гироскопа</string>
     <string name="settings_sensor_magnetic_state">Включить данные с магнетометра</string>
@@ -37,7 +33,6 @@
 
     <string name="service_notif_title">NextGIS Logger</string>
     <string name="service_notif_text">Логгер запущен…</string>
-
     <string name="btn_service_start">Запустить логгер</string>
     <string name="btn_service_stop">Остановить логгер</string>
     <string name="logger_started">Логгер запущен:</string>
@@ -47,13 +42,15 @@
     <string name="service_running">запущен</string>
     <string name="service_stopped">остановлен</string>
     <string name="network_type">Тип сети:</string>
-    <string name="btn_save_mark">Перейти к меткам</string>
-    
-    <string name="btn_session_open">Новая сессия</string>
-    <string name="btn_session_close">Закрыть сессию</string>
+    <string name="btn_save_mark">Метки</string>
+    <string name="tv_modes">РЕЖИМЫ</string>
+
     <string name="session_name">Имя сессии:</string>
     <string name="session_incorrect_name">"Неверный символ "</string>
     <string name="session_null_name">Имя не может быть пустым</string>
+    <string name="btn_session_open">Новая</string>
+    <string name="btn_session_close">Закрыть</string>
+    <string name="btn_sessions_manage">Управление</string>
     
     <string name="scl_current_session">текущая сессия</string>
     <string name="delete_sessions_done">Сессии удалены</string>

@@ -58,8 +58,6 @@ public class MainActivity extends Activity implements OnClickListener {
 	private TextView sessionName;
 	private TextView marksCollectedCount;
 
-	private TextView errorMessage;
-
 	private ServiceConnection servConn = null;
 
 	NetworkTypeChangeListener networkTypeListener;
@@ -72,9 +70,8 @@ public class MainActivity extends Activity implements OnClickListener {
 
 		setContentView(R.layout.main_activity);
 		PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
-        //SessionsActivity.deleteFiles(new File(C.tempPath).listFiles()); // clear cache directory with shared zips
-
-		errorMessage = (TextView) findViewById(R.id.tv_error_message);
+        SessionsActivity.deleteFiles(new File(C.tempPath).listFiles()); // clear cache directory with shared zips
+        ((TextView)findViewById(R.id.tv_sessions)).setText(getString(R.string.title_activity_sessions).toUpperCase());
 
 		boolean isServiceRunning = isLoggerServiceRunning();
 
@@ -189,13 +186,6 @@ public class MainActivity extends Activity implements OnClickListener {
         }
 
 		//		int networkType = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getNetworkType();
-
-		//		if (!GSMEngine.isGSMNetwork(networkType)) {
-		//			errorMessage.setText(R.string.network_error);
-		//			errorMessage.setVisibility(View.VISIBLE);
-		//		} else
-		//			errorMessage.setVisibility(View.GONE);
-
 		((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).listen(networkTypeListener, PhoneStateListener.LISTEN_DATA_CONNECTION_STATE);
 	}
 
@@ -407,19 +397,18 @@ public class MainActivity extends Activity implements OnClickListener {
 		switch (state) {
 		case ERROR:
 			serviceOnOffButton.setText(getString(R.string.btn_service_start));
-
-			errorMessage.setText(resId);
-			errorMessage.setVisibility(View.VISIBLE);
+            Toast.makeText(this, resId, Toast.LENGTH_LONG).show();
 		case SESSION_NONE:
 			serviceOnOffButton.setEnabled(false);
 			markButton.setEnabled(false);
 			serviceProgressBar.setVisibility(View.INVISIBLE);
+            findViewById(R.id.rl_modes).setVisibility(View.GONE);
 			break;
 		case SESSION_STARTED:
 		default:
 			serviceOnOffButton.setEnabled(true);
 			markButton.setEnabled(true);
-			errorMessage.setVisibility(View.GONE);
+            findViewById(R.id.rl_modes).setVisibility(View.VISIBLE);
 			break;
 		}
 	}

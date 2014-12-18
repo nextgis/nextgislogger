@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="app_name">NextGIS Logger</string>
     <string name="app_settings">Settings</string>
     <string name="app_about">About</string>
@@ -17,8 +16,7 @@
 
     <string name="settings_sensors">Sensors</string>
     <string name="settings_main">Main</string>
-    <string name="settings_sensor_mode">Use linear accelerometer</string>
-    <string name="settings_sensor_mode_sum">Without gravity of Earth (in all dims)</string>
+
     <string name="settings_period">Set Period (sec)</string>
     <string name="settings_period_sum">"Current is "</string>
     <string name="settings_period_toast">Min is 1, max is 3600</string>
@@ -28,6 +26,9 @@
     <string name="settings_cats_sum">Mark name presets for text field</string>
     <string name="settings_cat_path">Load mark name presets from file…</string>
     <string name="settings_user_name">Identification string (optional)</string>
+
+    <string name="settings_sensor_mode">Use linear accelerometer</string>
+    <string name="settings_sensor_mode_sum">Without gravity of Earth (in all dims)</string>
     <string name="settings_sensor_state">Enable accelerometer data</string>
     <string name="settings_sensor_gyroscope_state">Enable gyroscope data</string>
     <string name="settings_sensor_magnetic_state">Enable magnetometer data</string>
@@ -45,12 +46,15 @@
     <string name="service_running">running</string>
     <string name="service_stopped">stopped</string>
     <string name="network_type">Network type:</string>
-    <string name="btn_save_mark">Markers mode</string>
-    <string name="btn_session_open">Open session</string>
-    <string name="btn_session_close">Close session</string>
+    <string name="btn_save_mark">Markers</string>
+    <string name="tv_modes">MODES</string>
+
     <string name="session_name">Session name:</string>
     <string name="session_incorrect_name">"Incorrect char "</string>
     <string name="session_null_name">Name can not be blank</string>
+    <string name="btn_session_open">Open</string>
+    <string name="btn_session_close">Close</string>
+    <string name="btn_sessions_manage">Manage</string>
 
     <string name="scl_current_session">current session</string>
     <string name="delete_sessions_done">Sessions deleted</string>
@@ -60,12 +64,14 @@
 
     <string name="ext_media_unmounted_msg">External Media is NOT MOUNTED</string>
     <string name="fs_error_msg">File system ERROR.</string>
+
     <string name="sensor_error">"No sensors found: "</string>
     <string name="sensor_accelerometer">accelerometer</string>
     <string name="sensor_linear">linear accelerometer</string>
     <string name="sensor_gyroscope">gyroscope</string>
     <string name="sensor_magnetic">magnetometer</string>
     <string name="sensor_orientation">orientation</string>
+
     <string name="cat_file_structure_error">Wrong categories file structure</string>
     <string name="cat_file_error">No categories, please reload presets</string>
     <string name="error_no_file">No file selected</string>
@@ -74,7 +80,7 @@
     <string name="menu_search">Markers</string>
     <string name="mark_editor_hint">Enter Name of Mark</string>
     <string name="mark_saved">Mark saved</string>
+
     <string name="btn_ok">OK</string>
     <string name="btn_cancel">Cancel</string>
-
 </resources>
