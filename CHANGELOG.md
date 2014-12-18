@@ -4,6 +4,7 @@ Changelog
 * Added logs screen
 * Added about screen
 * Added current log version to device_info.txt
+* Changed select file dialog
 * Keyboard not shows again after it was hidden
 
 ## version 1.2.1 (13.12.2014)

@@ -118,7 +118,7 @@ public class SessionsActivity extends Activity {
                                 }
 
                                 zos.close();
-                                logsZips.add(Uri.parse(tempFileName)); // add file's uri to share list
+                                logsZips.add(Uri.fromFile(new File(tempFileName))); // add file's uri to share list
                             }
                         } catch (IOException e) {
                             Toast.makeText(this, R.string.fs_error_msg, Toast.LENGTH_SHORT).show();
@@ -128,7 +128,7 @@ public class SessionsActivity extends Activity {
                         shareIntent.setAction(Intent.ACTION_SEND_MULTIPLE); // multiple sharing
                         shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, logsZips); // set data
                         shareIntent.setType("application/zip"); //set mime type
-                        startActivityForResult(Intent.createChooser(shareIntent, getString(R.string.share_sessions_title)), 0);
+                        startActivity(Intent.createChooser(shareIntent, getString(R.string.share_sessions_title)));
                         break;
                     case R.id.action_delete:
                         deleteFiles(result.toArray(new File[result.size()]));
@@ -141,13 +141,6 @@ public class SessionsActivity extends Activity {
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        deleteFiles(new File(C.tempPath).listFiles()); // clear cache directory
-
-        super.onActivityResult(requestCode, resultCode, data);
     }
 
     private ArrayList<String> getSessions() {
@@ -173,9 +166,6 @@ public class SessionsActivity extends Activity {
 
         return sessions;
     }
-
-    // onDestroy
-    // deleteFiles(new File(C.tempPath).listFiles()); // clear cache directory
 
     /**
      * Delete set of any files or directories.

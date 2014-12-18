@@ -21,6 +21,7 @@
 package com.nextgis.logger;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -57,6 +58,13 @@ public class SimpleFileChooser extends DialogFragment implements android.content
 	
 	public Dialog onCreateDialog(Bundle savedInstanceState) {
         currentPath = sdcardDirectory = Environment.getExternalStorageDirectory().getAbsolutePath();
+
+        try {
+            sdcardDirectory = new File(sdcardDirectory).getCanonicalPath();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         dirs = getDirectories(sdcardDirectory);
         adapter = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_single_choice, dirs);
 
@@ -87,29 +95,27 @@ public class SimpleFileChooser extends DialogFragment implements android.content
 
     private void goTo(int which) {
         File current = new File(currentPath);
-        String selected = dirs.get(which);
+
+        try {
+            current.getCanonicalPath();
+        } catch (IOException e) {
+            return;
+        }
+
+        if (current.isFile())
+            currentPath = currentPath.substring(0, currentPath.lastIndexOf("/"));
+
+        String selected = dirs.get(which).replace("/", "");
 
         if (selected.equals("..")) {
-            if (current.isDirectory())
-                currentPath = currentPath.substring(0, currentPath.lastIndexOf("/"));
-            else {
-                currentPath = currentPath.substring(0, currentPath.lastIndexOf("/"));
-                currentPath = currentPath.substring(0, currentPath.lastIndexOf("/"));
-            }
-
+            currentPath = currentPath.substring(0, currentPath.lastIndexOf("/"));
             updateListView();
         } else {
-            if (current.isFile())
-                return;
+            currentPath += "/" +selected;
+            current = new File(currentPath);
 
-            currentPath += "/";
-
-            if (selected.endsWith("/")) {
-                currentPath += selected.substring(0, selected.length() - 1);
+            if (!current.isFile())
                 updateListView();
-            }
-            else
-                currentPath += selected;
         }
 
         getDialog().setTitle(getFileName());

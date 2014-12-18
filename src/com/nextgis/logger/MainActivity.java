@@ -72,6 +72,7 @@ public class MainActivity extends Activity implements OnClickListener {
 
 		setContentView(R.layout.main_activity);
 		PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+        //SessionsActivity.deleteFiles(new File(C.tempPath).listFiles()); // clear cache directory with shared zips
 
 		errorMessage = (TextView) findViewById(R.id.tv_error_message);
 
