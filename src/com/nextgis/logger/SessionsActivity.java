@@ -129,15 +129,26 @@ public class SessionsActivity extends Activity {
                         shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, logsZips); // set data
                         shareIntent.setType("application/zip"); //set mime type
                         startActivity(Intent.createChooser(shareIntent, getString(R.string.share_sessions_title)));
-                        break;
+                        return true;
                     case R.id.action_delete:
                         deleteFiles(result.toArray(new File[result.size()]));
                         Toast.makeText(this, R.string.delete_sessions_done, Toast.LENGTH_SHORT).show();
                         lvSessions.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_multiple_choice, getSessions()));
-                        break;
+                        return true;
                 }
             else
                 Toast.makeText(this, R.string.sessions_nothing_selected, Toast.LENGTH_SHORT).show();
+        }
+
+        switch (item.getItemId()) {
+            case R.id.action_select_all:
+                for (int i = 0; i < lvSessions.getAdapter().getCount(); i++)
+                    lvSessions.setItemChecked(i, !item.isChecked());
+
+                item.setChecked(!item.isChecked());
+                return true;
+            default:
+                break;
         }
 
         return super.onOptionsItemSelected(item);
@@ -162,7 +173,7 @@ public class SessionsActivity extends Activity {
         } catch (Exception e) {
         }
 
-        Collections.sort(sessions, Collections.reverseOrder());	// descending sort
+        Collections.sort(sessions, Collections.reverseOrder());    // descending sort
 
         return sessions;
     }
@@ -170,8 +181,7 @@ public class SessionsActivity extends Activity {
     /**
      * Delete set of any files or directories.
      *
-     * @param files
-     *            File[] with all data to delete
+     * @param files File[] with all data to delete
      * @return void
      */
     public static void deleteFiles(File[] files) {
@@ -185,8 +195,7 @@ public class SessionsActivity extends Activity {
      * Delete single file or directory recursively (deleting anything inside
      * it).
      *
-     * @param dir
-     *            The file / dir to delete
+     * @param dir The file / dir to delete
      * @return true if the file / dir was successfully deleted
      */
     public static boolean deleteDirectoryOrFile(File dir) {

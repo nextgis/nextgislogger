@@ -215,13 +215,13 @@ public class SensorEngine implements SensorEventListener {
 	private boolean isSensorEnabled(int sensorType) {
 		switch (sensorType) {
 		case Sensor.TYPE_ACCELEROMETER:
-			return prefs.getBoolean(C.PREF_SENSOR_STATE, true);
+			return prefs.getBoolean(C.PREF_SENSOR_STATE, false);
 		case Sensor.TYPE_GYROSCOPE:
-			return prefs.getBoolean(C.PREF_SENSOR_GYRO, true);
+			return prefs.getBoolean(C.PREF_SENSOR_GYRO, false);
 		case Sensor.TYPE_MAGNETIC_FIELD:
-			return prefs.getBoolean(C.PREF_SENSOR_MAG, true);
+			return prefs.getBoolean(C.PREF_SENSOR_MAG, false);
 		case Sensor.TYPE_ORIENTATION:
-			return prefs.getBoolean(C.PREF_SENSOR_ORIENT, true);
+			return prefs.getBoolean(C.PREF_SENSOR_ORIENT, false);
 		}
 
 		return false;

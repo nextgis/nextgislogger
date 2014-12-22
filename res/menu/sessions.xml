@@ -23,6 +23,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     tools:context="com.nextgis.logger.SessionsActivity">
 
     <item
+        android:id="@+id/action_select_all"
+        android:icon="@drawable/ic_action_select_all"
+        android:showAsAction="ifRoom"
+        android:title="@string/sessions_select_all"/>
+    <item
         android:id="@+id/action_share"
         android:icon="@android:drawable/ic_menu_share"
         android:showAsAction="ifRoom"
