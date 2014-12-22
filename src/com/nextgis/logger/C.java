@@ -25,7 +25,7 @@ import java.io.File;
 import android.app.Activity;
 import android.os.Environment;
 
-public class C extends Activity {
+public class C {
 	public static final String CSV_SEPARATOR = ";";
 	public static final String csvLogFile = "cell_time_log.csv";
 	public static final String csvLogFileSensor = "sensor_time_log.csv";
@@ -60,6 +60,7 @@ public class C extends Activity {
 	public static final String PREF_SESSION_NAME = "session_name";
 	public static final String PREF_MARKS_COUNT = "marks_count";
 	public static final String PREF_RECORDS_COUNT = "records_count";
+    public static final String PREF_KEEP_SCREEN = "keep_screen";
 
 	public static final String BROADCAST_ACTION = "com.nextgis.gsm_logger.MainActivity";
 

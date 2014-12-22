@@ -50,6 +50,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             android:key="use_api17"
             android:summary="@string/settings_cells_api17_sum"
             android:title="@string/settings_cells_api17" />
+
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="keep_screen"
+            android:summary="@string/settings_keep_screen_sum"
+            android:title="@string/settings_keep_screen" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/settings_sensors" >
         <CheckBoxPreference

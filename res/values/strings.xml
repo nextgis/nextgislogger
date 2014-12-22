@@ -26,6 +26,8 @@
     <string name="settings_cats_sum">Mark name presets for text field</string>
     <string name="settings_cat_path">Load mark name presets from file…</string>
     <string name="settings_user_name">Identification string (optional)</string>
+    <string name="settings_keep_screen">Keep screen on</string>
+    <string name="settings_keep_screen_sum">Screen does not turn off automatically at Markers screen</string>
 
     <string name="settings_sensor_mode">Use linear accelerometer</string>
     <string name="settings_sensor_mode_sum">Without gravity of Earth (in all dims)</string>

@@ -46,6 +46,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
@@ -75,10 +76,13 @@ public class MarkActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
+        prefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+        if(prefs.getBoolean(C.PREF_KEEP_SCREEN, true))
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
 		setContentView(R.layout.mark_activity);
-		
-		prefs = PreferenceManager.getDefaultSharedPreferences(this);
-		
+
 		gsmEngine = new CellEngine(this);
 		sensorEngine = new SensorEngine(this);
 //		wifiEngine = new WiFiEngine(this);

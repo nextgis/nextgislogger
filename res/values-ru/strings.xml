@@ -22,6 +22,8 @@
     <string name="settings_cats_sum">Предзаданные имена меток из файла</string>
     <string name="settings_cat_path">Загрузить имена из файла…</string>
     <string name="settings_user_name">Строка идентификации (дополн.)</string>
+    <string name="settings_keep_screen">Не отключать экран</string>
+    <string name="settings_keep_screen_sum">Экран в окне Метки не отключается автоматически</string>
 
     <string name="settings_sensor_mode">Использовать линейный акселерометр</string>
     <string name="settings_sensor_mode_sum">Без силы притяжения по всем осям</string>
