@@ -1,5 +1,10 @@
 Changelog
 ***
+## version 1.2.3 (23.12.2014)
+* Added select/deselect all button to sessions screen
+* Added keep screen on at Markers screen (check settings)
+* Bugfixing
+
 ## version 1.2.2 (18.12.2014)
 * Added sessions screen
 * Added about screen
