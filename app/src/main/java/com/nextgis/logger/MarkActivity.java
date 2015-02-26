@@ -3,7 +3,7 @@
  * Purpose: Productive data logger for Android
  * Authors: Stanislav Petriakov
  ******************************************************************************
- * Copyright © 2014 NextGIS
+ * Copyright © 2014-2015 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,6 +35,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -43,7 +44,6 @@ import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.ListView;
 import android.widget.SearchView;
-import android.widget.SearchView.OnCloseListener;
 import android.widget.SearchView.OnQueryTextListener;
 import android.widget.Toast;
 
@@ -154,6 +154,13 @@ public class MarkActivity extends Activity {
 				Toast.makeText(base, info, Toast.LENGTH_SHORT).show();
                 isHot = true;
 
+                InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+
+                if (imm.isActive()) {
+                    imm.hideSoftInputFromWindow(searchBox.getActionView().getWindowToken(), 0);
+//                    searchBox.collapseActionView();
+                }
+
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
@@ -169,7 +176,7 @@ public class MarkActivity extends Activity {
                 if (scrollState == SCROLL_STATE_IDLE) {
                     if (view.getLastVisiblePosition() == view.getAdapter().getItemId(view.getAdapter().getCount() - 1))
                         return;
-                    
+
                     int firstPosition = view.getFirstVisiblePosition();
 
                     // http://stackoverflow.com/a/15339238/2088273
@@ -255,17 +262,17 @@ public class MarkActivity extends Activity {
 		searchBox = menu.findItem(R.id.search);
 		SearchView search = (SearchView) searchBox.getActionView();
 		search.setQueryHint(getString(R.string.mark_editor_hint));
-		search.setIconifiedByDefault(true);	// set icon inside edit text view
-		search.setIconified(false);	// expand search view in action bar
+//		search.setIconifiedByDefault(true);	// set icon inside edit text view
+//		search.setIconified(false);	// expand search view in action bar
 
-		search.setOnCloseListener(new OnCloseListener() {
-			@Override
-			public boolean onClose() {
-				return true;	// prevent collapse search view
-			}
-		});
+//		search.setOnCloseListener(new OnCloseListener() {
+//			@Override
+//			public boolean onClose() {
+//				return true;	// prevent collapse search view
+//			}
+//		});
 
-		search.requestFocus();
+//		search.requestFocus();
 		search.setOnQueryTextListener(new OnQueryTextListener() {
 			@Override
 			public boolean onQueryTextSubmit(String query) {
