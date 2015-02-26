@@ -41,6 +41,8 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -59,8 +61,11 @@ import android.widget.Toast;
 import android.widget.SearchView.OnQueryTextListener;
 
 public class MarkActivity extends Activity {
+	private static int DELAY = 1000;
 	private static int marksCount = 0;
-	
+
+    private boolean isHot;
+
 	MenuItem searchBox;
 	ListView lvCategories;
 	
@@ -96,6 +101,9 @@ public class MarkActivity extends Activity {
 			@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if (isHot)
+                    return;
+
 				String info = getString(R.string.mark_saved);
 				MainActivity.checkOrCreateDirectory(MainActivity.dataDirPath);
 				
@@ -142,8 +150,18 @@ public class MarkActivity extends Activity {
 				} catch (FileNotFoundException e) {
 					info = getString(R.string.fs_error_msg);
 				}
-				
+
+                Vibrator vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+                vibe.vibrate(100);
 				Toast.makeText(base, info, Toast.LENGTH_SHORT).show();
+                isHot = true;
+
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        isHot = false;
+                    }
+                }, DELAY);
 			}
 		});
 		
