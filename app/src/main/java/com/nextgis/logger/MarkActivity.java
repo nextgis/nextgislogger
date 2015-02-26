@@ -20,6 +20,33 @@
  *****************************************************************************/
 package com.nextgis.logger;
 
+import android.annotation.TargetApi;
+import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.graphics.Rect;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Vibrator;
+import android.preference.PreferenceManager;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.widget.AbsListView;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
+import android.widget.Filter;
+import android.widget.Filterable;
+import android.widget.ListView;
+import android.widget.SearchView;
+import android.widget.SearchView.OnCloseListener;
+import android.widget.SearchView.OnQueryTextListener;
+import android.widget.Toast;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -31,35 +58,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import com.nextgis.logger.R;
-
-import android.annotation.TargetApi;
-import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.net.Uri;
-import android.os.Build;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.Vibrator;
-import android.preference.PreferenceManager;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ArrayAdapter;
-import android.widget.Filter;
-import android.widget.Filterable;
-import android.widget.ListView;
-import android.widget.SearchView;
-import android.widget.SearchView.OnCloseListener;
-import android.widget.Toast;
-import android.widget.SearchView.OnQueryTextListener;
-
 public class MarkActivity extends Activity {
 	private static int DELAY = 1000;
 	private static int marksCount = 0;
@@ -68,15 +66,15 @@ public class MarkActivity extends Activity {
 
 	MenuItem searchBox;
 	ListView lvCategories;
-	
+
 	CustomArrayAdapter substringMarkNameAdapter;
 
 	private CellEngine gsmEngine;
 	private SensorEngine sensorEngine;
 //	private WiFiEngine wifiEngine;
-	
+
 	SharedPreferences prefs;
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -94,9 +92,9 @@ public class MarkActivity extends Activity {
 
 		lvCategories = (ListView) findViewById(R.id.lv_categories);
 		final Activity base = this;
-		
+
 		marksCount = prefs.getInt(C.PREF_MARKS_COUNT, 0);
-		
+
 		lvCategories.setOnItemClickListener(new OnItemClickListener() {
 			@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 			@Override
@@ -106,7 +104,7 @@ public class MarkActivity extends Activity {
 
 				String info = getString(R.string.mark_saved);
 				MainActivity.checkOrCreateDirectory(MainActivity.dataDirPath);
-				
+
 				try {
 					File csvFile = new File(MainActivity.csvMarkFilePath);
 					boolean isFileExist = csvFile.exists();
@@ -128,7 +126,7 @@ public class MarkActivity extends Activity {
 					for (CellEngine.GSMInfo gsmInfo : gsmInfoArray) {
 						String active = gsmInfo.isActive() ? "1" : gsmInfoArray.get(0).getMcc() + "-" + gsmInfoArray.get(0).getMnc() + "-"
 								+ gsmInfoArray.get(0).getLac() + "-" + gsmInfoArray.get(0).getCid();
-						
+
 						pw.println(CellEngine.getItem(gsmInfo, active, ID, markName, userName));
 					}
 
@@ -164,9 +162,38 @@ public class MarkActivity extends Activity {
                 }, DELAY);
 			}
 		});
-		
-		List<MarkName> markNames = new ArrayList<MarkName>();
-		
+
+        lvCategories.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+                if (scrollState == SCROLL_STATE_IDLE) {
+                    if (view.getLastVisiblePosition() == view.getAdapter().getItemId(view.getAdapter().getCount() - 1))
+                        return;
+                    
+                    int firstPosition = view.getFirstVisiblePosition();
+
+                    // http://stackoverflow.com/a/15339238/2088273
+                    View firstChild = view.getChildAt(0);    // first visible child
+                    Rect r = new Rect(0, 0, firstChild.getWidth(), firstChild.getHeight());     // set this initially, as required by the docs
+                    double height = firstChild.getHeight () * 1.0;
+
+                    view.getChildVisibleRect(firstChild, r, null);
+
+                    if (Math.abs(r.height()) < height / 2.0)
+                        firstPosition++;
+
+                    view.setSelection(firstPosition);
+                }
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+
+            }
+        });
+
+		List<MarkName> markNames = new ArrayList<>();
+
 		if (prefs.getBoolean(C.PREF_USE_CATS, false)) {
 			String internalPath = getFilesDir().getAbsolutePath();
 			File cats = new File(internalPath + "/" + C.categoriesFile);
@@ -177,7 +204,8 @@ public class MarkActivity extends Activity {
 
 				try {
 					in = new BufferedReader(new FileReader(cats));
-					String line = in.readLine();	// skip header "ID,NAME"
+					String line;
+                    in.readLine();  // skip header "ID,NAME"
 
 					while ((line = in.readLine()) != null) {
 						split = line.split(",");	// FIXME dup preferences
@@ -195,7 +223,7 @@ public class MarkActivity extends Activity {
 				}
 			}
 		}
-		
+
 		substringMarkNameAdapter = new CustomArrayAdapter(this, markNames);
 		lvCategories.setAdapter(substringMarkNameAdapter);
 	}
@@ -203,23 +231,23 @@ public class MarkActivity extends Activity {
 	@Override
 	protected void onResume() {
 		super.onResume();
-		
+
 		gsmEngine.onResume();
 		sensorEngine.onResume(this);
 //		wifiEngine.onResume();
 	}
-	
+
 	@Override
 	protected void onPause() {
 		super.onPause();
-		
+
 		gsmEngine.onPause();
 		sensorEngine.onPause();
 //		wifiEngine.onPause();
 
-		prefs.edit().putInt(C.PREF_MARKS_COUNT, marksCount).commit();
+		prefs.edit().putInt(C.PREF_MARKS_COUNT, marksCount).apply();
 	}
-	
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.mark, menu);
@@ -229,14 +257,14 @@ public class MarkActivity extends Activity {
 		search.setQueryHint(getString(R.string.mark_editor_hint));
 		search.setIconifiedByDefault(true);	// set icon inside edit text view
 		search.setIconified(false);	// expand search view in action bar
-		
+
 		search.setOnCloseListener(new OnCloseListener() {
 			@Override
 			public boolean onClose() {
 				return true;	// prevent collapse search view
 			}
 		});
-		
+
 		search.requestFocus();
 		search.setOnQueryTextListener(new OnQueryTextListener() {
 			@Override
@@ -274,7 +302,7 @@ public class MarkActivity extends Activity {
 
 	public class CustomArrayAdapter extends ArrayAdapter<String> implements Filterable {
 		private List<MarkName> objects;
-		private ArrayList<MarkName> matches = new ArrayList<MarkName>();;
+		private ArrayList<MarkName> matches = new ArrayList<>();
 		private final CustomFilter substringFilter = new CustomFilter();
 		private MarkName temp;
 
@@ -303,7 +331,7 @@ public class MarkActivity extends Activity {
 		public View getView(int position, View convertView, ViewGroup parent) {
 			return super.getView(position, convertView, parent);
 		}
-		
+
 		public String getSelectedMarkNameID(String prefix) {
 			for (MarkName item : objects) {
 				String CAT = substringFilter.getUpperString(item.getCAT());
@@ -321,7 +349,7 @@ public class MarkActivity extends Activity {
 				final FilterResults results = new FilterResults();
 
 				if (prefix != null) {
-					ArrayList<MarkName> resultList = new ArrayList<MarkName>();
+					ArrayList<MarkName> resultList = new ArrayList<>();
 
 					for (MarkName item : objects) {
 						String CAT = getUpperString(item.getCAT());
@@ -333,7 +361,7 @@ public class MarkActivity extends Activity {
 
 					results.count = resultList.size();
 					results.values = resultList;
-					
+
 					if (resultList.size() != 1 && !prefix.equals("")) {
 						temp = new MarkName("", prefix.toString());
 						results.count++;
@@ -350,11 +378,11 @@ public class MarkActivity extends Activity {
 			@Override
 			protected void publishResults(final CharSequence constraint, final FilterResults results) {
 				matches.clear();
-				
+
 				if (results != null && results.count > 0) {
 					if (temp != null)
 						matches.add(temp);
-					
+
 					matches.addAll((ArrayList<MarkName>) results.values);
 					notifyDataSetChanged();
 				} else
