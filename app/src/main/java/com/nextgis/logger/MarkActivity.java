@@ -47,6 +47,8 @@ import android.widget.SearchView;
 import android.widget.SearchView.OnQueryTextListener;
 import android.widget.Toast;
 
+import com.nextgis.logger.UI.ProgressBarActivity;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -58,7 +60,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class MarkActivity extends Activity {
+public class MarkActivity extends ProgressBarActivity {
 	private static int DELAY = 1000;
 	private static int marksCount = 0;
 
@@ -158,6 +160,7 @@ public class MarkActivity extends Activity {
 
                 if (imm.isActive()) {
                     imm.hideSoftInputFromWindow(searchBox.getActionView().getWindowToken(), 0);
+                    lvCategories.requestFocus();
 //                    searchBox.collapseActionView();
                 }
 

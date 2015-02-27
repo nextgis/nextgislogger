@@ -20,7 +20,6 @@
  *****************************************************************************/
 package com.nextgis.logger;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -32,6 +31,8 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.nextgis.logger.UI.ProgressBarActivity;
+
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -42,7 +43,7 @@ import java.util.Collections;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-public class SessionsActivity extends Activity {
+public class SessionsActivity extends ProgressBarActivity {
     private ListView lvSessions;
 
     @Override
@@ -51,7 +52,7 @@ public class SessionsActivity extends Activity {
         setContentView(R.layout.sessions_activity);
 
         lvSessions = (ListView) findViewById(R.id.lv_sessions);
-        lvSessions.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_multiple_choice, getSessions()));
+        lvSessions.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_multiple_choice, getSessions()));
     }
 
     @Override
@@ -68,7 +69,7 @@ public class SessionsActivity extends Activity {
         // as you specify a parent activity in AndroidManifest.xml.
 
         if (item.getItemId() == R.id.action_share || item.getItemId() == R.id.action_delete) {
-            ArrayList<File> result = new ArrayList<File>();
+            ArrayList<File> result = new ArrayList<>();
             SparseBooleanArray sbaSelectedItems = lvSessions.getCheckedItemPositions();
 
             for (int i = 0; i < sbaSelectedItems.size(); i++) {
@@ -85,7 +86,7 @@ public class SessionsActivity extends Activity {
             if (result.size() > 0)
                 switch (item.getItemId()) {
                     case R.id.action_share:
-                        ArrayList<Uri> logsZips = new ArrayList<Uri>();
+                        ArrayList<Uri> logsZips = new ArrayList<>();
 
                         try {
                             byte[] buffer = new byte[1024];
@@ -133,7 +134,7 @@ public class SessionsActivity extends Activity {
                     case R.id.action_delete:
                         deleteFiles(result.toArray(new File[result.size()]));
                         Toast.makeText(this, R.string.delete_sessions_done, Toast.LENGTH_SHORT).show();
-                        lvSessions.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_multiple_choice, getSessions()));
+                        lvSessions.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_multiple_choice, getSessions()));
                         return true;
                 }
             else
@@ -155,7 +156,7 @@ public class SessionsActivity extends Activity {
     }
 
     private ArrayList<String> getSessions() {
-        ArrayList<String> sessions = new ArrayList<String>();
+        ArrayList<String> sessions = new ArrayList<>();
 
         try {
             File baseDir = new File(C.dataBasePath);
@@ -171,6 +172,7 @@ public class SessionsActivity extends Activity {
                     else
                         sessions.add(file.getName());
         } catch (Exception e) {
+            e.printStackTrace();
         }
 
         Collections.sort(sessions, Collections.reverseOrder());    // descending sort
@@ -207,8 +209,8 @@ public class SessionsActivity extends Activity {
         else {
             String[] files = dir.list();
 
-            for (int i = 0, len = files.length; i < len; i++) {
-                File f = new File(dir, files[i]);
+            for (String file : files) {
+                File f = new File(dir, file);
 
                 if (f.isDirectory())
                     deleteDirectoryOrFile(f);

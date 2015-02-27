@@ -20,7 +20,6 @@
  *****************************************************************************/
 package com.nextgis.logger;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.Uri;
@@ -31,7 +30,9 @@ import android.view.View.OnClickListener;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-public class AboutActivity extends Activity {
+import com.nextgis.logger.UI.ProgressBarActivity;
+
+public class AboutActivity extends ProgressBarActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);

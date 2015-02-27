@@ -1,10 +1,15 @@
 package com.nextgis.logger;
 
 import android.annotation.TargetApi;
-import android.app.Activity;
-import android.app.ActivityManager;
 import android.app.AlertDialog;
-import android.content.*;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -21,16 +26,20 @@ import android.view.View.OnClickListener;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.*;
+import com.nextgis.logger.UI.ProgressBarActivity;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
 
-public class MainActivity extends Activity implements OnClickListener {
+public class MainActivity extends ProgressBarActivity implements OnClickListener {
 	public static String dataDirPath = C.dataBasePath;
 	public static String csvLogFilePath = dataDirPath + File.separator + C.csvLogFile;
 	public static String csvLogFilePathSensor = dataDirPath + File.separator + C.csvLogFileSensor;
@@ -42,12 +51,12 @@ public class MainActivity extends Activity implements OnClickListener {
 
 	private static enum INTERFACE_STATE {
 		SESSION_NONE, SESSION_STARTED, ERROR, OK
-	};
+	}
 
 	private BroadcastReceiver broadcastReceiver;
 
 	private Button serviceOnOffButton;
-	private ProgressBar serviceProgressBar;
+//	private ProgressBar serviceProgressBar;
 
 	private Button markButton;
 	private Button sessionButton;
@@ -73,14 +82,14 @@ public class MainActivity extends Activity implements OnClickListener {
         SessionsActivity.deleteFiles(new File(C.tempPath).listFiles()); // clear cache directory with shared zips
         ((TextView)findViewById(R.id.tv_sessions)).setText(getString(R.string.title_activity_sessions).toUpperCase());
 
-		boolean isServiceRunning = isLoggerServiceRunning();
+		boolean isServiceRunning = isLoggerServiceRunning(this);
 
 		serviceOnOffButton = (Button) findViewById(R.id.btn_service_onoff);
 		serviceOnOffButton.setText(getString(isServiceRunning ? R.string.btn_service_stop : R.string.btn_service_start));
 		serviceOnOffButton.setOnClickListener(this);
 
-		serviceProgressBar = (ProgressBar) findViewById(R.id.service_progress_bar);
-		serviceProgressBar.setVisibility(isServiceRunning ? View.VISIBLE : View.INVISIBLE);
+//		serviceProgressBar = (ProgressBar) findViewById(R.id.service_progress_bar);
+//		serviceProgressBar.setVisibility(isServiceRunning ? View.VISIBLE : View.INVISIBLE);
 
 		markButton = (Button) findViewById(R.id.btn_mark);
 		markButton.setText(getString(R.string.btn_save_mark));
@@ -163,7 +172,7 @@ public class MainActivity extends Activity implements OnClickListener {
                     updateFileForMTP(csvLogFilePathSensor);
 					recordsCount += intent.getIntExtra(C.PARAM_RECORDS_COUNT, 0);
 					loggerFinishedTime.setText(millisToDate(time, "dd.MM.yyyy hh:mm:ss"));
-					prefs.edit().putInt(C.PREF_RECORDS_COUNT, recordsCount).commit();
+					prefs.edit().putInt(C.PREF_RECORDS_COUNT, recordsCount).apply();
 					break;
 				}
 			}
@@ -215,7 +224,7 @@ public class MainActivity extends Activity implements OnClickListener {
 
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
-		menu.findItem(R.id.action_settings).setEnabled(!isLoggerServiceRunning());
+		menu.findItem(R.id.action_settings).setEnabled(!isLoggerServiceRunning(this));
 		return true;
 	}
 
@@ -260,7 +269,7 @@ public class MainActivity extends Activity implements OnClickListener {
 						String value = input.getText().toString();
 
 						if (isCorrectName(value)) { // open session
-							pref.edit().putString(C.PREF_SESSION_NAME, value).commit();
+							pref.edit().putString(C.PREF_SESSION_NAME, value).apply();
 							setInterfaceState(0, INTERFACE_STATE.SESSION_STARTED);
 							setDataDirPath(value);
 							sessionButton.setText(R.string.btn_session_close);
@@ -291,7 +300,7 @@ public class MainActivity extends Activity implements OnClickListener {
 				dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE); // show keyboard
 				dialog.show();
 			} else { // close session
-				prefs.edit().putString(C.PREF_SESSION_NAME, "").putInt(C.PREF_MARKS_COUNT, 0).putInt(C.PREF_RECORDS_COUNT, 0).commit();
+				prefs.edit().putString(C.PREF_SESSION_NAME, "").putInt(C.PREF_MARKS_COUNT, 0).putInt(C.PREF_RECORDS_COUNT, 0).apply();
 				recordsCount = 0;
 				setInterfaceState(0, INTERFACE_STATE.SESSION_NONE);
 				setDataDirPath("");
@@ -305,17 +314,19 @@ public class MainActivity extends Activity implements OnClickListener {
 		case R.id.btn_service_onoff:
 			// Service can be stopped, but still visible in the system as working,
 			// therefore, we need to use isLoggerServiceRunning()
-			if (isLoggerServiceRunning()) {
+			if (isLoggerServiceRunning(this)) {
 				stopService(new Intent(getApplicationContext(), LoggerService.class));
 				serviceOnOffButton.setText(getString(R.string.btn_service_start));
-				serviceProgressBar.setVisibility(View.INVISIBLE);
+//				serviceProgressBar.setVisibility(View.INVISIBLE);
+                setActionBarProgress(false);
 				sessionButton.setEnabled(true);
 			} else {
 				Intent intent = new Intent(getApplicationContext(), LoggerService.class);
 				startService(intent);
 
 				serviceOnOffButton.setText(getString(R.string.btn_service_stop));
-				serviceProgressBar.setVisibility(View.VISIBLE);
+//				serviceProgressBar.setVisibility(View.VISIBLE);
+                setActionBarProgress(true);
 				sessionButton.setEnabled(false);
 			}
 			break;
@@ -384,11 +395,11 @@ public class MainActivity extends Activity implements OnClickListener {
 			return false;
 		}
 
-		for (int i = 0; i < ILLEGAL_CHARACTERS.length; i++)
-			if (value.contains(String.valueOf(ILLEGAL_CHARACTERS[i]))) {
-				Toast.makeText(this, getString(R.string.session_incorrect_name) + ILLEGAL_CHARACTERS[i], Toast.LENGTH_SHORT).show();
-				return false;
-			}
+        for (char ILLEGAL_CHARACTER : ILLEGAL_CHARACTERS)
+            if (value.contains(String.valueOf(ILLEGAL_CHARACTER))) {
+                Toast.makeText(this, getString(R.string.session_incorrect_name) + ILLEGAL_CHARACTER, Toast.LENGTH_SHORT).show();
+                return false;
+            }
 
 		return true;
 	}
@@ -401,7 +412,8 @@ public class MainActivity extends Activity implements OnClickListener {
 		case SESSION_NONE:
 			serviceOnOffButton.setEnabled(false);
 			markButton.setEnabled(false);
-			serviceProgressBar.setVisibility(View.INVISIBLE);
+//			serviceProgressBar.setVisibility(View.INVISIBLE);
+            setActionBarProgress(false);
             findViewById(R.id.rl_modes).setVisibility(View.GONE);
 			break;
 		case SESSION_STARTED:
@@ -411,18 +423,6 @@ public class MainActivity extends Activity implements OnClickListener {
             findViewById(R.id.rl_modes).setVisibility(View.VISIBLE);
 			break;
 		}
-	}
-
-	public boolean isLoggerServiceRunning() {
-		ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-
-		for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-
-			if (LoggerService.class.getName().equals(service.service.getClassName())) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	/**
