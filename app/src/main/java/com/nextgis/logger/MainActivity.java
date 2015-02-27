@@ -77,7 +77,10 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		setContentView(R.layout.main_activity);
+        if (getActionBar() != null)
+            getActionBar().setDisplayHomeAsUpEnabled(false);
+
+        setContentView(R.layout.main_activity);
 		PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
         SessionsActivity.deleteFiles(new File(C.tempPath).listFiles()); // clear cache directory with shared zips
         ((TextView)findViewById(R.id.tv_sessions)).setText(getString(R.string.title_activity_sessions).toUpperCase());

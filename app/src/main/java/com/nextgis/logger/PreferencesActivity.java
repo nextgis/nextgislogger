@@ -20,20 +20,12 @@
  *****************************************************************************/
 package com.nextgis.logger;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.PrintWriter;
-
-import com.nextgis.logger.UI.IntEditTextPreference;
-import com.nextgis.logger.UI.SimpleFileChooser;
-
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.EditTextPreference;
 import android.preference.Preference;
@@ -43,13 +35,71 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 import android.widget.Toast;
 
+import com.nextgis.logger.UI.IntEditTextPreference;
+import com.nextgis.logger.UI.SimpleFileChooser;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
+
 public class PreferencesActivity extends PreferenceActivity {
 	public static final int minPeriodSec = 1;
 	public static final int maxPeriodSec = 3600;
+	public static final int CHOOSE_FILE = 53;
 
 	@Override
 	protected void onCreate(Bundle savedInstance) {
-		super.onCreate(savedInstance);
+        super.onCreate(savedInstance);
+
+        Intent intent = getIntent();
+
+        if (intent != null) {
+            String action = intent.getAction();
+
+            if (action != null && action.equalsIgnoreCase(Intent.ACTION_GET_CONTENT)) {
+                SimpleFileChooser sfcDialog = new SimpleFileChooser();
+
+                sfcDialog.setOnChosenListener(new SimpleFileChooser.SimpleFileChooserListener() {
+                    String info = getString(R.string.error_no_file);
+
+                    @Override
+                    public void onFileChosen(File file) {
+                        Intent result = new Intent("com.example.RESULT_ACTION", Uri.parse("file://" + file.getPath()));
+                        setResult(Activity.RESULT_OK, result);
+                        finish();
+                    }
+
+                    @Override
+                    public void onDirectoryChosen(File directory) {
+                        finishWithError();
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        finishWithError();
+                    }
+
+                    private void finishWithError() {
+                        Toast.makeText(getApplicationContext(), info, Toast.LENGTH_SHORT).show();
+                        Intent result = new Intent("com.example.RESULT_ACTION");
+                        setResult(Activity.RESULT_OK, result);
+                        finish();
+                    }
+                });
+
+                if (getActionBar() != null)
+                    getActionBar().hide();
+
+                getWindow().setBackgroundDrawable(null);
+
+                sfcDialog.show(getFragmentManager(), "SimpleFileChooserDialog");
+                return;
+            }
+        }
+
 		getFragmentManager().beginTransaction().replace(android.R.id.content, new PreferencesFragment()).commit();
 	}
 
@@ -129,58 +179,61 @@ public class PreferencesActivity extends PreferenceActivity {
 			catPathPreference.setOnPreferenceClickListener(new OnPreferenceClickListener() {
 				@Override
 				public boolean onPreferenceClick(final Preference preference) {
-					SimpleFileChooser FileOpenDialog = new SimpleFileChooser();
-                    FileOpenDialog.setOnFileChosen(new SimpleFileChooser.SimpleFileChooserListener() {
-                        @Override
-                        public void onFileChosen(File file) {
-                            // The code in this function will be executed when the dialog OK button is pushed
-                            String info = getString(R.string.error_no_file);
-
-//                            if (new File(chosenDir).isFile()) {
-                            if (file.isFile()) {
-                                File fromCats = file;//new File(chosenDir);
-
-                                String internalPath = parent.getFilesDir().getAbsolutePath();
-                                File toCats = new File(internalPath + "/" + C.categoriesFile);
-
-                                try {
-                                    PrintWriter pw = new PrintWriter(new FileOutputStream(toCats, false));
-                                    BufferedReader in = new BufferedReader(new FileReader(fromCats));
-
-                                    String[] split;
-                                    String line;
-
-                                    while ((line = in.readLine()) != null) {
-                                        split = line.split(",");
-
-                                        if (split.length != 2) {
-                                            in.close();
-                                            pw.close();
-                                            throw new ArrayIndexOutOfBoundsException("Must be two columns splitted by ','!");
-                                        } else
-                                            pw.println(line);
-                                    }
-
-                                    in.close();
-                                    pw.close();
-
-                                    info = getString(R.string.file_loaded) + file.getAbsolutePath();
-                                } catch (IOException e) {
-                                    info = getString(R.string.fs_error_msg);
-                                } catch (ArrayIndexOutOfBoundsException e) {
-                                    info = getString(R.string.cat_file_structure_error);
-                                }
-                            }
-
-                            Toast.makeText(parent, info, Toast.LENGTH_SHORT).show();
-                        }
-                    });
-
-					FileOpenDialog.show(getFragmentManager(), "FileOpenDialog");
+                    Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                    intent.setType("file/*");
+                    startActivityForResult(intent, CHOOSE_FILE);
 
 					return true;
 				}
 			});
 		}
-	}
+
+        @Override
+        public void onActivityResult(int requestCode, int resultCode, Intent data) {
+            if (requestCode == CHOOSE_FILE) {
+                String info = getString(R.string.error_no_file);
+                Uri uri;
+
+                if (data != null && (uri = data.getData()) != null) {
+                    File file = new File(uri.getPath());
+
+                    if (file.isFile()) {
+                        String internalPath = getActivity().getFilesDir().getAbsolutePath();
+                        File toCats = new File(internalPath + "/" + C.categoriesFile);
+
+                        try {
+                            PrintWriter pw = new PrintWriter(new FileOutputStream(toCats, false));
+                            BufferedReader in = new BufferedReader(new FileReader(file));
+
+                            String[] split;
+                            String line;
+
+                            while ((line = in.readLine()) != null) {
+                                split = line.split(",");
+
+                                if (split.length != 2) {
+                                    in.close();
+                                    pw.close();
+                                    throw new ArrayIndexOutOfBoundsException("Must be two columns splitted by ','!");
+                                } else
+                                    pw.println(line);
+                            }
+
+                            in.close();
+                            pw.close();
+
+                            info = getString(R.string.file_loaded) + file.getAbsolutePath();
+                        } catch (IOException e) {
+                            info = getString(R.string.fs_error_msg);
+                        } catch (ArrayIndexOutOfBoundsException e) {
+                            info = getString(R.string.cat_file_structure_error);
+                        }
+                    }
+                }
+
+                Toast.makeText(getActivity(), info, Toast.LENGTH_SHORT).show();
+            } else
+                super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
 }

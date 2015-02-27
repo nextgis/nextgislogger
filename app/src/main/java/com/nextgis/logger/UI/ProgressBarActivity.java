@@ -41,6 +41,9 @@ public class ProgressBarActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        if (getActionBar() != null)
+            getActionBar().setDisplayHomeAsUpEnabled(true);
+
         setActionBarProgress(isLoggerServiceRunning(this));
     }
 
