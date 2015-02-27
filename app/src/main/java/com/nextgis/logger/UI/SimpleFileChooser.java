@@ -18,7 +18,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *****************************************************************************/
-package com.nextgis.logger;
+package com.nextgis.logger.UI;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,6 +41,8 @@ import android.widget.CheckedTextView;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.Toast;
+
+import com.nextgis.logger.R;
 
 public class SimpleFileChooser extends DialogFragment implements android.content.DialogInterface.OnClickListener {
 	private SimpleFileChooserListener simpleFileChooserListener;

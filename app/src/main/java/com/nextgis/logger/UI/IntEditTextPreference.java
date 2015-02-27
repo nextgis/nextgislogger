@@ -18,7 +18,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *****************************************************************************/
-package com.nextgis.logger;
+package com.nextgis.logger.UI;
 
 import android.content.Context;
 import android.preference.EditTextPreference;
@@ -38,12 +38,12 @@ public class IntEditTextPreference extends EditTextPreference {
 	}
 
 	@Override
-	protected String getPersistedString(String defaultReturnValue) {
+	public String getPersistedString(String defaultReturnValue) {
 		return String.valueOf(getPersistedInt(-1));
 	}
 
 	@Override
-	protected boolean persistString(String value) {
+	public boolean persistString(String value) {
 		return persistInt(Integer.valueOf(value));
 	}
 }

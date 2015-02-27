@@ -27,7 +27,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import com.nextgis.logger.R;
+import com.nextgis.logger.UI.IntEditTextPreference;
+import com.nextgis.logger.UI.SimpleFileChooser;
 
 import android.app.Activity;
 import android.content.Context;

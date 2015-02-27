@@ -27,7 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             android:key="user_name"
             android:title="@string/settings_user_name" />
 
-        <com.nextgis.logger.IntEditTextPreference
+        <com.nextgis.logger.UI.IntEditTextPreference
             android:defaultValue="1"
             android:inputType="number"
             android:key="period_sec"
