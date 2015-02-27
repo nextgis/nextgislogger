@@ -36,6 +36,7 @@
     <string name="settings_sensor_magnetic_state">Enable magnetometer data</string>
     <string name="settings_sensor_orientation_state">Enable orientation data</string>
     <string name="settings_sensor_sum">Available if device has sensor</string>
+    <string name="settings_gps">Enable GPS data</string>
 
     <string name="service_notif_title">NextGIS Logger</string>
     <string name="service_notif_text">Logger is running…</string>

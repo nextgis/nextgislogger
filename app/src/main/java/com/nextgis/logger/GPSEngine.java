@@ -3,7 +3,7 @@
  * Purpose: Productive data logger for Android
  * Authors: Stanislav Petriakov
  ******************************************************************************
- * Copyright © 2014 NextGIS
+ * Copyright © 2014-2015 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,16 +20,89 @@
  *****************************************************************************/
 package com.nextgis.logger;
 
+import android.content.Context;
 import android.location.Location;
 import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 
 public class GPSEngine implements LocationListener {
+    private final long MIN_TIME = 0;
+    private final float MIN_DISTANCE = 0f;
+    private final int UNDEFINED = -1;
+
+    private Context context;
+    private final LocationManager mLocationManager;
+    private Location mLastFix = null;
+
+    public GPSEngine(Context context) {
+        this.context = context;
+        mLocationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        onResume();
+    }
+
+    public void onResume() {
+        if (mLocationManager.getAllProviders().contains(LocationManager.GPS_PROVIDER) && isGpsEnabled()) {
+            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME, MIN_DISTANCE, this);
+            mLastFix = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        }
+    }
+
+    public void onPause() {
+        mLocationManager.removeUpdates(this);
+        mLastFix = null;
+    }
+
+    public double getLatitude() {
+        if (mLastFix == null)
+            return UNDEFINED;
+
+        return mLastFix.getLatitude();
+    }
+
+    public double getLongitude() {
+        if (mLastFix == null)
+            return UNDEFINED;
+
+        return mLastFix.getLongitude();
+    }
+
+    public double getAltitude() {
+        if (mLastFix == null || !mLastFix.hasAltitude())
+            return UNDEFINED;
+
+        return mLastFix.getAltitude();
+    }
+
+    public float getAccuracy() {
+        if (mLastFix == null || !mLastFix.hasAccuracy())
+            return UNDEFINED;
+
+        return mLastFix.getAccuracy();
+    }
+
+    public float getBearing() {
+        if (mLastFix == null || !mLastFix.hasBearing())
+            return UNDEFINED;
+
+        return mLastFix.getBearing();
+    }
+
+    public float getSpeed() {
+        if (mLastFix == null || !mLastFix.hasSpeed())
+            return UNDEFINED;
+
+        return mLastFix.getSpeed();
+    }
+
+    public boolean isGpsEnabled() {
+        return PreferenceManager.getDefaultSharedPreferences(context).getBoolean(C.PREF_GPS, false);
+    }
 
 	@Override
 	public void onLocationChanged(Location location) {
-		location.getLatitude();
-		location.getLongitude();
+		mLastFix = location;
 	}
 
 	@Override

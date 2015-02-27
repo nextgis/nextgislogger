@@ -3,7 +3,7 @@
  * Purpose: Productive data logger for Android
  * Authors: Stanislav Petriakov
  ******************************************************************************
- * Copyright © 2014 NextGIS
+ * Copyright © 2014-2015 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,7 +42,10 @@ public class C {
 
 	public static final String csvHeaderSensor = "ID" + CSV_SEPARATOR + "Name" + CSV_SEPARATOR + "User" + CSV_SEPARATOR + "TimeStamp" + CSV_SEPARATOR + "Type"
 			+ CSV_SEPARATOR + "Accel_X" + CSV_SEPARATOR + "Accel_Y" + CSV_SEPARATOR + "Accel_Z" + CSV_SEPARATOR + "Azimuth" + CSV_SEPARATOR + "Pitch" + CSV_SEPARATOR + "Roll"
-			+ CSV_SEPARATOR + "Magnetic" + CSV_SEPARATOR + "Gyro_X" + CSV_SEPARATOR + "Gyro_Y" + CSV_SEPARATOR + "Gyro_Z";
+			+ CSV_SEPARATOR + "Magnetic" + CSV_SEPARATOR + "Gyro_X" + CSV_SEPARATOR + "Gyro_Y" + CSV_SEPARATOR + "Gyro_Z" + CSV_SEPARATOR + "GPS_Lat" +
+            CSV_SEPARATOR + "GPS_Lon" + CSV_SEPARATOR + "GPS_Alt" + CSV_SEPARATOR + "GPS_Accuracy" + CSV_SEPARATOR + "GPS_Speed" + CSV_SEPARATOR +
+            "GPS_Bearing";
+//			+ CSV_SEPARATOR + "Magnetic" + CSV_SEPARATOR + "Gyro_X" + CSV_SEPARATOR + "Gyro_Y" + CSV_SEPARATOR + "Gyro_Z";
 
 	public static final String logDefaultName = "ServiceLog";
 	public static final String markDefaultName = "Mark";
@@ -53,6 +56,7 @@ public class C {
 	public static final String PREF_SENSOR_GYRO = "sensor_gyroscope_state";
 	public static final String PREF_SENSOR_MAG = "sensor_magnetic_state";
 	public static final String PREF_SENSOR_ORIENT = "sensor_orientation_state";
+	public static final String PREF_GPS = "gps";
 	public static final String PREF_USE_API17 = "use_api17";
 	public static final String PREF_USE_CATS = "use_cats";
 	public static final String PREF_CAT_PATH = "cat_path";

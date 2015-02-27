@@ -3,7 +3,7 @@
  * Purpose: Productive data logger for Android
  * Authors: Stanislav Petriakov
  ******************************************************************************
- * Copyright © 2014 NextGIS
+ * Copyright © 2014-2015 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,21 +44,24 @@ public class SensorEngine implements SensorEventListener {
 
 	private SensorManager sm;
 	private Sensor sAccelerometer, sGyroscope, sOrientation, sMagnetic;
+	private GPSEngine gpsEngine;
 
 	public SensorEngine(Context ctx) {
 		sm = (SensorManager) ctx.getSystemService(Context.SENSOR_SERVICE);
+        gpsEngine = new GPSEngine(ctx);
 		prefs = PreferenceManager.getDefaultSharedPreferences(ctx);
 		onResume(ctx);
 	}
 
 	protected void onPause() {
 		sm.unregisterListener(this);
+        gpsEngine.onPause();
 	}
 
 	@SuppressWarnings("deprecation")
 	protected void onResume(Context ctx) {
 		boolean noSensor = false;
-		ArrayList<String> noSensors = new ArrayList<String>();
+		ArrayList<String> noSensors = new ArrayList<>();
 
 		if (isSensorEnabled(Sensor.TYPE_ACCELEROMETER)) {
 			linearAcceleration = prefs.getBoolean(C.PREF_SENSOR_MODE, false);
@@ -124,6 +127,8 @@ public class SensorEngine implements SensorEventListener {
 
 			Toast.makeText(ctx, info.toString(), Toast.LENGTH_LONG).show();
 		}
+
+        gpsEngine.onResume();
 	}
 
 	@Override
@@ -230,14 +235,20 @@ public class SensorEngine implements SensorEventListener {
 	@SuppressWarnings("deprecation")
 	public boolean isAnySensorEnabled() {
 		return isSensorEnabled(Sensor.TYPE_ACCELEROMETER) || isSensorEnabled(Sensor.TYPE_GYROSCOPE)
-				|| isSensorEnabled(Sensor.TYPE_ORIENTATION) || isSensorEnabled(Sensor.TYPE_MAGNETIC_FIELD);
+				|| isSensorEnabled(Sensor.TYPE_ORIENTATION) || isSensorEnabled(Sensor.TYPE_MAGNETIC_FIELD) || gpsEngine.isGpsEnabled();
 	}
 
 	public String getSensorType() {
 		return linearAcceleration ? "Linear" : "Raw";
 	}
 
+    public GPSEngine getGpsEngine() {
+        return gpsEngine;
+    }
+
 	public static String getItem(SensorEngine sensorEngine, String ID, String markName, String userName, long timeStamp) {
+        GPSEngine gpsEngine = sensorEngine.getGpsEngine();
+
 		StringBuilder sb = new StringBuilder();
 
 		sb.append(ID).append(C.CSV_SEPARATOR);
@@ -254,7 +265,13 @@ public class SensorEngine implements SensorEventListener {
 		sb.append(sensorEngine.getMagnetic()).append(C.CSV_SEPARATOR);
 		sb.append(sensorEngine.getGyroX()).append(C.CSV_SEPARATOR);
 		sb.append(sensorEngine.getGyroY()).append(C.CSV_SEPARATOR);
-		sb.append(sensorEngine.getGyroZ());
+		sb.append(sensorEngine.getGyroZ()).append(C.CSV_SEPARATOR);
+		sb.append(gpsEngine.getLatitude()).append(C.CSV_SEPARATOR);
+		sb.append(gpsEngine.getLongitude()).append(C.CSV_SEPARATOR);
+		sb.append(gpsEngine.getAltitude()).append(C.CSV_SEPARATOR);
+		sb.append(gpsEngine.getAccuracy()).append(C.CSV_SEPARATOR);
+		sb.append(gpsEngine.getSpeed()).append(C.CSV_SEPARATOR);
+		sb.append(gpsEngine.getBearing());
 
 		return sb.toString();
 	}

@@ -3,7 +3,7 @@
 Project: NextGIS Logger
 Purpose: Productive data logger for Android
 Authors: Stanislav Petriakov
-Copyright © 2014 NextGIS
+Copyright © 2014-2015 NextGIS
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -58,6 +58,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             android:title="@string/settings_keep_screen" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/settings_sensors" >
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="gps"
+            android:title="@string/settings_gps" />
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="sensor_state"
