@@ -29,6 +29,7 @@ import android.app.ActivityManager;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
@@ -45,6 +46,17 @@ public class ProgressBarActivity extends Activity {
             getActionBar().setDisplayHomeAsUpEnabled(true);
 
         setActionBarProgress(isLoggerServiceRunning(this));
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                finish();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     protected void setActionBarProgress(boolean state) {

@@ -33,6 +33,7 @@ import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
+import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.nextgis.logger.UI.IntEditTextPreference;
@@ -100,8 +101,22 @@ public class PreferencesActivity extends PreferenceActivity {
             }
         }
 
+        if (getActionBar() != null)
+            getActionBar().setDisplayHomeAsUpEnabled(true);
+
 		getFragmentManager().beginTransaction().replace(android.R.id.content, new PreferencesFragment()).commit();
 	}
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                finish();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
 
 	public static class PreferencesFragment extends PreferenceFragment {
 		@SuppressWarnings("deprecation")
