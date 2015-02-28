@@ -3,7 +3,7 @@
  * Purpose: Productive data logger for Android
  * Authors: Stanislav Petriakov
  ******************************************************************************
- * Copyright © 2014 NextGIS
+ * Copyright © 2014-2015 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.EditTextPreference;
@@ -128,21 +129,34 @@ public class PreferencesActivity extends PreferenceActivity {
 
 			final Activity parent = getActivity();
 
-			findPreference(C.PREF_SENSOR_MODE).setSummary(getString(R.string.settings_sensor_mode_sum) + "\r\n" + getString(R.string.settings_sensor_sum));
-			
+            LocationManager locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
+
+            if (!locationManager.getAllProviders().contains(LocationManager.GPS_PROVIDER)) {
+                findPreference(C.PREF_GPS).setEnabled(false);
+                findPreference(C.PREF_GPS).setSummary(R.string.settings_sensor_sum);
+            }
+
 			SensorManager sm = (SensorManager) parent.getSystemService(Context.SENSOR_SERVICE);
 
-			if (sm.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION) == null)
-				findPreference(C.PREF_SENSOR_MODE).setEnabled(false);
+			if (sm.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION) == null) {
+                findPreference(C.PREF_SENSOR_MODE).setEnabled(false);
+                findPreference(C.PREF_SENSOR_MODE).setSummary(R.string.settings_sensor_sum);
+            }
 
-			if (sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD) == null)
-				findPreference(C.PREF_SENSOR_MAG).setEnabled(false);
+			if (sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD) == null) {
+                findPreference(C.PREF_SENSOR_MAG).setEnabled(false);
+                findPreference(C.PREF_SENSOR_MAG).setSummary(R.string.settings_sensor_sum);
+            }
 
-			if (sm.getDefaultSensor(Sensor.TYPE_ORIENTATION) == null)
-				findPreference(C.PREF_SENSOR_ORIENT).setEnabled(false);
+			if (sm.getDefaultSensor(Sensor.TYPE_ORIENTATION) == null) {
+                findPreference(C.PREF_SENSOR_ORIENT).setEnabled(false);
+                findPreference(C.PREF_SENSOR_ORIENT).setSummary(R.string.settings_sensor_sum);
+            }
 
-			if (sm.getDefaultSensor(Sensor.TYPE_GYROSCOPE) == null)
-				findPreference(C.PREF_SENSOR_GYRO).setEnabled(false);
+			if (sm.getDefaultSensor(Sensor.TYPE_GYROSCOPE) == null) {
+                findPreference(C.PREF_SENSOR_GYRO).setEnabled(false);
+                findPreference(C.PREF_SENSOR_GYRO).setSummary(R.string.settings_sensor_sum);
+            }
 
 			if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.JELLY_BEAN_MR1)
 				findPreference(C.PREF_USE_API17).setEnabled(false);

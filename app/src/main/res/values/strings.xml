@@ -29,14 +29,8 @@
     <string name="settings_keep_screen">Keep screen on</string>
     <string name="settings_keep_screen_sum">Screen does not turn off automatically at Markers screen</string>
 
-    <string name="settings_sensor_mode">Use linear accelerometer</string>
     <string name="settings_sensor_mode_sum">Without gravity of Earth (in all dims)</string>
-    <string name="settings_sensor_state">Enable accelerometer data</string>
-    <string name="settings_sensor_gyroscope_state">Enable gyroscope data</string>
-    <string name="settings_sensor_magnetic_state">Enable magnetometer data</string>
-    <string name="settings_sensor_orientation_state">Enable orientation data</string>
-    <string name="settings_sensor_sum">Available if device has sensor</string>
-    <string name="settings_gps">Enable GPS data</string>
+    <string name="settings_sensor_sum">Sensor is not supported</string>
 
     <string name="service_notif_title">NextGIS Logger</string>
     <string name="service_notif_text">Logger is running…</string>
@@ -70,11 +64,12 @@
     <string name="fs_error_msg">File system ERROR.</string>
 
     <string name="sensor_error">"No sensors found: "</string>
-    <string name="sensor_accelerometer">accelerometer</string>
-    <string name="sensor_linear">linear accelerometer</string>
-    <string name="sensor_gyroscope">gyroscope</string>
-    <string name="sensor_magnetic">magnetometer</string>
-    <string name="sensor_orientation">orientation</string>
+    <string name="sensor_accelerometer">Accelerometer</string>
+    <string name="sensor_linear">Linear accelerometer</string>
+    <string name="sensor_gyroscope">Gyroscope</string>
+    <string name="sensor_magnetic">Magnetometer</string>
+    <string name="sensor_orientation">Orientation</string>
+    <string name="gps">GPS</string>
 
     <string name="cat_file_structure_error">Wrong categories file structure</string>
     <string name="cat_file_error">No categories, please reload presets</string>

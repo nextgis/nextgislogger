@@ -76,7 +76,9 @@ public class SensorEngine implements SensorEventListener {
 			if (sAccelerometer != null)
 				sm.registerListener(this, sAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
 			else {
-				noSensors.add(linearAcceleration ? ctx.getString(R.string.sensor_linear) : ctx.getString(R.string.sensor_accelerometer));
+				noSensors.add(linearAcceleration ?
+                        ctx.getString(R.string.sensor_linear).toLowerCase() :
+                        ctx.getString(R.string.sensor_accelerometer).toLowerCase());
 				noSensor = true;
 			}
 		}
@@ -87,7 +89,7 @@ public class SensorEngine implements SensorEventListener {
 			if (sGyroscope != null)
 				sm.registerListener(this, sGyroscope, SensorManager.SENSOR_DELAY_NORMAL);
 			else {
-				noSensors.add(ctx.getString(R.string.sensor_gyroscope));
+				noSensors.add(ctx.getString(R.string.sensor_gyroscope).toLowerCase());
 				noSensor = true;
 			}
 		}
@@ -98,7 +100,7 @@ public class SensorEngine implements SensorEventListener {
 			if (sOrientation != null)
 				sm.registerListener(this, sOrientation, SensorManager.SENSOR_DELAY_NORMAL);
 			else {
-				noSensors.add(ctx.getString(R.string.sensor_orientation));
+				noSensors.add(ctx.getString(R.string.sensor_orientation).toLowerCase());
 				noSensor = true;
 			}
 		}
@@ -109,7 +111,7 @@ public class SensorEngine implements SensorEventListener {
 			if (sMagnetic != null)
 				sm.registerListener(this, sMagnetic, SensorManager.SENSOR_DELAY_NORMAL);
 			else {
-				noSensors.add(ctx.getString(R.string.sensor_magnetic));
+				noSensors.add(ctx.getString(R.string.sensor_magnetic).toLowerCase());
 				noSensor = true;
 			}
 		}

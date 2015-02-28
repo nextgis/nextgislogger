@@ -61,32 +61,29 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="gps"
-            android:title="@string/settings_gps" />
+            android:title="@string/gps" />
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="sensor_state"
-            android:title="@string/settings_sensor_state" />
+            android:title="@string/sensor_accelerometer" />
         <CheckBoxPreference
             android:defaultValue="false"
             android:dependency="sensor_state"
             android:key="sensor_mode"
             android:summary="@string/settings_sensor_mode_sum"
-            android:title="@string/settings_sensor_mode" />
+            android:title="@string/sensor_linear" />
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="sensor_magnetic_state"
-            android:summary="@string/settings_sensor_sum"
-            android:title="@string/settings_sensor_magnetic_state" />
+            android:title="@string/sensor_magnetic" />
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="sensor_orientation_state"
-            android:summary="@string/settings_sensor_sum"
-            android:title="@string/settings_sensor_orientation_state" />
+            android:title="@string/sensor_orientation" />
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="sensor_gyroscope_state"
-            android:summary="@string/settings_sensor_sum"
-            android:title="@string/settings_sensor_gyroscope_state" />
+            android:title="@string/sensor_gyroscope" />
     </PreferenceCategory>
 
 </PreferenceScreen>
