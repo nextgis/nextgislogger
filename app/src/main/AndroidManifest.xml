@@ -93,6 +93,6 @@
             android:name=".LoggerService"
             android:enabled="true"
             android:exported="false"
-            android:icon="@drawable/antenna"/>
+            android:icon="@drawable/ic_launcher"/>
     </application>
 </manifest>

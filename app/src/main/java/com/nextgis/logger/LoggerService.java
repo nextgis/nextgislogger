@@ -26,7 +26,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
+import android.graphics.BitmapFactory;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.PowerManager;
@@ -37,8 +37,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-
-import com.nextgis.logger.R;
 
 public class LoggerService extends Service {
 
@@ -54,6 +52,7 @@ public class LoggerService extends Service {
 	private SensorEngine sensorEngine;
 	private Thread thread = null;
 	private LocalBinder localBinder = new LocalBinder();
+    private NotificationManager notificationManager;
 
 	public class LocalBinder extends Binder {
 		public LoggerService getService() {
@@ -79,6 +78,7 @@ public class LoggerService extends Service {
 		interval = prefs.getInt(C.PREF_PERIOD_SEC, interval);
 
 		sensorEngine = new SensorEngine(this);
+        notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 	}
 
 	@Override
@@ -116,32 +116,40 @@ public class LoggerService extends Service {
 	}
 
 	private void sendNotification() {
-
 		//android.os.Debug.waitForDebugger();
-
-		Notification notif = new Notification(R.drawable.antenna, getString(R.string.service_notif_title), System.currentTimeMillis());
-
 		Intent intentNotif = new Intent(this, MainActivity.class);
 		PendingIntent pintent = PendingIntent.getActivity(this, 0, intentNotif, 0);
 
-		notif.setLatestEventInfo(this, getString(R.string.service_notif_title), getString(R.string.service_notif_text), pintent);
+        Notification.Builder builder = new Notification.Builder(this);
+        builder.setContentIntent(pintent)
+                .setSmallIcon(R.drawable.ic_status_notification)
+                .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher))
+                .setTicker(getString(R.string.service_notif_title))
+                .setWhen(System.currentTimeMillis())
+                .setAutoCancel(false)
+                .setContentTitle(getString(R.string.service_notif_title))
+                .setContentText(getString(R.string.service_notif_text));
 
+        Notification notif = builder.getNotification();
+        notificationManager.notify(1, notif);
 		startForeground(1, notif);
 	}
 
 	private void sendErrorNotification() {
-
 		//android.os.Debug.waitForDebugger();
-
-		NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-
-		Notification notif = new Notification(R.drawable.antenna, getString(R.string.service_notif_title), System.currentTimeMillis());
-
 		PendingIntent pIntentNotif = PendingIntent.getActivity(this, 0, new Intent(), 0);
 
-		notif.setLatestEventInfo(this, getString(R.string.service_notif_title), getString(R.string.fs_error_msg), pIntentNotif);
+        Notification.Builder builder = new Notification.Builder(this);
+        builder.setContentIntent(pIntentNotif)
+                .setSmallIcon(R.drawable.ic_status_notification)
+                .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher))
+                .setTicker(getString(R.string.service_notif_title))
+                .setWhen(System.currentTimeMillis())
+                .setAutoCancel(true)
+                .setContentTitle(getString(R.string.service_notif_title))
+                .setContentText(getString(R.string.fs_error_msg));
 
-		notif.flags |= Notification.FLAG_AUTO_CANCEL;
+        Notification notif = builder.getNotification();
 		notificationManager.notify(2, notif);
 	}
 
