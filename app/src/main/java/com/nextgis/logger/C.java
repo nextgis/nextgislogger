@@ -76,4 +76,6 @@ public class C {
 	public static final int STATUS_RUNNING = 101;
 	public static final int STATUS_FINISHED = 102;
 	public static final int STATUS_ERROR = 103;
+
+    public static final int UNDEFINED = -1;
 }

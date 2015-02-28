@@ -31,7 +31,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CellEngine {
-	Context mContext;
+    private final static int LOW_BOUND = 0;
+    private final static int MAX_MCC_MNC = 999;
+    private final static int MAX_2G_LAC_CID = 65535;
+    private final static int MAX_3G_CID = 268435455;
+    private static final int MAX_PSC = 511;
+
+    Context mContext;
 
 	public final static int SIGNAL_STRENGTH_NONE = 0;
 
@@ -137,7 +143,7 @@ public class CellEngine {
 		int api17 = android.os.Build.VERSION_CODES.JELLY_BEAN_MR1;
 		int api18 = android.os.Build.VERSION_CODES.JELLY_BEAN_MR2;
 
-		ArrayList<GSMInfo> gsmInfoArray = new ArrayList<GSMInfo>();
+		ArrayList<GSMInfo> gsmInfoArray = new ArrayList<>();
 
 		long timeStamp = System.currentTimeMillis();
 		boolean useAPI17 = PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean(C.PREF_USE_API17, false); // WCDMA uses API 18+, now min is 18
@@ -155,7 +161,7 @@ public class CellEngine {
 						CellIdentityGsm gsmIdentity = gsm.getCellIdentity();
 
 						gsmInfoArray.add(new GSMInfo(timeStamp, gsm.isRegistered(), nwType, gsmIdentity.getMcc(), gsmIdentity.getMnc(), gsmIdentity.getLac(),
-								gsmIdentity.getCid(), -1, gsm.getCellSignalStrength().getDbm()));
+								gsmIdentity.getCid(), C.UNDEFINED, gsm.getCellSignalStrength().getDbm()));
 
 						// 3G - WCDMA cell towers, its API 18+
 					} else if (osVersion >= api18 && cell.getClass() == CellInfoWcdma.class) {
@@ -170,8 +176,8 @@ public class CellEngine {
 
 		if (gsmInfoArray.size() == 0) { // in case API 17/18 didn't return anything
 			// #1 using default way to obtain cell towers info
-			int mcc = -1;
-			int mnc = -1;
+			int mcc = C.UNDEFINED;
+			int mnc = C.UNDEFINED;
 
 			//			boolean isNetworkTypeGSM = isGSMNetwork(mTelephonyManager.getNetworkType());
 			boolean isPhoneTypeGSM = mTelephonyManager.getPhoneType() == TelephonyManager.PHONE_TYPE_GSM;
@@ -205,7 +211,7 @@ public class CellEngine {
 				int nbNetworkType = neighbor.getNetworkType();
 
 				//				if (nbNetworkType == TelephonyManager.NETWORK_TYPE_GPRS || nbNetworkType == TelephonyManager.NETWORK_TYPE_EDGE) {
-				gsmInfoArray.add(new GSMInfo(timeStamp, false, nbNetworkType, mcc, mnc, neighbor.getLac(), neighbor.getCid(), neighbor.getPsc(),
+				gsmInfoArray.add(new GSMInfo(timeStamp, false, nbNetworkType, C.UNDEFINED, C.UNDEFINED, neighbor.getLac(), neighbor.getCid(), neighbor.getPsc(),
 						signalStrengthAsuToDbm(neighbor.getRssi(), nbNetworkType)));
 				//				}
 			}
@@ -302,19 +308,45 @@ public class CellEngine {
 		sb.append(gsmInfo.networkGen()).append(C.CSV_SEPARATOR);
 		sb.append(gsmInfo.networkType()).append(C.CSV_SEPARATOR);
 		sb.append(active).append(C.CSV_SEPARATOR);
-		
-		int psc = gsmInfo.getPsc();
-		boolean max = gsmInfo.getMcc() == Integer.MAX_VALUE && psc != -1;
-		sb.append(max ? "-1" : gsmInfo.getMcc()).append(C.CSV_SEPARATOR);
-		
-		max = gsmInfo.getMnc() == Integer.MAX_VALUE && psc != -1;
-		sb.append(max ? "-1" : gsmInfo.getMnc()).append(C.CSV_SEPARATOR);
 
-		max = gsmInfo.getLac() == Integer.MAX_VALUE && psc != -1;
-		sb.append(max ? "-1" : gsmInfo.getLac()).append(C.CSV_SEPARATOR);
+        int num = gsmInfo.getMcc();
+		boolean outOfBounds = num <= LOW_BOUND || num >= MAX_MCC_MNC;
+		sb.append(outOfBounds ? C.UNDEFINED : num).append(C.CSV_SEPARATOR);
 
-		max = gsmInfo.getCid() == Integer.MAX_VALUE && psc != -1;
-		sb.append(max ? "-1" : gsmInfo.getCid()).append(C.CSV_SEPARATOR);
+        num = gsmInfo.getMnc();
+        outOfBounds = num <= LOW_BOUND || num >= MAX_MCC_MNC;
+		sb.append(outOfBounds ? C.UNDEFINED : num).append(C.CSV_SEPARATOR);
+
+        int lac = gsmInfo.getLac(), cid = gsmInfo.getCid(), psc = gsmInfo.getPsc();
+        switch (gsmInfo.networkType) {
+            case TelephonyManager.NETWORK_TYPE_EDGE:
+            case TelephonyManager.NETWORK_TYPE_GPRS:
+                if (lac <= LOW_BOUND || lac >= MAX_2G_LAC_CID)
+                    lac = -1;
+
+                if (cid <= LOW_BOUND || cid >= MAX_2G_LAC_CID)
+                    cid = -1;
+                break;
+            case TelephonyManager.NETWORK_TYPE_UMTS:
+            case TelephonyManager.NETWORK_TYPE_HSPA:
+            case TelephonyManager.NETWORK_TYPE_HSDPA:
+            case TelephonyManager.NETWORK_TYPE_HSUPA:
+            case TelephonyManager.NETWORK_TYPE_HSPAP:
+                if (lac <= LOW_BOUND || lac >= MAX_2G_LAC_CID)
+                    lac = -1;
+
+                if (cid <= LOW_BOUND || cid >= MAX_3G_CID)
+                    cid = -1;
+
+                if (psc <= LOW_BOUND || psc >= MAX_PSC)
+                    psc = -1;
+                break;
+            default:
+                break;
+        }
+
+		sb.append(lac).append(C.CSV_SEPARATOR);
+		sb.append(cid).append(C.CSV_SEPARATOR);
 		sb.append(psc).append(C.CSV_SEPARATOR);
 		sb.append(gsmInfo.getRssi());
 		
@@ -328,20 +360,20 @@ public class CellEngine {
 		private int mnc;
 		private int lac;
 		private int cid;
-		private int psc; // new - primary scrambling code for UMTS
-		private int networkType; // new - primary scrambling code for UMTS
+		private int psc;
+		private int networkType;
 		private int rssi;
 
 		public GSMInfo(long timeStamp) {
 			this.timeStamp = timeStamp;
 			this.active = true;
 			this.networkType = TelephonyManager.NETWORK_TYPE_UNKNOWN;
-			this.mcc = -1;
-			this.mnc = -1;
-			this.lac = -1;
-			this.cid = -1;
-			this.psc = -1;
-			this.rssi = -1;
+			this.mcc = C.UNDEFINED;
+			this.mnc = C.UNDEFINED;
+			this.lac = C.UNDEFINED;
+			this.cid = C.UNDEFINED;
+			this.psc = C.UNDEFINED;
+			this.rssi = C.UNDEFINED;
 		}
 
 		public GSMInfo(long timeStamp, boolean active, int networkType, int mcc, int mnc, int lac, int cid, int psc, int rssi) {

@@ -30,7 +30,6 @@ import android.preference.PreferenceManager;
 public class GPSEngine implements LocationListener {
     private final long MIN_TIME = 0;
     private final float MIN_DISTANCE = 0f;
-    private final int UNDEFINED = -1;
 
     private Context context;
     private final LocationManager mLocationManager;
@@ -56,42 +55,42 @@ public class GPSEngine implements LocationListener {
 
     public double getLatitude() {
         if (mLastFix == null)
-            return UNDEFINED;
+            return C.UNDEFINED;
 
         return mLastFix.getLatitude();
     }
 
     public double getLongitude() {
         if (mLastFix == null)
-            return UNDEFINED;
+            return C.UNDEFINED;
 
         return mLastFix.getLongitude();
     }
 
     public double getAltitude() {
         if (mLastFix == null || !mLastFix.hasAltitude())
-            return UNDEFINED;
+            return C.UNDEFINED;
 
         return mLastFix.getAltitude();
     }
 
     public float getAccuracy() {
         if (mLastFix == null || !mLastFix.hasAccuracy())
-            return UNDEFINED;
+            return C.UNDEFINED;
 
         return mLastFix.getAccuracy();
     }
 
     public float getBearing() {
         if (mLastFix == null || !mLastFix.hasBearing())
-            return UNDEFINED;
+            return C.UNDEFINED;
 
         return mLastFix.getBearing();
     }
 
     public float getSpeed() {
         if (mLastFix == null || !mLastFix.hasSpeed())
-            return UNDEFINED;
+            return C.UNDEFINED;
 
         return mLastFix.getSpeed();
     }
