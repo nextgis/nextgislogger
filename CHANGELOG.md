@@ -1,5 +1,12 @@
 Changelog
 ***
+## version 1.3 (01.03.2015)
+* Added GPS data (lat/lon/alt/accuracy/speed/bearing) to sensor log
+* Added default chooser action for presets
+* Added progress bar to each screen indicating current service status
+* Added vibrate on mark click
+* Other improvements
+
 ## version 1.2.3 (23.12.2014)
 * Added select/deselect all button to sessions screen
 * Added keep screen on at Markers screen (check settings)
