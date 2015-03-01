@@ -158,7 +158,7 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 				loggerStartedTime.setText(millisToDate(timeStarted, "dd.MM.yyyy hh:mm:ss"));
 			}
 
-			loggerFinishedTime.setText(getText(R.string.service_stopped));
+//			loggerFinishedTime.setText(getText(R.string.service_stopped));
 
 			if (recordsCount > 0) {
 				recordsCollectedCount.setText(recordsCount + "");
@@ -330,7 +330,7 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 				});
 
 				AlertDialog dialog = alert.create();
-				dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE); // show keyboard
+//				dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE); // show keyboard
 				dialog.show();
 			} else { // close session
 				prefs.edit().putString(C.PREF_SESSION_NAME, "").putInt(C.PREF_MARKS_COUNT, 0).putInt(C.PREF_RECORDS_COUNT, 0).apply();
@@ -340,6 +340,8 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 				sessionButton.setText(R.string.btn_session_open);
 				sessionName.setText("");
 
+                loggerStartedTime.setText("");
+                loggerFinishedTime.setText("");
 				marksCollectedCount.setText("");
 				recordsCollectedCount.setText("");
 			}
