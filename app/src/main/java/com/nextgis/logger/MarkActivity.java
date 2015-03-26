@@ -1,7 +1,7 @@
 /******************************************************************************
  * Project: NextGIS Logger
  * Purpose: Productive data logger for Android
- * Authors: Stanislav Petriakov
+ * Author:  Stanislav Petriakov, becomeglory@gmail.com
  ******************************************************************************
  * Copyright © 2014-2015 NextGIS
  *
@@ -47,6 +47,7 @@ import android.widget.SearchView;
 import android.widget.SearchView.OnQueryTextListener;
 import android.widget.Toast;
 
+import com.melnykov.fab.FloatingActionButton;
 import com.nextgis.logger.UI.ProgressBarActivity;
 
 import java.io.BufferedReader;
@@ -60,7 +61,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class MarkActivity extends ProgressBarActivity {
+public class MarkActivity extends ProgressBarActivity implements View.OnClickListener {
 	private static int DELAY = 1000;
 	private static int marksCount = 0;
 
@@ -236,6 +237,9 @@ public class MarkActivity extends ProgressBarActivity {
 
 		substringMarkNameAdapter = new CustomArrayAdapter(this, markNames);
 		lvCategories.setAdapter(substringMarkNameAdapter);
+
+        if (mFAB != null)
+            mFAB.attachToListView(lvCategories);
 	}
 
 	@Override
@@ -292,7 +296,7 @@ public class MarkActivity extends ProgressBarActivity {
 		return true;
 	}
 
-	public class MarkName {
+    public class MarkName {
 		private String ID = "";
 		private String CAT = "Mark";
 

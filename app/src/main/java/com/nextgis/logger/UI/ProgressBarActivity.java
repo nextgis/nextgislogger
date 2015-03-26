@@ -2,7 +2,7 @@
  * *****************************************************************************
  * Project: NextGIS Logger
  * Purpose: Productive data logger for Android
- * Authors: Stanislav Petriakov
+ * Authors: Stanislav Petriakov, becomeglory@gmail.com
  * *****************************************************************************
  * Copyright © 2015 NextGIS
  *
@@ -27,6 +27,8 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
+import android.content.res.TypedArray;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.MenuItem;
@@ -34,10 +36,16 @@ import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
+import com.melnykov.fab.FloatingActionButton;
 import com.nextgis.logger.LoggerService;
+import com.nextgis.logger.R;
 
-public class ProgressBarActivity extends Activity {
+public class ProgressBarActivity extends Activity implements View.OnClickListener {
+    protected FloatingActionButton mFAB;
+    protected int mThemeColor;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,6 +54,42 @@ public class ProgressBarActivity extends Activity {
             getActionBar().setDisplayHomeAsUpEnabled(true);
 
         setActionBarProgress(isLoggerServiceRunning(this));
+
+        TypedArray array = getTheme().obtainStyledAttributes(new int[]{android.R.attr.textColorLink});
+        mThemeColor = array.getColor(0, getResources().getColor(R.color.holo_blue));
+        array.recycle();
+    }
+
+    @Override
+    public void onContentChanged() {
+        super.onContentChanged();
+
+        View view = getWindow().getDecorView().findViewById(android.R.id.content);
+
+        if (view instanceof FrameLayout) {
+            FrameLayout base = (FrameLayout) view;
+
+            if (base.findViewById(R.id.fab) == null) {
+                FrameLayout layout = (FrameLayout) getLayoutInflater().inflate(R.layout.fab, base);
+                mFAB = (FloatingActionButton) layout.findViewById(R.id.fab);
+                layout.removeView(mFAB);
+                base.addView(mFAB);
+
+                mFAB.setColorNormal(darkerColor(mThemeColor, 0.7f));
+                mFAB.setColorRipple(darkerColor(mThemeColor, 0.5f));
+                mFAB.setColorPressed(darkerColor(mThemeColor, 0.3f));
+                mFAB.setOnClickListener(this);
+            }
+        }
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.fab:
+                Toast.makeText(this, R.string.sessions_nothing_selected, Toast.LENGTH_SHORT).show();
+                break;
+        }
     }
 
     @Override
@@ -124,5 +168,13 @@ public class ProgressBarActivity extends Activity {
             }
         }
         return false;
+    }
+
+    private int darkerColor(int color, float percent) {
+        int r = Color.red(color);
+        int b = Color.blue(color);
+        int g = Color.green(color);
+
+        return Color.rgb((int) (r * percent), (int) (g * percent), (int) (b * percent));
     }
 }

@@ -1,7 +1,7 @@
 /******************************************************************************
  * Project: NextGIS Logger
  * Purpose: Productive data logger for Android
- * Authors: Stanislav Petriakov
+ * Authors: Stanislav Petriakov, becomeglory@gmail.com
  ******************************************************************************
  * Copyright © 2014 NextGIS
  *
@@ -27,10 +27,12 @@ import android.preference.PreferenceManager;
 import android.util.SparseBooleanArray;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.melnykov.fab.FloatingActionButton;
 import com.nextgis.logger.UI.ProgressBarActivity;
 
 import java.io.BufferedOutputStream;
@@ -43,7 +45,7 @@ import java.util.Collections;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-public class SessionsActivity extends ProgressBarActivity {
+public class SessionsActivity extends ProgressBarActivity implements View.OnClickListener {
     private ListView lvSessions;
 
     @Override
@@ -53,6 +55,9 @@ public class SessionsActivity extends ProgressBarActivity {
 
         lvSessions = (ListView) findViewById(R.id.lv_sessions);
         lvSessions.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_multiple_choice, getSessions()));
+
+        if (mFAB != null)
+            mFAB.attachToListView(lvSessions);
     }
 
     @Override

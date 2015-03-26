@@ -2,7 +2,8 @@
  * *****************************************************************************
  * Project: NextGIS Logger
  * Purpose: Productive data logger for Android
- * Authors: Nikita Kirin, Stanislav Petriakov
+ * Author:  Nikita Kirin
+ * Author:  Stanislav Petriakov, becomeglory@gmail.com
  * *****************************************************************************
  * Copyright © 2014-2015 NextGIS
  *
@@ -53,6 +54,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.melnykov.fab.FloatingActionButton;
 import com.nextgis.logger.UI.ProgressBarActivity;
 
 import java.io.File;
@@ -109,11 +111,8 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
         SessionsActivity.deleteFiles(new File(C.tempPath).listFiles()); // clear cache directory with shared zips
         ((TextView)findViewById(R.id.tv_sessions)).setText(getString(R.string.title_activity_sessions).toUpperCase());
 
-        TypedArray array = getTheme().obtainStyledAttributes(new int[]{android.R.attr.textColorLink});
-        int colorLink = array.getColor(0, getResources().getColor(R.color.holo_blue));
-        array.recycle();
-        ((TextView)findViewById(R.id.tv_sessions)).setTextColor(colorLink);
-        ((TextView)findViewById(R.id.tv_modes)).setTextColor(colorLink);
+        ((TextView)findViewById(R.id.tv_sessions)).setTextColor(mThemeColor);
+        ((TextView)findViewById(R.id.tv_modes)).setTextColor(mThemeColor);
 
 		boolean isServiceRunning = isLoggerServiceRunning(this);
 
@@ -372,6 +371,9 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
         case R.id.btn_sessions:
             Intent sessionsActivity = new Intent(this, SessionsActivity.class);
             startActivity(sessionsActivity);
+            break;
+        default:
+            super.onClick(view);
             break;
 		}
 	}
