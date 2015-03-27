@@ -35,11 +35,9 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.res.TypedArray;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.telephony.PhoneStateListener;
@@ -48,13 +46,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.melnykov.fab.FloatingActionButton;
 import com.nextgis.logger.UI.ProgressBarActivity;
 
 import java.io.File;
@@ -82,7 +78,6 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 	private BroadcastReceiver broadcastReceiver;
 
 	private Button serviceOnOffButton;
-//	private ProgressBar serviceProgressBar;
 
 	private Button markButton;
 	private Button sessionButton;
@@ -108,7 +103,7 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 
         setContentView(R.layout.main_activity);
 		PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
-        SessionsActivity.deleteFiles(new File(C.tempPath).listFiles()); // clear cache directory with shared zips
+        FileUtil.deleteFiles(new File(C.tempPath).listFiles()); // clear cache directory with shared zips
         ((TextView)findViewById(R.id.tv_sessions)).setText(getString(R.string.title_activity_sessions).toUpperCase());
 
         ((TextView)findViewById(R.id.tv_sessions)).setTextColor(mThemeColor);
@@ -119,9 +114,6 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 		serviceOnOffButton = (Button) findViewById(R.id.btn_service_onoff);
 		serviceOnOffButton.setText(getString(isServiceRunning ? R.string.btn_service_stop : R.string.btn_service_start));
 		serviceOnOffButton.setOnClickListener(this);
-
-//		serviceProgressBar = (ProgressBar) findViewById(R.id.service_progress_bar);
-//		serviceProgressBar.setVisibility(isServiceRunning ? View.VISIBLE : View.INVISIBLE);
 
 		markButton = (Button) findViewById(R.id.btn_mark);
 		markButton.setText(getString(R.string.btn_save_mark));
@@ -291,7 +283,8 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 
 				final EditText input = new EditText(this);
 				String defaultName = millisToDate(Calendar.getInstance().getTimeInMillis(), "yyyy-MM-dd--HH-mm-ss");
-				defaultName += pref.getString(C.PREF_USER_NAME, "User1").equals("") ? "" : "--" + pref.getString(C.PREF_USER_NAME, "User1");
+                String userName = pref.getString(C.PREF_USER_NAME, C.DEFAULT_USERNAME);
+				defaultName += userName.equals("") ? "" : "--" + userName;
 				input.setText(defaultName); // default session name
 				input.setSelection(input.getText().length()); // move cursor at the end
 				alert.setView(input);
@@ -316,7 +309,6 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 								pw.close();
                                 updateFileForMTP(deviceInfoFile.getPath());
 							} catch (FileNotFoundException e) {
-								// TODO Auto-generated catch block
 								e.printStackTrace();
 							}
 						}
@@ -351,7 +343,6 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 			if (isLoggerServiceRunning(this)) {
 				stopService(new Intent(getApplicationContext(), LoggerService.class));
 				serviceOnOffButton.setText(getString(R.string.btn_service_start));
-//				serviceProgressBar.setVisibility(View.INVISIBLE);
                 setActionBarProgress(false);
 				sessionButton.setEnabled(true);
 			} else {
@@ -359,7 +350,6 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 				startService(intent);
 
 				serviceOnOffButton.setText(getString(R.string.btn_service_stop));
-//				serviceProgressBar.setVisibility(View.VISIBLE);
                 setActionBarProgress(true);
 				sessionButton.setEnabled(false);
 			}
@@ -420,7 +410,7 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 		csvMarkFilePath = directory + File.separator + C.csvMarkFile;
 		csvMarkFilePathSensor = directory + File.separator + C.csvMarkFileSensor;
 
-		if (!checkOrCreateDirectory(dataDirPath))
+		if (!FileUtil.checkOrCreateDirectory(dataDirPath))
 			setInterfaceState(R.string.ext_media_unmounted_msg, INTERFACE_STATE.ERROR);
 	}
 
@@ -449,7 +439,6 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 		case SESSION_NONE:
 			serviceOnOffButton.setEnabled(false);
 			markButton.setEnabled(false);
-//			serviceProgressBar.setVisibility(View.INVISIBLE);
             setActionBarProgress(false);
             findViewById(R.id.rl_modes).setVisibility(View.GONE);
 			break;
@@ -481,26 +470,6 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTimeInMillis(milliSeconds);
 		return formatter.format(calendar.getTime());
-	}
-
-	/**
-	 * Check directory existence or create it (with parents if missing).
-	 * 
-	 * @param path
-	 *            Path to directory
-	 * @return boolean signing success or fail
-	 */
-	public static boolean checkOrCreateDirectory(String path) {
-		if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-			return false;
-		} else {
-			File dataDir = new File(path);
-
-			if (!dataDir.exists())
-				return dataDir.mkdirs();
-		}
-
-		return true;
 	}
 
 	private class NetworkTypeChangeListener extends PhoneStateListener {

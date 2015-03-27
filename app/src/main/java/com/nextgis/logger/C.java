@@ -1,7 +1,7 @@
 /******************************************************************************
  * Project: NextGIS Logger
  * Purpose: Productive data logger for Android
- * Authors: Stanislav Petriakov
+ * Author:  Stanislav Petriakov, becomeglory@gmail.com
  ******************************************************************************
  * Copyright © 2014-2015 NextGIS
  *
@@ -65,6 +65,7 @@ public class C {
 	public static final String PREF_MARKS_COUNT = "marks_count";
 	public static final String PREF_RECORDS_COUNT = "records_count";
     public static final String PREF_KEEP_SCREEN = "keep_screen";
+    public static final String DEFAULT_USERNAME = "User1";
 
 	public static final String BROADCAST_ACTION = "com.nextgis.gsm_logger.MainActivity";
 
@@ -78,4 +79,7 @@ public class C {
 	public static final int STATUS_ERROR = 103;
 
     public static final int UNDEFINED = -1;
+
+    public static final short LOG_TYPE_NETWORK = 0;
+    public static final short LOG_TYPE_SENSORS = 1;
 }

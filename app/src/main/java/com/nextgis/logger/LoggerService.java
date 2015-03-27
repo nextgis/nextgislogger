@@ -1,9 +1,10 @@
 /******************************************************************************
  * Project: NextGIS Logger
  * Purpose: Productive data logger for Android
- * Authors: Nikita Kirin, Stanislav Petriakov
+ * Author:  Nikita Kirin
+ * Author:  Stanislav Petriakov, becomeglory@gmail.com
  ******************************************************************************
- * Copyright © 2014 NextGIS
+ * Copyright © 2014-2015 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,10 +33,7 @@ import android.os.IBinder;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 
 public class LoggerService extends Service {
@@ -46,15 +44,14 @@ public class LoggerService extends Service {
 
 	private boolean isRunning = false;
 
-	private String userName = "User1";
-	
 	private CellEngine gsmEngine;
 	private SensorEngine sensorEngine;
 	private Thread thread = null;
 	private LocalBinder localBinder = new LocalBinder();
     private NotificationManager notificationManager;
+    private String userName;
 
-	public class LocalBinder extends Binder {
+    public class LocalBinder extends Binder {
 		public LoggerService getService() {
 			return LoggerService.this;
 		}
@@ -74,7 +71,7 @@ public class LoggerService extends Service {
 		gsmEngine.onResume();
 
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-		userName = prefs.getString(C.PREF_USER_NAME, "userName");
+        userName = prefs.getString(C.PREF_USER_NAME, C.DEFAULT_USERNAME);
 		interval = prefs.getInt(C.PREF_PERIOD_SEC, interval);
 
 		sensorEngine = new SensorEngine(this);
@@ -178,43 +175,24 @@ public class LoggerService extends Service {
 				wakeLock.acquire();
 
 				while (true) {
-					MainActivity.checkOrCreateDirectory(MainActivity.dataDirPath);
+					FileUtil.checkOrCreateDirectory(MainActivity.dataDirPath);
 
 					try {
-						File csvFile = new File(MainActivity.csvLogFilePath);
-						boolean isFileExist = csvFile.exists();
-						PrintWriter pw = new PrintWriter(new FileOutputStream(csvFile, true));
-
-						if (!isFileExist) {
-							pw.println(C.csvMarkHeader);
-						}
-
 						ArrayList<CellEngine.GSMInfo> gsmInfoArray = gsmEngine.getGSMInfoArray();
 
 						for (CellEngine.GSMInfo gsmInfo : gsmInfoArray) {
 							String active = gsmInfo.isActive() ? "1" : gsmInfoArray.get(0).getMcc() + "-" + gsmInfoArray.get(0).getMnc() + "-"
 									+ gsmInfoArray.get(0).getLac() + "-" + gsmInfoArray.get(0).getCid();
-							
-							pw.println(CellEngine.getItem(gsmInfo, active, "", C.logDefaultName, userName));
-						}
 
-						pw.close();
+                            FileUtil.saveItemToLog(C.LOG_TYPE_NETWORK, false, CellEngine.getItem(gsmInfo, active, "", C.logDefaultName, userName));
+						}
 
 						if (sensorEngine.isAnySensorEnabled()) {
-							csvFile = new File(MainActivity.csvLogFilePathSensor);
-							isFileExist = csvFile.exists();
-							pw = new PrintWriter(new FileOutputStream(csvFile, true));
-
-							if (!isFileExist)
-								pw.println(C.csvHeaderSensor);
-
-							pw.println(SensorEngine.getItem(sensorEngine, "", C.logDefaultName, userName, gsmInfoArray.get(0).getTimeStamp()));
-							pw.close();
+                            FileUtil.saveItemToLog(C.LOG_TYPE_SENSORS, false,
+                                    SensorEngine.getItem(sensorEngine, "", C.logDefaultName, userName, gsmInfoArray.get(0).getTimeStamp()));
 						}
 
-						intentStatus.putExtra(C.PARAM_SERVICE_STATUS, C.STATUS_RUNNING).putExtra(C.PARAM_RECORDS_COUNT,
-								++recordsCount);
-
+						intentStatus.putExtra(C.PARAM_SERVICE_STATUS, C.STATUS_RUNNING).putExtra(C.PARAM_RECORDS_COUNT, ++recordsCount);
 						sendBroadcast(intentStatus);
 
 						Thread.sleep(interval * 1000);

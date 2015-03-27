@@ -32,7 +32,6 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import com.melnykov.fab.FloatingActionButton;
 import com.nextgis.logger.UI.ProgressBarActivity;
 
 import java.io.BufferedOutputStream;
@@ -96,7 +95,7 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
                         try {
                             byte[] buffer = new byte[1024];
 
-                            MainActivity.checkOrCreateDirectory(C.tempPath);
+                            FileUtil.checkOrCreateDirectory(C.tempPath);
 
                             for (File file : result) { // for each selected logs directory
                                 String tempFileName = C.tempPath + File.separator + file.getName() + ".zip"; // set temp zip file path
@@ -109,9 +108,9 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
                                 FileOutputStream fos = new FileOutputStream(tempFileName);
                                 ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(fos));
 
-                                for (int j = 0; j < files.length; j++) { // for each log-file in directory
-                                    FileInputStream fis = new FileInputStream(files[j]);
-                                    zos.putNextEntry(new ZipEntry(files[j].getName())); // put it in zip
+                                for (File file1 : files) { // for each log-file in directory
+                                    FileInputStream fis = new FileInputStream(file1);
+                                    zos.putNextEntry(new ZipEntry(file1.getName())); // put it in zip
 
                                     int length;
 
@@ -137,7 +136,7 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
                         startActivity(Intent.createChooser(shareIntent, getString(R.string.share_sessions_title)));
                         return true;
                     case R.id.action_delete:
-                        deleteFiles(result.toArray(new File[result.size()]));
+                        FileUtil.deleteFiles(result.toArray(new File[result.size()]));
                         Toast.makeText(this, R.string.delete_sessions_done, Toast.LENGTH_SHORT).show();
                         lvSessions.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_multiple_choice, getSessions()));
                         return true;
@@ -183,47 +182,5 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
         Collections.sort(sessions, Collections.reverseOrder());    // descending sort
 
         return sessions;
-    }
-
-    /**
-     * Delete set of any files or directories.
-     *
-     * @param files File[] with all data to delete
-     * @return void
-     */
-    public static void deleteFiles(File[] files) {
-        if (files != null) { // there are something to delete
-            for (File file : files)
-                deleteDirectoryOrFile(file);
-        }
-    }
-
-    /**
-     * Delete single file or directory recursively (deleting anything inside
-     * it).
-     *
-     * @param dir The file / dir to delete
-     * @return true if the file / dir was successfully deleted
-     */
-    public static boolean deleteDirectoryOrFile(File dir) {
-        if (!dir.exists())
-            return false;
-
-        if (!dir.isDirectory())
-            return dir.delete();
-        else {
-            String[] files = dir.list();
-
-            for (String file : files) {
-                File f = new File(dir, file);
-
-                if (f.isDirectory())
-                    deleteDirectoryOrFile(f);
-                else
-                    f.delete();
-            }
-        }
-
-        return dir.delete();
     }
 }
