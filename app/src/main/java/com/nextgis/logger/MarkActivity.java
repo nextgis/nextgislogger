@@ -28,13 +28,16 @@ import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
@@ -47,25 +50,28 @@ import android.widget.SearchView;
 import android.widget.SearchView.OnQueryTextListener;
 import android.widget.Toast;
 
-import com.melnykov.fab.FloatingActionButton;
 import com.nextgis.logger.UI.ProgressBarActivity;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 public class MarkActivity extends ProgressBarActivity implements View.OnClickListener {
-	private static int DELAY = 1000;
-	private static int marksCount = 0;
+	private static final int DELAY = 2000;
 
-    private boolean isHot;
+	private static final int MARK_SAVE = 0;
+	private static final int MARK_UNDO = 1;
+
+	private static final String BUNDLE_CELL   = "data_network";
+	private static final String BUNDLE_SENSOR = "data_sensors";
+
+    private static int marksCount = 0;
+    private boolean mIsHot;
 
 	MenuItem searchBox;
 	ListView lvCategories;
@@ -77,6 +83,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 //	private WiFiEngine wifiEngine;
 
 	SharedPreferences prefs;
+    static MarksHandler marksHandler;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -89,6 +96,8 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 
 		setContentView(R.layout.mark_activity);
 
+        mFAB.setOnClickListener(this);
+
 		gsmEngine = new CellEngine(this);
 		sensorEngine = new SensorEngine(this);
 //		wifiEngine = new WiFiEngine(this);
@@ -98,64 +107,50 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 
 		marksCount = prefs.getInt(C.PREF_MARKS_COUNT, 0);
 
-		lvCategories.setOnItemClickListener(new OnItemClickListener() {
+        marksHandler = new MarksHandler(this);
+
+        lvCategories.setOnItemClickListener(new OnItemClickListener() {
 			@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if (isHot)
+                if (mIsHot)
                     return;
 
 				String info = getString(R.string.mark_saved);
-				MainActivity.checkOrCreateDirectory(MainActivity.dataDirPath);
+				FileUtil.checkOrCreateDirectory(MainActivity.dataDirPath);
 
-				try {
-					File csvFile = new File(MainActivity.csvMarkFilePath);
-					boolean isFileExist = csvFile.exists();
-					PrintWriter pw = new PrintWriter(new FileOutputStream(csvFile, true));
+                final Bundle data = new Bundle();
 
-					if (!isFileExist)
-						pw.println(C.csvMarkHeader);
+                String markName = substringMarkNameAdapter.getItem(position);
+                String ID = substringMarkNameAdapter.getSelectedMarkNameID(markName);
 
-					String markName = substringMarkNameAdapter.getItem(position);
-					String ID = substringMarkNameAdapter.getSelectedMarkNameID(markName);
+                if (markName.length() == 0) {	// FIXME looks like doesn't need anymore
+                    markName = C.markDefaultName;
+                }
 
-					if (markName.length() == 0) {	// FIXME looks like doesn't need anymore
-						markName = C.markDefaultName;
-					}
+                ArrayList<CellEngine.GSMInfo> gsmInfoArray = gsmEngine.getGSMInfoArray();
+                ArrayList<String> items = new ArrayList<>();
+                String userName = prefs.getString(C.PREF_USER_NAME, C.DEFAULT_USERNAME);
 
-					ArrayList<CellEngine.GSMInfo> gsmInfoArray = gsmEngine.getGSMInfoArray();
-					String userName = prefs.getString(C.PREF_USER_NAME, "User 1");
+                for (CellEngine.GSMInfo gsmInfo : gsmInfoArray) {
+                    String active = gsmInfo.isActive() ? "1" : gsmInfoArray.get(0).getMcc() + "-" + gsmInfoArray.get(0).getMnc() + "-"
+                            + gsmInfoArray.get(0).getLac() + "-" + gsmInfoArray.get(0).getCid();
 
-					for (CellEngine.GSMInfo gsmInfo : gsmInfoArray) {
-						String active = gsmInfo.isActive() ? "1" : gsmInfoArray.get(0).getMcc() + "-" + gsmInfoArray.get(0).getMnc() + "-"
-								+ gsmInfoArray.get(0).getLac() + "-" + gsmInfoArray.get(0).getCid();
+                    items.add(CellEngine.getItem(gsmInfo, active, ID, markName, userName));
+                }
 
-						pw.println(CellEngine.getItem(gsmInfo, active, ID, markName, userName));
-					}
+                data.putStringArrayList(BUNDLE_CELL, items);
+                info += " (" + ++marksCount + ")";
 
-					pw.close();
-					info += " (" + ++marksCount + ")";
-
-					// checking accelerometer data state
-					if (sensorEngine.isAnySensorEnabled()) {
-						csvFile = new File(MainActivity.csvMarkFilePathSensor);
-						isFileExist = csvFile.exists();
-						pw = new PrintWriter(new FileOutputStream(csvFile, true));
-
-						if (!isFileExist)
-							pw.println(C.csvHeaderSensor);
-
-						pw.println(SensorEngine.getItem(sensorEngine, ID, markName, userName, gsmInfoArray.get(0).getTimeStamp()));
-						pw.close();
-					}
-				} catch (FileNotFoundException e) {
-					info = getString(R.string.fs_error_msg);
-				}
+                // checking accelerometer data state
+                if (sensorEngine.isAnySensorEnabled()) {
+                    data.putString(BUNDLE_SENSOR, SensorEngine.getItem(sensorEngine, ID, markName, userName, gsmInfoArray.get(0).getTimeStamp()));
+                }
 
                 Vibrator vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
                 vibe.vibrate(100);
 				Toast.makeText(base, info, Toast.LENGTH_SHORT).show();
-                isHot = true;
+                mIsHot = true;
 
                 InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
 
@@ -165,10 +160,15 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 //                    searchBox.collapseActionView();
                 }
 
-                new Handler().postDelayed(new Runnable() {
+                setFABIcon(false);
+
+                new Handler().postDelayed(new Runnable(){
                     @Override
                     public void run() {
-                        isHot = false;
+                        Message msg = new Message();
+                        msg.what = MARK_SAVE;
+                        msg.setData(data);
+                        marksHandler.sendMessage(msg);
                     }
                 }, DELAY);
 			}
@@ -242,6 +242,29 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
             mFAB.attachToListView(lvCategories);
 	}
 
+    protected void setFABIcon(boolean restore) {
+        if (mFAB.isVisible())
+            mFAB.startAnimation(AnimationUtils.loadAnimation(this, R.anim.rotation));
+
+        mFAB.setImageResource(restore ? R.drawable.ic_insert_chart_white_24dp : R.drawable.ic_undo_white_24dp);
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.fab:
+                if (mIsHot) {
+                    marksCount--;
+                    marksHandler.sendEmptyMessage(MARK_UNDO);
+                    Toast.makeText(this, R.string.mark_undo, Toast.LENGTH_SHORT).show();
+                    break;
+                }
+            default:
+                super.onClick(v);
+                break;
+        }
+    }
+
 	@Override
 	protected void onResume() {
 		super.onResume();
@@ -295,6 +318,10 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 
 		return true;
 	}
+
+    protected void setIsHot(boolean isHot) {
+        mIsHot = isHot;
+    }
 
     public class MarkName {
 		private String ID = "";
@@ -409,4 +436,37 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 		}
 	}
 
+    private static class MarksHandler extends Handler {
+        private long mUndoTimeStamp = 0;
+        MarkActivity mParent;
+
+        public MarksHandler(MarkActivity parent) {
+            mParent = parent;
+        }
+
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case MARK_SAVE:
+                    if (Math.abs(System.currentTimeMillis() - mUndoTimeStamp) >= DELAY) {
+                        try {
+                            for (String item : msg.getData().getStringArrayList(BUNDLE_CELL))
+                                FileUtil.saveItemToLog(C.LOG_TYPE_NETWORK, true, item);
+
+                            String sensorItem = msg.getData().getString(BUNDLE_SENSOR);
+
+                            if (!TextUtils.isEmpty(sensorItem))
+                                FileUtil.saveItemToLog(C.LOG_TYPE_SENSORS, true, sensorItem);
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        }
+                    } else
+                        break;
+                case MARK_UNDO:
+                    mParent.setFABIcon(true);
+                    mParent.setIsHot(false);
+                    mUndoTimeStamp = System.currentTimeMillis();
+                    break;
+            }
+        }
+    }
 }

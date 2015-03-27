@@ -79,6 +79,7 @@
     <string name="menu_search">Markers</string>
     <string name="mark_editor_hint">Enter Name of Mark</string>
     <string name="mark_saved">Mark saved</string>
+    <string name="mark_undo">Last mark deleted</string>
 
     <string name="btn_ok">OK</string>
     <string name="btn_cancel">Cancel</string>

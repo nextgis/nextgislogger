@@ -75,6 +75,7 @@
     <string name="menu_search">Метки</string>
     <string name="mark_editor_hint">Имя метки</string>
     <string name="mark_saved">Метка сохранена</string>
+    <string name="mark_undo">Последняя метка удалена</string>
     
     <string name="btn_ok">OK</string>
     <string name="btn_cancel">Отмена</string>
