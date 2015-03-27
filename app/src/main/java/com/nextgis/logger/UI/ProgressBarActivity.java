@@ -45,6 +45,7 @@ import com.nextgis.logger.R;
 public class ProgressBarActivity extends Activity implements View.OnClickListener {
     protected FloatingActionButton mFAB;
     protected int mThemeColor;
+    protected boolean mHasFAB = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,6 +64,9 @@ public class ProgressBarActivity extends Activity implements View.OnClickListene
     @Override
     public void onContentChanged() {
         super.onContentChanged();
+
+        if (!mHasFAB)
+            return;
 
         View view = getWindow().getDecorView().findViewById(android.R.id.content);
 
