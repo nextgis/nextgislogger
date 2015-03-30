@@ -1,4 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ ******************************************************************************
+  ~ Project: NextGIS Logger
+  ~ Purpose: Productive data logger for Android
+  ~ Author:  Nikita Kirin
+  ~ Author:  Stanislav Petriakov, becomeglory@gmail.com
+  ~ ******************************************************************************
+  ~ Copyright © 2014-2015 NextGIS
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 2 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  ~ ******************************************************************************
+  -->
+
 <manifest
     package="com.nextgis.logger"
     xmlns:android="http://schemas.android.com/apk/res/android"
@@ -81,6 +105,17 @@
         <activity
             android:name=".SessionsActivity"
             android:label="@string/title_activity_sessions"
+            android:parentActivityName=".MainActivity">
+
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.nextgis.logger.MainActivity"/>
+        </activity>
+
+        <activity
+            android:name=".InfoActivity"
+            android:label="@string/title_activity_info"
             android:parentActivityName=".MainActivity">
 
             <!-- Parent activity meta-data to support 4.0 and lower -->

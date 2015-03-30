@@ -5,7 +5,7 @@
   ~ Purpose: Productive data logger for Android
   ~ Author:  Stanislav Petriakov, becomeglory@gmail.com
   ~ ******************************************************************************
-  ~ Copyright © 2014-2015 NextGIS
+  ~ Copyright © 2015 NextGIS
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -21,22 +21,17 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   ~ ******************************************************************************
   -->
-<resources>
-    <style name="tv_header">
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:textColor">?android:textColorLink</item>
-        <item name="android:layout_gravity">center_horizontal</item>
-        <item name="android:gravity">center_horizontal</item>
-        <item name="android:textSize">24sp</item>
-        <item name="android:layout_margin">10dp</item>
-        <item name="android:textStyle">bold</item>
-    </style>
 
-    <style name="info_pager_strip">
-        <item name="android:textColor">@android:color/primary_text_dark</item>
-        <item name="android:background">@drawable/title_strip</item>
-        <item name="android:textSize">18sp</item>
-        <item name="android:padding">4dp</item>
-    </style>
-</resources>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:left="-4dp"
+        android:right="-4dp"
+        android:top="-4dp">
+        <shape>
+            <solid android:color="@android:color/background_dark"/>
+            <stroke
+                android:width="3dp"
+                android:color="@color/accent"/>
+        </shape>
+    </item>
+</layer-list>

@@ -24,25 +24,25 @@
 package com.nextgis.logger.UI;
 
 import android.app.ActionBar;
-import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
-import android.content.res.TypedArray;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import com.melnykov.fab.FloatingActionButton;
+import com.nextgis.logger.InfoActivity;
 import com.nextgis.logger.LoggerService;
 import com.nextgis.logger.R;
 
-public class ProgressBarActivity extends Activity implements View.OnClickListener {
+public class ProgressBarActivity extends FragmentActivity implements View.OnClickListener {
     protected FloatingActionButton mFAB;
     protected boolean mHasFAB = true;
 
@@ -86,7 +86,8 @@ public class ProgressBarActivity extends Activity implements View.OnClickListene
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.fab:
-                Toast.makeText(this, R.string.sessions_nothing_selected, Toast.LENGTH_SHORT).show();
+                Intent infoActivity = new Intent(this, InfoActivity.class);
+                startActivity(infoActivity);
                 break;
         }
     }
@@ -102,6 +103,7 @@ public class ProgressBarActivity extends Activity implements View.OnClickListene
         }
     }
 
+    // http://stackoverflow.com/a/24102651/2088273
     protected void setActionBarProgress(boolean state) {
         ActionBar actionBar = getActionBar();
 
