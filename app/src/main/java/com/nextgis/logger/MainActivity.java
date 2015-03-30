@@ -106,9 +106,6 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
         FileUtil.deleteFiles(new File(C.tempPath).listFiles()); // clear cache directory with shared zips
         ((TextView)findViewById(R.id.tv_sessions)).setText(getString(R.string.title_activity_sessions).toUpperCase());
 
-        ((TextView)findViewById(R.id.tv_sessions)).setTextColor(mThemeColor);
-        ((TextView)findViewById(R.id.tv_modes)).setTextColor(mThemeColor);
-
 		boolean isServiceRunning = isLoggerServiceRunning(this);
 
 		serviceOnOffButton = (Button) findViewById(R.id.btn_service_onoff);

@@ -44,7 +44,6 @@ import com.nextgis.logger.R;
 
 public class ProgressBarActivity extends Activity implements View.OnClickListener {
     protected FloatingActionButton mFAB;
-    protected int mThemeColor;
     protected boolean mHasFAB = true;
 
     @Override
@@ -55,10 +54,6 @@ public class ProgressBarActivity extends Activity implements View.OnClickListene
             getActionBar().setDisplayHomeAsUpEnabled(true);
 
         setActionBarProgress(isLoggerServiceRunning(this));
-
-        TypedArray array = getTheme().obtainStyledAttributes(new int[]{android.R.attr.textColorLink});
-        mThemeColor = array.getColor(0, getResources().getColor(R.color.holo_blue));
-        array.recycle();
     }
 
     @Override
@@ -79,9 +74,9 @@ public class ProgressBarActivity extends Activity implements View.OnClickListene
                 layout.removeView(mFAB);
                 base.addView(mFAB);
 
-                mFAB.setColorNormal(darkerColor(mThemeColor, 0.7f));
-                mFAB.setColorRipple(darkerColor(mThemeColor, 0.5f));
-                mFAB.setColorPressed(darkerColor(mThemeColor, 0.3f));
+                mFAB.setColorNormal(darkerColor(mFAB.getColorNormal(), 0.7f));
+                mFAB.setColorRipple(darkerColor(mFAB.getColorNormal(), 0.5f));
+                mFAB.setColorPressed(darkerColor(mFAB.getColorNormal(), 0.3f));
                 mFAB.setOnClickListener(this);
             }
         }
