@@ -23,7 +23,9 @@
 
 package com.nextgis.logger;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
@@ -35,7 +37,9 @@ import com.nextgis.logger.UI.ProgressBarActivity;
 public class InfoActivity extends ProgressBarActivity {
     private static final String TITLE_CELL    = "Network";
     private static final String TITLE_SENSORS = "Sensors";
+    private static final String PREF_LAST_VISITED = "last_tab";
 
+    private SharedPreferences mPreferences;
     ItemPagerAdapter itemAdapter;
     ViewPager vpScreens;
 
@@ -43,13 +47,23 @@ public class InfoActivity extends ProgressBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.info_activity);
+
+        mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+
         itemAdapter = new ItemPagerAdapter(getSupportFragmentManager());
         vpScreens = (ViewPager) findViewById(R.id.vp_tabs);
         vpScreens.setAdapter(itemAdapter);
-//        vpScreens.setCurrentItem(); // TODO last visited tab
+        vpScreens.setCurrentItem(mPreferences.getInt(PREF_LAST_VISITED, 0));
 
         mFAB.setOnClickListener(this);
         mFAB.setImageResource(R.drawable.ic_undo_white_24dp);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        mPreferences.edit().putInt(PREF_LAST_VISITED, vpScreens.getCurrentItem()).apply();
     }
 
     @Override
