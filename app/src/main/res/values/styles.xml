@@ -22,6 +22,7 @@
   ~ ******************************************************************************
   -->
 <resources>
+
     <style name="tv_header">
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_width">match_parent</item>
@@ -38,5 +39,27 @@
         <item name="android:background">@drawable/title_strip</item>
         <item name="android:textSize">18sp</item>
         <item name="android:padding">4dp</item>
+    </style>
+
+    <style name="tv_info_row">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:textAppearance">@android:style/TextAppearance.Medium</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:ellipsize">middle</item>
+    </style>
+
+    <style name="tv_info_row_small" parent="tv_info_row">
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textAppearance">@android:style/TextAppearance.Small</item>
+    </style>
+
+    <style name="tv_info_large">
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:textAppearance">@android:style/TextAppearance.Large</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:ellipsize">middle</item>
     </style>
 </resources>
