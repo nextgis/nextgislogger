@@ -22,6 +22,7 @@
 package com.nextgis.logger;
 
 import android.app.Notification;
+import android.support.v4.app.NotificationCompat;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -114,11 +115,11 @@ public class LoggerService extends Service {
 
 	private void sendNotification() {
 		//android.os.Debug.waitForDebugger();
-		Intent intentNotif = new Intent(this, MainActivity.class);
-		PendingIntent pintent = PendingIntent.getActivity(this, 0, intentNotif, 0);
+		Intent intentNotification = new Intent(this, MainActivity.class);
+		PendingIntent pIntent = PendingIntent.getActivity(this, 0, intentNotification, 0);
 
-        Notification.Builder builder = new Notification.Builder(this);
-        builder.setContentIntent(pintent)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
+        builder.setContentIntent(pIntent)
                 .setSmallIcon(R.drawable.ic_status_notification)
                 .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher))
                 .setTicker(getString(R.string.service_notif_title))
@@ -127,17 +128,17 @@ public class LoggerService extends Service {
                 .setContentTitle(getString(R.string.service_notif_title))
                 .setContentText(getString(R.string.service_notif_text));
 
-        Notification notif = builder.getNotification();
-        notificationManager.notify(1, notif);
-		startForeground(1, notif);
+        Notification notification = builder.build();
+        notificationManager.notify(1, notification);
+		startForeground(1, notification);
 	}
 
 	private void sendErrorNotification() {
 		//android.os.Debug.waitForDebugger();
-		PendingIntent pIntentNotif = PendingIntent.getActivity(this, 0, new Intent(), 0);
+		PendingIntent pIntent = PendingIntent.getActivity(this, 0, new Intent(), 0);
 
-        Notification.Builder builder = new Notification.Builder(this);
-        builder.setContentIntent(pIntentNotif)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
+        builder.setContentIntent(pIntent)
                 .setSmallIcon(R.drawable.ic_status_notification)
                 .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher))
                 .setTicker(getString(R.string.service_notif_title))
@@ -146,8 +147,8 @@ public class LoggerService extends Service {
                 .setContentTitle(getString(R.string.service_notif_title))
                 .setContentText(getString(R.string.fs_error_msg));
 
-        Notification notif = builder.getNotification();
-		notificationManager.notify(2, notif);
+        Notification notification = builder.build();
+		notificationManager.notify(2, notification);
 	}
 
 	public long getTimeStart() {
