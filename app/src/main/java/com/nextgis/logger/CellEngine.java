@@ -1,9 +1,10 @@
 /******************************************************************************
  * Project: NextGIS Logger
  * Purpose: Productive data logger for Android
- * Authors: Nikita Kirin, Stanislav Petriakov
+ * Author:  Nikita Kirin
+ * Author:  Stanislav Petriakov, becomeglory@gmail.com
  ******************************************************************************
- * Copyright © 2014 NextGIS
+ * Copyright © 2014-2015 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,11 +46,27 @@ public class CellEngine {
 	private GSMPhoneStateListener mSignalListener;
 	private int signalStrength = SIGNAL_STRENGTH_NONE;
 
+    private List<CellInfoListener> mCellListeners;
+
+    interface CellInfoListener {
+        public void onCellInfoChanged();
+    }
+
 	public CellEngine(Context context) {
 		mContext = context;
 		mTelephonyManager = (TelephonyManager) mContext.getSystemService(Context.TELEPHONY_SERVICE);
 		mSignalListener = new GSMPhoneStateListener();
+        mCellListeners = new ArrayList<>();
 	}
+
+    public void addCellListener(CellInfoListener listener) {
+        mCellListeners.add(listener);
+    }
+
+    private void notifyCellListeners() {
+        for (CellInfoListener listener : mCellListeners)
+            listener.onCellInfoChanged();
+    }
 
 	public void setSignalStrength(int signalStrength) {
 		this.signalStrength = signalStrength;
@@ -57,6 +74,9 @@ public class CellEngine {
 
 	public void onResume() {
 		mTelephonyManager.listen(mSignalListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
+
+        if (mCellListeners.size() > 0)
+	    	mTelephonyManager.listen(mSignalListener, PhoneStateListener.LISTEN_CELL_LOCATION);
 	}
 
 	public void onPause() {
@@ -87,13 +107,14 @@ public class CellEngine {
 		public void onSignalStrengthsChanged(SignalStrength signal) {
 			super.onSignalStrengthsChanged(signal);
 			setSignalStrength(signal.isGsm() ? signalStrengthAsuToDbm(signal.getGsmSignalStrength(), TelephonyManager.NETWORK_TYPE_GPRS) : SIGNAL_STRENGTH_NONE);
+            notifyCellListeners();
 		}
 
-		//        @Override
-		//        public void onCellLocationChanged(CellLocation location) {
-		//            super.onCellLocationChanged(location);
-		//            GSMEngine.this.onCellLocationChanged(location);
-		//        }
+        @Override
+        public void onCellLocationChanged(CellLocation location) {
+            super.onCellLocationChanged(location);
+            notifyCellListeners();
+        }
 	}
 
 	public int signalStrengthAsuToDbm(int asu, int networkType) {
@@ -224,6 +245,10 @@ public class CellEngine {
 		return gsmInfoArray;
 	}
 
+    public String getNetworkOperator() {
+        return mTelephonyManager.getNetworkOperatorName();
+    }
+
 	//	public static boolean isGSMNetwork(int network) {
 	//		return network == TelephonyManager.NETWORK_TYPE_EDGE || network == TelephonyManager.NETWORK_TYPE_GPRS;
 	//	}
@@ -309,50 +334,16 @@ public class CellEngine {
 		sb.append(gsmInfo.networkType()).append(C.CSV_SEPARATOR);
 		sb.append(active).append(C.CSV_SEPARATOR);
 
-        int num = gsmInfo.getMcc();
-		boolean outOfBounds = num <= LOW_BOUND || num >= MAX_MCC_MNC;
-		sb.append(outOfBounds ? C.UNDEFINED : num).append(C.CSV_SEPARATOR);
-
-        num = gsmInfo.getMnc();
-        outOfBounds = num <= LOW_BOUND || num >= MAX_MCC_MNC;
-		sb.append(outOfBounds ? C.UNDEFINED : num).append(C.CSV_SEPARATOR);
-
-        int lac = gsmInfo.getLac(), cid = gsmInfo.getCid(), psc = gsmInfo.getPsc();
-        switch (gsmInfo.networkType) {
-            case TelephonyManager.NETWORK_TYPE_EDGE:
-            case TelephonyManager.NETWORK_TYPE_GPRS:
-                if (lac <= LOW_BOUND || lac >= MAX_2G_LAC_CID)
-                    lac = -1;
-
-                if (cid <= LOW_BOUND || cid >= MAX_2G_LAC_CID)
-                    cid = -1;
-                break;
-            case TelephonyManager.NETWORK_TYPE_UMTS:
-            case TelephonyManager.NETWORK_TYPE_HSPA:
-            case TelephonyManager.NETWORK_TYPE_HSDPA:
-            case TelephonyManager.NETWORK_TYPE_HSUPA:
-            case TelephonyManager.NETWORK_TYPE_HSPAP:
-                if (lac <= LOW_BOUND || lac >= MAX_2G_LAC_CID)
-                    lac = -1;
-
-                if (cid <= LOW_BOUND || cid >= MAX_3G_CID)
-                    cid = -1;
-
-                if (psc <= LOW_BOUND || psc >= MAX_PSC)
-                    psc = -1;
-                break;
-            default:
-                break;
-        }
-
-		sb.append(lac).append(C.CSV_SEPARATOR);
-		sb.append(cid).append(C.CSV_SEPARATOR);
-		sb.append(psc).append(C.CSV_SEPARATOR);
+		sb.append(gsmInfo.getMcc()).append(C.CSV_SEPARATOR);
+		sb.append(gsmInfo.getMnc()).append(C.CSV_SEPARATOR);
+		sb.append(gsmInfo.getLac()).append(C.CSV_SEPARATOR);
+		sb.append(gsmInfo.getCid()).append(C.CSV_SEPARATOR);
+		sb.append(gsmInfo.getPsc()).append(C.CSV_SEPARATOR);
 		sb.append(gsmInfo.getRssi());
-		
+
 		return sb.toString();
 	}
-	
+
 	public class GSMInfo {
 		private long timeStamp;
 		private boolean active;
@@ -377,15 +368,46 @@ public class CellEngine {
 		}
 
 		public GSMInfo(long timeStamp, boolean active, int networkType, int mcc, int mnc, int lac, int cid, int psc, int rssi) {
-			this.timeStamp = timeStamp;
-			this.active = active;
-			this.networkType = networkType;
-			this.mcc = mcc;
-			this.mnc = mnc;
-			this.lac = lac;
-			this.cid = cid;
-			this.psc = psc;
-			this.rssi = rssi;
+            this.timeStamp = timeStamp;
+            this.active = active;
+            this.networkType = networkType;
+            this.lac = lac;
+            this.cid = cid;
+            this.psc = psc;
+            this.rssi = rssi;
+
+            boolean outOfBounds = mcc <= LOW_BOUND || mcc >= MAX_MCC_MNC;
+            this.mcc = outOfBounds ? C.UNDEFINED : mcc;
+
+            outOfBounds = mnc <= LOW_BOUND || mnc >= MAX_MCC_MNC;
+            this.mnc = outOfBounds ? C.UNDEFINED : mnc;
+
+            switch (networkType) {
+                case TelephonyManager.NETWORK_TYPE_EDGE:
+                case TelephonyManager.NETWORK_TYPE_GPRS:
+                    if (lac <= LOW_BOUND || lac >= MAX_2G_LAC_CID)
+                        this.lac = -1;
+
+                    if (cid <= LOW_BOUND || cid >= MAX_2G_LAC_CID)
+                        this.cid = -1;
+                    break;
+                case TelephonyManager.NETWORK_TYPE_UMTS:
+                case TelephonyManager.NETWORK_TYPE_HSPA:
+                case TelephonyManager.NETWORK_TYPE_HSDPA:
+                case TelephonyManager.NETWORK_TYPE_HSUPA:
+                case TelephonyManager.NETWORK_TYPE_HSPAP:
+                    if (lac <= LOW_BOUND || lac >= MAX_2G_LAC_CID)
+                        this.lac = -1;
+
+                    if (cid <= LOW_BOUND || cid >= MAX_3G_CID)
+                        this.cid = -1;
+
+                    if (psc <= LOW_BOUND || psc >= MAX_PSC)
+                        this.psc = -1;
+                    break;
+                default:
+                    break;
+            }
 		}
 
 		public long getTimeStamp() {
