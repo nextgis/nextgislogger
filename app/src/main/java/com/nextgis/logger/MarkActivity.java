@@ -270,7 +270,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 		super.onResume();
 
 		gsmEngine.onResume();
-		sensorEngine.onResume(this);
+		sensorEngine.onResume();
 //		wifiEngine.onResume();
 	}
 

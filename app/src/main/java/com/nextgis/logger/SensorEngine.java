@@ -21,6 +21,7 @@
 package com.nextgis.logger;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -35,23 +36,42 @@ public class SensorEngine implements SensorEventListener {
 	private float x, y, z, gyroX, gyroY, gyroZ, magnetic, azimuth, pitch, roll;
 	private long lastUpdateAccel, lastUpdateGyro, lastUpdateMag, lastUpdateOrient;
 	private int sensorAccelerationType;
+    private String mAccelerometerName, mMagneticName, mOrientName, mGyroName;
 
 	private boolean linearAcceleration;
 
 	private final int updateFrequency = 100; // in ms
 
+    private Context mContext;
 	private SharedPreferences prefs;
 
 	private SensorManager sm;
 	private Sensor sAccelerometer, sGyroscope, sOrientation, sMagnetic;
 	private GPSEngine gpsEngine;
 
+    private List<SensorInfoListener> mSensorListeners;
+
+    interface SensorInfoListener {
+        public void onSensorInfoChanged();
+    }
+
 	public SensorEngine(Context ctx) {
+        mContext = ctx;
+        mSensorListeners = new ArrayList<>();
 		sm = (SensorManager) ctx.getSystemService(Context.SENSOR_SERVICE);
         gpsEngine = new GPSEngine(ctx);
 		prefs = PreferenceManager.getDefaultSharedPreferences(ctx);
-		onResume(ctx);
+		onResume();
 	}
+
+    public void addSensorListener(SensorInfoListener listener) {
+        mSensorListeners.add(listener);
+    }
+
+    private void notifySensorListeners() {
+        for (SensorInfoListener listener : mSensorListeners)
+            listener.onSensorInfoChanged();
+    }
 
 	protected void onPause() {
 		sm.unregisterListener(this);
@@ -59,7 +79,7 @@ public class SensorEngine implements SensorEventListener {
 	}
 
 	@SuppressWarnings("deprecation")
-	protected void onResume(Context ctx) {
+	protected void onResume() {
 		boolean noSensor = false;
 		ArrayList<String> noSensors = new ArrayList<>();
 
@@ -73,12 +93,13 @@ public class SensorEngine implements SensorEventListener {
 
 			sAccelerometer = sm.getDefaultSensor(sensorAccelerationType);
 
-			if (sAccelerometer != null)
-				sm.registerListener(this, sAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-			else {
+			if (sAccelerometer != null) {
+                mAccelerometerName = sAccelerometer.getName();
+                sm.registerListener(this, sAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+            } else {
 				noSensors.add(linearAcceleration ?
-                        ctx.getString(R.string.sensor_linear).toLowerCase() :
-                        ctx.getString(R.string.sensor_accelerometer).toLowerCase());
+                        mContext.getString(R.string.sensor_linear).toLowerCase() :
+                        mContext.getString(R.string.sensor_accelerometer).toLowerCase());
 				noSensor = true;
 			}
 		}
@@ -86,10 +107,11 @@ public class SensorEngine implements SensorEventListener {
 		if (isSensorEnabled(Sensor.TYPE_GYROSCOPE)) {
 			sGyroscope = sm.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
 
-			if (sGyroscope != null)
-				sm.registerListener(this, sGyroscope, SensorManager.SENSOR_DELAY_NORMAL);
-			else {
-				noSensors.add(ctx.getString(R.string.sensor_gyroscope).toLowerCase());
+			if (sGyroscope != null) {
+                mGyroName = sGyroscope.getName();
+                sm.registerListener(this, sGyroscope, SensorManager.SENSOR_DELAY_NORMAL);
+            } else {
+				noSensors.add(mContext.getString(R.string.sensor_gyroscope).toLowerCase());
 				noSensor = true;
 			}
 		}
@@ -97,10 +119,11 @@ public class SensorEngine implements SensorEventListener {
 		if (isSensorEnabled(Sensor.TYPE_ORIENTATION)) {
 			sOrientation = sm.getDefaultSensor(Sensor.TYPE_ORIENTATION);
 
-			if (sOrientation != null)
-				sm.registerListener(this, sOrientation, SensorManager.SENSOR_DELAY_NORMAL);
-			else {
-				noSensors.add(ctx.getString(R.string.sensor_orientation).toLowerCase());
+			if (sOrientation != null) {
+                mOrientName = sOrientation.getName();
+                sm.registerListener(this, sOrientation, SensorManager.SENSOR_DELAY_NORMAL);
+            } else {
+				noSensors.add(mContext.getString(R.string.sensor_orientation).toLowerCase());
 				noSensor = true;
 			}
 		}
@@ -108,17 +131,18 @@ public class SensorEngine implements SensorEventListener {
 		if (isSensorEnabled(Sensor.TYPE_MAGNETIC_FIELD)) {
 			sMagnetic = sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
-			if (sMagnetic != null)
-				sm.registerListener(this, sMagnetic, SensorManager.SENSOR_DELAY_NORMAL);
-			else {
-				noSensors.add(ctx.getString(R.string.sensor_magnetic).toLowerCase());
+			if (sMagnetic != null) {
+                mMagneticName = sMagnetic.getName();
+                sm.registerListener(this, sMagnetic, SensorManager.SENSOR_DELAY_NORMAL);
+            } else {
+				noSensors.add(mContext.getString(R.string.sensor_magnetic).toLowerCase());
 				noSensor = true;
 			}
 		}
 
 		if (noSensor) {
 			StringBuilder info = new StringBuilder();
-			info.append(ctx.getString(R.string.sensor_error));
+			info.append(mContext.getString(R.string.sensor_error));
 
 			for (int i = 0; i < noSensors.size(); i++) {
 				if (i > 0)
@@ -127,7 +151,7 @@ public class SensorEngine implements SensorEventListener {
 				info.append(noSensors.get(i));
 			}
 
-			Toast.makeText(ctx, info.toString(), Toast.LENGTH_LONG).show();
+			Toast.makeText(mContext, info.toString(), Toast.LENGTH_LONG).show();
 		}
 
         gpsEngine.onResume();
@@ -151,7 +175,7 @@ public class SensorEngine implements SensorEventListener {
 				z = event.values[2];
 			}
 		}
-		
+
 		if (event.sensor.getType() == Sensor.TYPE_ORIENTATION) {
 			if ((curTime - lastUpdateOrient) > updateFrequency) {
 				lastUpdateOrient = curTime;
@@ -176,6 +200,8 @@ public class SensorEngine implements SensorEventListener {
 				gyroZ = event.values[2];
 			}
 		}
+
+        notifySensorListeners();
 	}
 
 	public float getX() {
@@ -218,8 +244,24 @@ public class SensorEngine implements SensorEventListener {
 		return roll;
 	}
 
+    public String getAccelerometerName() {
+        return mAccelerometerName;
+    }
+
+    public String getMagneticName() {
+        return mMagneticName;
+    }
+
+    public String getOrientName() {
+        return mOrientName;
+    }
+
+    public String getGyroName() {
+        return mGyroName;
+    }
+
 	@SuppressWarnings("deprecation")
-	private boolean isSensorEnabled(int sensorType) {
+	public boolean isSensorEnabled(int sensorType) {
 		switch (sensorType) {
 		case Sensor.TYPE_ACCELEROMETER:
 			return prefs.getBoolean(C.PREF_SENSOR_STATE, false);
