@@ -52,17 +52,18 @@
             <TextView
                 android:id="@+id/tv_network_gen"
                 style="@style/tv_info_large"
+                android:singleLine="true"
                 android:textSize="40sp"/>
 
             <TextView
                 android:id="@+id/tv_network_type"
-                style="@style/tv_info_large"/>
+                style="@style/tv_info_large"
+                android:singleLine="true"/>
 
             <TextView
                 android:id="@+id/tv_network_operator"
-                style="@style/tv_info_large"
-                android:layout_marginTop="16dp"
-                android:textAppearance="@android:style/TextAppearance.Medium"/>
+                style="@style/tv_info_medium"
+                android:layout_marginTop="16dp"/>
 
         </LinearLayout>
 
@@ -78,22 +79,22 @@
                 android:orientation="horizontal">
 
                 <TextView
-                    style="@style/tv_info_row"
+                    style="@style/tv_info_medium"
                     android:text="@string/info_mcc"/>
 
                 <TextView
                     android:id="@+id/tv_network_mcc"
-                    style="@style/tv_info_row"/>
+                    style="@style/tv_info_medium"/>
 
                 <TextView
-                    style="@style/tv_info_row"
+                    style="@style/tv_info_medium"
                     android:layout_marginLeft="16dp"
                     android:layout_marginStart="16dp"
                     android:text="@string/info_mnc"/>
 
                 <TextView
                     android:id="@+id/tv_network_mnc"
-                    style="@style/tv_info_row"/>
+                    style="@style/tv_info_medium"/>
             </LinearLayout>
 
 
@@ -103,12 +104,12 @@
                 android:orientation="horizontal">
 
                 <TextView
-                    style="@style/tv_info_row"
+                    style="@style/tv_info_medium"
                     android:text="@string/info_lac"/>
 
                 <TextView
                     android:id="@+id/tv_network_lac"
-                    style="@style/tv_info_row"/>
+                    style="@style/tv_info_medium"/>
             </LinearLayout>
 
             <LinearLayout
@@ -117,12 +118,12 @@
                 android:orientation="horizontal">
 
                 <TextView
-                    style="@style/tv_info_row"
+                    style="@style/tv_info_medium"
                     android:text="@string/info_cid"/>
 
                 <TextView
                     android:id="@+id/tv_network_cid"
-                    style="@style/tv_info_row"/>
+                    style="@style/tv_info_medium"/>
 
             </LinearLayout>
 
@@ -132,12 +133,12 @@
                 android:orientation="horizontal">
 
                 <TextView
-                    style="@style/tv_info_row"
+                    style="@style/tv_info_medium"
                     android:text="@string/info_psc"/>
 
                 <TextView
                     android:id="@+id/tv_network_psc"
-                    style="@style/tv_info_row"/>
+                    style="@style/tv_info_medium"/>
 
             </LinearLayout>
 
@@ -148,12 +149,12 @@
                 android:orientation="horizontal">
 
                 <TextView
-                    style="@style/tv_info_row"
+                    style="@style/tv_info_medium"
                     android:text="@string/info_power"/>
 
                 <TextView
                     android:id="@+id/tv_network_power"
-                    style="@style/tv_info_row"/>
+                    style="@style/tv_info_medium"/>
 
             </LinearLayout>
 

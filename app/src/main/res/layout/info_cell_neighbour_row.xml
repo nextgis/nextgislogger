@@ -40,14 +40,12 @@
 
         <TextView
             android:id="@+id/tv_network_gen"
-            style="@style/tv_info_large"
-            android:textAppearance="@android:style/TextAppearance.Medium"
+            style="@style/tv_info_medium"
             android:textSize="28sp"/>
 
         <TextView
             android:id="@+id/tv_network_type"
-            style="@style/tv_info_large"
-            android:textAppearance="@android:style/TextAppearance.Medium"/>
+            style="@style/tv_info_medium"/>
 
     </LinearLayout>
 

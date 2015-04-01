@@ -22,13 +22,352 @@
   ~ ******************************************************************************
   -->
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:orientation="vertical"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent">
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="@dimen/activity_vertical_margin"
+            android:paddingLeft="@dimen/activity_horizontal_margin"
+            android:paddingRight="@dimen/activity_horizontal_margin"
+            android:paddingTop="@dimen/activity_vertical_margin">
 
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="TEST"/>
-</LinearLayout>
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/ll_gps"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:baselineAligned="false"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/tv_info_large"
+                android:text="@string/gps"/>
+
+            <TextView
+                android:id="@+id/tv_gps_no_fix"
+                style="@style/tv_info_row_small"
+                android:layout_width="wrap_content"
+                android:gravity="center"
+                android:text="@string/info_no_fix"
+                android:visibility="gone"/>
+
+            <LinearLayout
+                android:id="@+id/ll_gps_info"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        style="@style/tv_info_row_small"
+                        android:text="@string/info_lat"/>
+
+                    <TextView
+                        style="@style/tv_info_row_small"
+                        android:text="@string/info_lon"/>
+
+                    <TextView
+                        style="@style/tv_info_row_small"
+                        android:text="@string/info_ele"/>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tv_gps_lat"
+                        style="@style/tv_info_row_small"/>
+
+                    <TextView
+                        android:id="@+id/tv_gps_lon"
+                        style="@style/tv_info_row_small"/>
+
+                    <TextView
+                        android:id="@+id/tv_gps_ele"
+                        style="@style/tv_info_row_small"/>
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        style="@style/tv_info_row_small"
+                        android:text="@string/info_acc"/>
+
+                    <TextView
+                        style="@style/tv_info_row_small"
+                        android:text="@string/info_speed"/>
+
+                    <TextView
+                        style="@style/tv_info_row_small"
+                        android:text="@string/info_sat"/>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tv_gps_acc"
+                        style="@style/tv_info_row_small"/>
+
+                    <TextView
+                        android:id="@+id/tv_gps_speed"
+                        style="@style/tv_info_row_small"/>
+
+                    <TextView
+                        android:id="@+id/tv_gps_sat"
+                        style="@style/tv_info_row_small"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        style="@style/tv_info_row_small"
+                        android:layout_width="wrap_content"
+                        android:gravity="end"
+                        android:text="@string/info_time"/>
+
+                    <TextView
+                        android:id="@+id/tv_gps_time"
+                        style="@style/tv_info_row_small"
+                        android:layout_width="wrap_content"
+                        android:gravity="start"/>
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <include layout="@layout/divider"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/ll_accelerometer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:baselineAligned="false"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_accelerometer_title"
+                style="@style/tv_info_large"
+                android:text="@string/sensor_accelerometer"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        style="@style/tv_info_row_small"
+                        android:text="@string/info_x"/>
+
+                    <TextView
+                        style="@style/tv_info_row_small"
+                        android:text="@string/info_y"/>
+
+                    <TextView
+                        style="@style/tv_info_row_small"
+                        android:text="@string/info_z"/>
+
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tv_accelerometer_x"
+                        style="@style/tv_info_row_small"/>
+
+                    <TextView
+                        android:id="@+id/tv_accelerometer_y"
+                        style="@style/tv_info_row_small"/>
+
+                    <TextView
+                        android:id="@+id/tv_accelerometer_z"
+                        style="@style/tv_info_row_small"/>
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <include layout="@layout/divider"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/ll_magnetometer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:baselineAligned="false"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_magnetometer_title"
+                style="@style/tv_info_large"
+                android:text="@string/sensor_magnetic"/>
+
+            <TextView
+                android:id="@+id/tv_magnetic"
+                style="@style/tv_info_row_small"
+                android:layout_width="wrap_content"/>
+
+            <include layout="@layout/divider"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/ll_orientation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:baselineAligned="false"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_orient_title"
+                style="@style/tv_info_large"
+                android:text="@string/sensor_orientation"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        style="@style/tv_info_row_small"
+                        android:text="@string/info_azimuth"/>
+
+                    <TextView
+                        style="@style/tv_info_row_small"
+                        android:text="@string/info_pitch"/>
+
+                    <TextView
+                        style="@style/tv_info_row_small"
+                        android:text="@string/info_roll"/>
+
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tv_orient_azimuth"
+                        style="@style/tv_info_row_small"/>
+
+                    <TextView
+                        android:id="@+id/tv_orient_pitch"
+                        style="@style/tv_info_row_small"/>
+
+                    <TextView
+                        android:id="@+id/tv_orient_roll"
+                        style="@style/tv_info_row_small"/>
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <include layout="@layout/divider"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/ll_gyroscope"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:baselineAligned="false"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_gyroscope_title"
+                style="@style/tv_info_large"
+                android:text="@string/sensor_gyroscope"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        style="@style/tv_info_row_small"
+                        android:text="@string/info_x"/>
+
+                    <TextView
+                        style="@style/tv_info_row_small"
+                        android:text="@string/info_y"/>
+
+                    <TextView
+                        style="@style/tv_info_row_small"
+                        android:text="@string/info_z"/>
+
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tv_gyroscope_x"
+                        style="@style/tv_info_row_small"/>
+
+                    <TextView
+                        android:id="@+id/tv_gyroscope_y"
+                        style="@style/tv_info_row_small"/>
+
+                    <TextView
+                        android:id="@+id/tv_gyroscope_z"
+                        style="@style/tv_info_row_small"/>
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <include layout="@layout/divider"/>
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

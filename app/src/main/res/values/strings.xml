@@ -117,6 +117,31 @@
     <string name="info_cid">"CID: "</string>
     <string name="info_psc">"PSC: "</string>
     <string name="info_power">"Power: "</string>
+
+    <string name="info_lat">"Latitude: "</string>
+    <string name="info_lon">"Longitude: "</string>
+    <string name="info_ele">"Altitude: "</string>
+    <string name="info_acc">"Accuracy: "</string>
+    <string name="info_speed">"Speed: "</string>
+    <string name="info_sat">"Satellites: "</string>
+    <string name="info_time">"Fix time: "</string>
+    <string name="info_no_fix">No last known fix</string>
+
+    <string name="info_x">"X: "</string>
+    <string name="info_y">"Y: "</string>
+    <string name="info_z">"Z: "</string>
+
+    <string name="info_azimuth">"Azimuth: "</string>
+    <string name="info_pitch">"Pitch: "</string>
+    <string name="info_roll">"Roll: "</string>
+
+    <string name="info_ms2">m/s&lt;sup&gt;&lt;small&gt;2&lt;/small&gt;&lt;/sup&gt;</string>
+    <string name="info_kmh">km/h</string>
+    <string name="info_tesla">µT</string>
+    <string name="info_meter">m</string>
+    <string name="info_rads">rad/s</string>
+    <string name="info_degree">°</string>
+
     <string name="info_neighbours">"Neighbouring cells: "</string>
     <string name="info_expand">expand</string>
     <string name="info_collapse">hide</string>
