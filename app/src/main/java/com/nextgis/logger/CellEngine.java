@@ -75,8 +75,10 @@ public class CellEngine {
 	public void onResume() {
 		mTelephonyManager.listen(mSignalListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
 
-        if (mCellListeners.size() > 0)
-	    	mTelephonyManager.listen(mSignalListener, PhoneStateListener.LISTEN_CELL_LOCATION);
+        if (mCellListeners.size() > 0) {
+            mTelephonyManager.listen(mSignalListener, PhoneStateListener.LISTEN_CELL_LOCATION);
+            mTelephonyManager.listen(mSignalListener, PhoneStateListener.LISTEN_DATA_CONNECTION_STATE);
+        }
 	}
 
 	public void onPause() {
@@ -113,6 +115,12 @@ public class CellEngine {
         @Override
         public void onCellLocationChanged(CellLocation location) {
             super.onCellLocationChanged(location);
+            notifyCellListeners();
+        }
+
+        @Override
+        public void onDataConnectionStateChanged(int state, int networkType) {
+            super.onDataConnectionStateChanged(state, networkType);
             notifyCellListeners();
         }
 	}

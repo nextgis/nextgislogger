@@ -30,7 +30,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <android.support.v4.view.PagerTitleStrip
+        <android.support.v4.view.PagerTabStrip
             android:id="@+id/pts_tabs"
             style="@style/info_pager_strip"
             android:layout_width="match_parent"

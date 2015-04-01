@@ -34,6 +34,7 @@ import android.support.v4.app.FragmentActivity;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewTreeObserver;
+import android.view.animation.AnimationUtils;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 
@@ -74,7 +75,6 @@ public class ProgressBarActivity extends FragmentActivity implements View.OnClic
                 layout.removeView(mFAB);
                 base.addView(mFAB);
 
-                mFAB.setColorNormal(darkerColor(mFAB.getColorNormal(), 0.7f));
                 mFAB.setColorRipple(darkerColor(mFAB.getColorNormal(), 0.5f));
                 mFAB.setColorPressed(darkerColor(mFAB.getColorNormal(), 0.3f));
                 mFAB.setOnClickListener(this);
@@ -86,6 +86,7 @@ public class ProgressBarActivity extends FragmentActivity implements View.OnClic
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.fab:
+                mFAB.startAnimation(AnimationUtils.loadAnimation(this, R.anim.rotation));
                 Intent infoActivity = new Intent(this, InfoActivity.class);
                 startActivity(infoActivity);
                 break;

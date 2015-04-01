@@ -46,7 +46,8 @@ public class InfoCellFragment extends Fragment implements CellEngine.CellInfoLis
     private static final String CELL_CID        = "cid";
     private static final String CELL_PSC        = "psc";
     private static final String CELL_POWER      = "power";
-    CellEngine gsmEngine;
+
+    private CellEngine gsmEngine;
 
     private TextView tvGen, tvType, tvOperator, tvMNC, tvMCC, tvLAC, tvCID, tvPSC, tvPower, tvNeighbours;
     private ListView lvNeighbours;

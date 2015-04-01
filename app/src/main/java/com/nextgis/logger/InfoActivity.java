@@ -31,6 +31,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.View;
+import android.view.animation.AnimationUtils;
 
 import com.nextgis.logger.UI.ProgressBarActivity;
 
@@ -70,6 +71,7 @@ public class InfoActivity extends ProgressBarActivity {
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.fab:
+                mFAB.startAnimation(AnimationUtils.loadAnimation(this, R.anim.rotation));
                 finish();
                 break;
             default:

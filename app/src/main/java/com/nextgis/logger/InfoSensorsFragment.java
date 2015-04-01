@@ -34,6 +34,8 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.melnykov.fab.FloatingActionButton;
+
 import java.text.DateFormat;
 import java.util.Date;
 
@@ -50,6 +52,7 @@ public class InfoSensorsFragment extends Fragment implements SensorEngine.Sensor
     private TextView tvGyroX, tvGyroY, tvGyroZ;
     private TextView tvMagnetic;
 
+    @SuppressWarnings("deprecation")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.info_sensors_fragment, container, false);
@@ -66,17 +69,6 @@ public class InfoSensorsFragment extends Fragment implements SensorEngine.Sensor
         llOrient = (LinearLayout) rootView.findViewById(R.id.ll_orientation);
         llGyro = (LinearLayout) rootView.findViewById(R.id.ll_gyroscope);
         llMagnetic = (LinearLayout) rootView.findViewById(R.id.ll_magnetometer);
-
-        if (!mGPSEngine.isGpsEnabled())
-            llGPS.setVisibility(View.GONE);
-        if (!mSensorEngine.isSensorEnabled(Sensor.TYPE_ACCELEROMETER))
-            llAccelerometer.setVisibility(View.GONE);
-        if (!mSensorEngine.isSensorEnabled(Sensor.TYPE_ORIENTATION))
-            llOrient.setVisibility(View.GONE);
-        if (!mSensorEngine.isSensorEnabled(Sensor.TYPE_GYROSCOPE))
-            llGyro.setVisibility(View.GONE);
-        if (!mSensorEngine.isSensorEnabled(Sensor.TYPE_MAGNETIC_FIELD))
-            llMagnetic.setVisibility(View.GONE);
 
         tvAccelerometerTitle = (TextView) rootView.findViewById(R.id.tv_accelerometer_title);
         tvOrientTitle = (TextView) rootView.findViewById(R.id.tv_orient_title);
@@ -107,6 +99,7 @@ public class InfoSensorsFragment extends Fragment implements SensorEngine.Sensor
         return rootView;
     }
 
+    @SuppressWarnings("deprecation")
     private void fillSensorsTextViews() {
         tvAccelerometerX.setText(format(Sensor.TYPE_ACCELEROMETER, mSensorEngine.getX()));
         tvAccelerometerY.setText(format(Sensor.TYPE_ACCELEROMETER, mSensorEngine.getY()));
@@ -137,6 +130,7 @@ public class InfoSensorsFragment extends Fragment implements SensorEngine.Sensor
         }
     }
 
+    @SuppressWarnings("deprecation")
     private Spanned format(int type, double arg) {
         String formatted = "" + arg;
 
@@ -188,11 +182,23 @@ public class InfoSensorsFragment extends Fragment implements SensorEngine.Sensor
         mSensorEngine.onPause();
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void onResume() {
         super.onResume();
 
         mSensorEngine.onResume();
+
+        if (!mGPSEngine.isGpsEnabled())
+            llGPS.setVisibility(View.GONE);
+        if (!mSensorEngine.isSensorEnabled(Sensor.TYPE_ACCELEROMETER))
+            llAccelerometer.setVisibility(View.GONE);
+        if (!mSensorEngine.isSensorEnabled(Sensor.TYPE_ORIENTATION))
+            llOrient.setVisibility(View.GONE);
+        if (!mSensorEngine.isSensorEnabled(Sensor.TYPE_GYROSCOPE))
+            llGyro.setVisibility(View.GONE);
+        if (!mSensorEngine.isSensorEnabled(Sensor.TYPE_MAGNETIC_FIELD))
+            llMagnetic.setVisibility(View.GONE);
 
         tvAccelerometerTitle.setText(mSensorEngine.getAccelerometerName());
         tvOrientTitle.setText(mSensorEngine.getOrientName());

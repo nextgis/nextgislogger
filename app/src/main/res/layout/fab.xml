@@ -31,4 +31,4 @@
     android:layout_gravity="bottom|end"
     android:layout_margin="16dp"
     android:src="@drawable/ic_insert_chart_white_24dp"
-    fab:fab_colorNormal="?android:textColorLink"/>
+    fab:fab_colorNormal="@color/accent"/>

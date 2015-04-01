@@ -40,8 +40,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
-import android.telephony.PhoneStateListener;
-import android.telephony.TelephonyManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -90,8 +88,6 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 
 	private ServiceConnection servConn = null;
 
-	NetworkTypeChangeListener networkTypeListener;
-
 	private SharedPreferences prefs;
 
 	@Override
@@ -131,8 +127,6 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 		sessionButton.setText(getString(session.equals("") ? R.string.btn_session_open : R.string.btn_session_close));
 		sessionButton.setEnabled(!isServiceRunning);
 		sessionButton.setOnClickListener(this);
-
-		networkTypeListener = new NetworkTypeChangeListener((TextView) findViewById(R.id.tv_network_type_str));
 
 		loggerStartedTime = (TextView) findViewById(R.id.tv_logger_started_time);
 		loggerFinishedTime = (TextView) findViewById(R.id.tv_logger_finished_time);
@@ -214,16 +208,11 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
             updateFileForMTP(csvMarkFilePath);
             updateFileForMTP(csvMarkFilePathSensor);
         }
-
-		//		int networkType = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getNetworkType();
-		((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).listen(networkTypeListener, PhoneStateListener.LISTEN_DATA_CONNECTION_STATE);
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
-
-		((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).listen(networkTypeListener, PhoneStateListener.LISTEN_NONE);
 	}
 
 	@Override
@@ -467,21 +456,5 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTimeInMillis(milliSeconds);
 		return formatter.format(calendar.getTime());
-	}
-
-	private class NetworkTypeChangeListener extends PhoneStateListener {
-
-		TextView tv;
-
-		public NetworkTypeChangeListener(TextView tv) {
-			this.tv = tv;
-		}
-
-		@Override
-		public void onDataConnectionStateChanged(int state, int networkType) {
-			super.onDataConnectionStateChanged(state, networkType);
-
-			tv.setText(CellEngine.getNetworkGen(networkType) + " / " + CellEngine.getNetworkType(networkType));
-		}
 	}
 }
