@@ -1,7 +1,7 @@
 /******************************************************************************
  * Project: NextGIS Logger
  * Purpose: Productive data logger for Android
- * Authors: Stanislav Petriakov
+ * Author:  Stanislav Petriakov, becomeglory@gmail.com
  ******************************************************************************
  * Copyright © 2014-2015 NextGIS
  *
@@ -119,7 +119,7 @@ public class PreferencesActivity extends PreferenceActivity {
         }
     }
 
-	public static class PreferencesFragment extends PreferenceFragment {
+	public static class PreferencesFragment extends PreferenceFragment implements OnPreferenceChangeListener {
 		@SuppressWarnings("deprecation")
 		@Override
 		public void onCreate(Bundle savedInstanceState) {
@@ -163,45 +163,11 @@ public class PreferencesActivity extends PreferenceActivity {
 
 			EditTextPreference userName = (EditTextPreference) findPreference(C.PREF_USER_NAME);
 			userName.setSummary(userName.getText());
-			userName.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
-				@Override
-				public boolean onPreferenceChange(Preference preference, Object newValue) {
-					preference.setSummary((String) newValue);
-
-					return true;
-				}
-			});
+			userName.setOnPreferenceChangeListener(this);
 
 			IntEditTextPreference periodPreference = (IntEditTextPreference) findPreference(C.PREF_PERIOD_SEC);
 			periodPreference.setSummary(getString(R.string.settings_period_sum) + periodPreference.getPersistedString("1"));
-			periodPreference.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
-				@Override
-				public boolean onPreferenceChange(Preference preference, Object newValue) {
-					int period;
-
-					try {
-						period = Integer.parseInt((String) newValue);
-						boolean max = period > maxPeriodSec;
-						boolean min = period < minPeriodSec;
-
-						if (max)
-							period = maxPeriodSec;
-
-						if (min)
-							period = minPeriodSec;
-
-						((IntEditTextPreference) preference).persistString(Integer.toString(period));
-						preference.setSummary(getString(R.string.settings_period_sum) + period);
-
-						if (min || max)
-							throw new IllegalArgumentException();
-					} catch (Exception e) {
-						Toast.makeText(parent, R.string.settings_period_toast, Toast.LENGTH_LONG).show();
-					}
-
-					return false;
-				}
-			});
+			periodPreference.setOnPreferenceChangeListener(this);
 
 			Preference catPathPreference = findPreference(C.PREF_CAT_PATH);
 
@@ -263,6 +229,41 @@ public class PreferencesActivity extends PreferenceActivity {
                 Toast.makeText(getActivity(), info, Toast.LENGTH_SHORT).show();
             } else
                 super.onActivityResult(requestCode, resultCode, data);
+        }
+
+        @Override
+        public boolean onPreferenceChange(Preference preference, Object newValue) {
+            switch (preference.getKey()) {
+                case C.PREF_USER_NAME:
+                    preference.setSummary((String) newValue);
+                    return true;
+                case C.PREF_PERIOD_SEC:
+                    int period;
+
+                    try {
+                        period = Integer.parseInt((String) newValue);
+                        boolean max = period > maxPeriodSec;
+                        boolean min = period < minPeriodSec;
+
+                        if (max)
+                            period = maxPeriodSec;
+
+                        if (min)
+                            period = minPeriodSec;
+
+                        ((IntEditTextPreference) preference).persistString(Integer.toString(period));
+                        preference.setSummary(getString(R.string.settings_period_sum) + period);
+
+                        if (min || max)
+                            throw new IllegalArgumentException();
+                    } catch (Exception e) {
+                        Toast.makeText(preference.getContext(), R.string.settings_period_toast, Toast.LENGTH_LONG).show();
+                    }
+
+                    return false;
+            }
+
+            return false;
         }
     }
 }

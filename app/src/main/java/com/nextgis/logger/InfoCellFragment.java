@@ -172,11 +172,12 @@ public class InfoCellFragment extends Fragment implements CellEngine.CellInfoLis
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.tv_network_neighbours:
-                if (lvNeighbours.getCount() == 0)
-                    return;
-
                 int active, neighbours, text;
+
                 if (lvNeighbours.getVisibility() == View.INVISIBLE) {
+                    if (lvNeighbours.getCount() == 0)
+                        return;
+
                     active = View.GONE;
                     neighbours = View.VISIBLE;
                     text = R.string.info_collapse;

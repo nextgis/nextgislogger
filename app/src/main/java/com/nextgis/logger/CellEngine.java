@@ -78,6 +78,7 @@ public class CellEngine {
         if (mCellListeners.size() > 0) {
             mTelephonyManager.listen(mSignalListener, PhoneStateListener.LISTEN_CELL_LOCATION);
             mTelephonyManager.listen(mSignalListener, PhoneStateListener.LISTEN_DATA_CONNECTION_STATE);
+            mTelephonyManager.listen(mSignalListener, PhoneStateListener.LISTEN_SERVICE_STATE);
         }
 	}
 
@@ -121,6 +122,12 @@ public class CellEngine {
         @Override
         public void onDataConnectionStateChanged(int state, int networkType) {
             super.onDataConnectionStateChanged(state, networkType);
+            notifyCellListeners();
+        }
+
+        @Override
+        public void onServiceStateChanged(ServiceState serviceState) {
+            super.onServiceStateChanged(serviceState);
             notifyCellListeners();
         }
 	}

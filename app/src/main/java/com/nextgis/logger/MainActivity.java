@@ -284,7 +284,8 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 //				dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE); // show keyboard
 				dialog.show();
 			} else { // close session
-				prefs.edit().putString(C.PREF_SESSION_NAME, "").putInt(C.PREF_MARKS_COUNT, 0).putInt(C.PREF_RECORDS_COUNT, 0).apply();
+				prefs.edit().putString(C.PREF_SESSION_NAME, "").putInt(C.PREF_MARKS_COUNT, 0).putInt(C.PREF_RECORDS_COUNT, 0)
+                        .putInt(C.PREF_MARK_POS,Integer.MIN_VALUE).apply();
 				recordsCount = 0;
 				setInterfaceState(0, INTERFACE_STATE.SESSION_NONE);
 				setDataDirPath("");

@@ -20,10 +20,9 @@
  *****************************************************************************/
 package com.nextgis.logger;
 
-import java.io.File;
-
-import android.app.Activity;
 import android.os.Environment;
+
+import java.io.File;
 
 public class C {
 	public static final String CSV_SEPARATOR = ";";
@@ -64,6 +63,7 @@ public class C {
 	public static final String PREF_USER_NAME = "user_name";
 	public static final String PREF_SESSION_NAME = "session_name";
 	public static final String PREF_MARKS_COUNT = "marks_count";
+    public static final String PREF_MARK_POS = "mark_position";
 	public static final String PREF_RECORDS_COUNT = "records_count";
     public static final String PREF_KEEP_SCREEN = "keep_screen";
     public static final String DEFAULT_USERNAME = "User1";

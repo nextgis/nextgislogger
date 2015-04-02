@@ -72,7 +72,6 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 
 	private static final String BUNDLE_CELL     = "data_network";
 	private static final String BUNDLE_SENSOR   = "data_sensors";
-	private static final String BUNDLE_MARK_POS = "mark_position";
 
     private static int marksCount = 0;
     private boolean mIsHot;
@@ -88,7 +87,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 
 	private SharedPreferences prefs;
     static MarksHandler marksHandler;
-    private static int mSavedMarkPosition = Integer.MIN_VALUE;
+    private static int mSavedMarkPosition;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -107,6 +106,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 		sensorEngine = new SensorEngine(this);
 //		wifiEngine = new WiFiEngine(this);
 
+        mSavedMarkPosition = prefs.getInt(C.PREF_MARK_POS, Integer.MIN_VALUE);
         marksCount = prefs.getInt(C.PREF_MARKS_COUNT, 0);
         marksHandler = new MarksHandler(this);
 
@@ -115,7 +115,8 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 			@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                saveMark(position);
+                MarkName match = substringMarkNameAdapter.getMatchedMarkItem(position);
+                saveMark(match);
 			}
 		});
 
@@ -276,7 +277,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
     @Override
     public boolean dispatchKeyEvent(@NonNull KeyEvent event) {
         int position;
-        boolean isVolumeControlEnabled = prefs.getBoolean(C.PREF_USE_VOL, true);
+        boolean isVolumeControlEnabled = prefs.getBoolean(C.PREF_USE_VOL, true) && prefs.getBoolean(C.PREF_USE_CATS, false);
 
         int action = event.getAction();
         int keyCode = event.getKeyCode();
@@ -303,14 +304,14 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
         }
 
         if (substringMarkNameAdapter.hasItem(position)) {
-            saveMark(position);
+            saveMark(substringMarkNameAdapter.getMarkItem(position));
         } else
             Toast.makeText(this, R.string.mark_no_items, Toast.LENGTH_SHORT).show();
 
         return true;
     }
 
-    private void saveMark(int markPosition) {
+    private void saveMark(MarkName mark) {
         if (mIsHot)
             return;
 
@@ -318,8 +319,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 
         final Bundle data = new Bundle();
 
-        data.putInt(BUNDLE_MARK_POS, markPosition);
-        MarkName mark = substringMarkNameAdapter.getMarkItem(markPosition);
+        data.putInt(C.PREF_MARK_POS, substringMarkNameAdapter.getMarkPosition(mark));
         String markName = mark.getCAT();
         String ID = mark.getID() + "";
 
@@ -423,8 +423,22 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 			return matches.get(position).getCAT();
 		}
 
+        public int getMarkPosition(MarkName item) {
+            return objects.indexOf(item);
+        }
+
+		public MarkName getMatchedMarkItem(int position) {
+            if (position >= 0 && position < matches.size())
+			    return matches.get(position);
+            else
+                return new MarkName(-1, "null");
+		}
+
 		public MarkName getMarkItem(int position) {
-			return matches.get(position);
+            if (hasItem(position))
+			    return objects.get(position);
+            else
+                return new MarkName(-1, "null");
 		}
 
 		@Override
@@ -490,7 +504,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 
     private static class MarksHandler extends Handler {
         private long mUndoTimeStamp = 0;
-        MarkActivity mParent;
+        private MarkActivity mParent;
 
         public MarksHandler(MarkActivity parent) {
             mParent = parent;
@@ -509,7 +523,8 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
                             if (!TextUtils.isEmpty(sensorItem))
                                 FileUtil.saveItemToLog(C.LOG_TYPE_SENSORS, true, sensorItem);
 
-                            mSavedMarkPosition = msg.getData().getInt(BUNDLE_MARK_POS);
+                            mSavedMarkPosition = msg.getData().getInt(C.PREF_MARK_POS);
+                            PreferenceManager.getDefaultSharedPreferences(mParent).edit().putInt(C.PREF_MARK_POS, mSavedMarkPosition).apply();
                         } catch (FileNotFoundException e) {
                             e.printStackTrace();
                         }

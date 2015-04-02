@@ -34,8 +34,6 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.melnykov.fab.FloatingActionButton;
-
 import java.text.DateFormat;
 import java.util.Date;
 
