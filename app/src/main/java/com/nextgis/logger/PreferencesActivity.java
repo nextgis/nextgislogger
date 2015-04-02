@@ -28,6 +28,7 @@ import android.hardware.SensorManager;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceChangeListener;
@@ -133,6 +134,7 @@ public class PreferencesActivity extends PreferenceActivity {
 
             if (!locationManager.getAllProviders().contains(LocationManager.GPS_PROVIDER)) {
                 findPreference(C.PREF_GPS).setEnabled(false);
+                ((CheckBoxPreference) findPreference(C.PREF_GPS)).setChecked(false);
                 findPreference(C.PREF_GPS).setSummary(R.string.settings_sensor_sum);
             }
 
@@ -145,16 +147,19 @@ public class PreferencesActivity extends PreferenceActivity {
 
 			if (sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD) == null) {
                 findPreference(C.PREF_SENSOR_MAG).setEnabled(false);
+                ((CheckBoxPreference) findPreference(C.PREF_SENSOR_MAG)).setChecked(false);
                 findPreference(C.PREF_SENSOR_MAG).setSummary(R.string.settings_sensor_sum);
             }
 
 			if (sm.getDefaultSensor(Sensor.TYPE_ORIENTATION) == null) {
                 findPreference(C.PREF_SENSOR_ORIENT).setEnabled(false);
+                ((CheckBoxPreference) findPreference(C.PREF_SENSOR_ORIENT)).setChecked(false);
                 findPreference(C.PREF_SENSOR_ORIENT).setSummary(R.string.settings_sensor_sum);
             }
 
 			if (sm.getDefaultSensor(Sensor.TYPE_GYROSCOPE) == null) {
                 findPreference(C.PREF_SENSOR_GYRO).setEnabled(false);
+                ((CheckBoxPreference) findPreference(C.PREF_SENSOR_GYRO)).setChecked(false);
                 findPreference(C.PREF_SENSOR_GYRO).setSummary(R.string.settings_sensor_sum);
             }
 
@@ -172,15 +177,15 @@ public class PreferencesActivity extends PreferenceActivity {
 			Preference catPathPreference = findPreference(C.PREF_CAT_PATH);
 
 			catPathPreference.setOnPreferenceClickListener(new OnPreferenceClickListener() {
-				@Override
-				public boolean onPreferenceClick(final Preference preference) {
+                @Override
+                public boolean onPreferenceClick(final Preference preference) {
                     Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
                     intent.setType("file/*");
                     startActivityForResult(intent, CHOOSE_FILE);
 
-					return true;
-				}
-			});
+                    return true;
+                }
+            });
 		}
 
         @Override

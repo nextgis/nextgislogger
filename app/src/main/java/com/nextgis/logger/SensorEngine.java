@@ -113,6 +113,7 @@ public class SensorEngine implements SensorEventListener {
             } else {
 				noSensors.add(mContext.getString(R.string.sensor_gyroscope).toLowerCase());
 				noSensor = true;
+                prefs.edit().putBoolean(C.PREF_SENSOR_GYRO, false).apply();
 			}
 		}
 
@@ -125,6 +126,7 @@ public class SensorEngine implements SensorEventListener {
             } else {
 				noSensors.add(mContext.getString(R.string.sensor_orientation).toLowerCase());
 				noSensor = true;
+                prefs.edit().putBoolean(C.PREF_SENSOR_ORIENT, false).apply();
 			}
 		}
 
@@ -137,6 +139,7 @@ public class SensorEngine implements SensorEventListener {
             } else {
 				noSensors.add(mContext.getString(R.string.sensor_magnetic).toLowerCase());
 				noSensor = true;
+                prefs.edit().putBoolean(C.PREF_SENSOR_MAG, false).apply();
 			}
 		}
 
