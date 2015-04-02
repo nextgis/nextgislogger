@@ -50,6 +50,7 @@
     </style>
 
     <style name="tv_info_large" parent="tv_info">
+        <item name="android:textColor">@color/accent</item>
         <item name="android:singleLine">false</item>
         <item name="android:textAppearance">@android:style/TextAppearance.Large</item>
     </style>

@@ -30,6 +30,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.view.Menu;
 import android.view.View;
 import android.view.animation.AnimationUtils;
 
@@ -58,6 +59,12 @@ public class InfoActivity extends ProgressBarActivity {
 
         mFAB.setOnClickListener(this);
         mFAB.setImageResource(R.drawable.ic_undo_white_24dp);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
     }
 
     @Override

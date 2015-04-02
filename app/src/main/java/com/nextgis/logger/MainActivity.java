@@ -41,7 +41,6 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -230,31 +229,6 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
-	}
-
-	@Override
-	public boolean onPrepareOptionsMenu(Menu menu) {
-		menu.findItem(R.id.action_settings).setEnabled(!isLoggerServiceRunning(this));
-		return true;
-	}
-
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-
-		switch (item.getItemId()) {
-		case R.id.action_settings:
-			Intent preferencesActivity = new Intent(this, PreferencesActivity.class);
-			startActivity(preferencesActivity);
-			break;
-		case R.id.action_about:
-			Intent aboutActivity = new Intent(this, AboutActivity.class);
-			startActivity(aboutActivity);
-			break;
-		default:
-			break;
-		}
-
-		return super.onOptionsItemSelected(item);
 	}
 
 	@Override

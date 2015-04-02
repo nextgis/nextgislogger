@@ -31,6 +31,7 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -39,8 +40,10 @@ import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 
 import com.melnykov.fab.FloatingActionButton;
+import com.nextgis.logger.AboutActivity;
 import com.nextgis.logger.InfoActivity;
 import com.nextgis.logger.LoggerService;
+import com.nextgis.logger.PreferencesActivity;
 import com.nextgis.logger.R;
 
 public class ProgressBarActivity extends FragmentActivity implements View.OnClickListener {
@@ -94,10 +97,28 @@ public class ProgressBarActivity extends FragmentActivity implements View.OnClic
     }
 
     @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        MenuItem settings = menu.findItem(R.id.action_settings);
+
+        if (settings != null)
+            settings.setEnabled(!isLoggerServiceRunning(this));
+
+        return true;
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
                 finish();
+                return true;
+            case R.id.action_settings:
+                Intent preferencesActivity = new Intent(this, PreferencesActivity.class);
+                startActivity(preferencesActivity);
+                return true;
+            case R.id.action_about:
+                Intent aboutActivity = new Intent(this, AboutActivity.class);
+                startActivity(aboutActivity);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

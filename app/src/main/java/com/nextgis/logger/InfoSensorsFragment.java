@@ -191,14 +191,28 @@ public class InfoSensorsFragment extends Fragment implements SensorEngine.Sensor
 
         if (!mGPSEngine.isGpsEnabled())
             llGPS.setVisibility(View.GONE);
+        else
+            llGPS.setVisibility(View.VISIBLE);
+
         if (!mSensorEngine.isSensorEnabled(Sensor.TYPE_ACCELEROMETER))
             llAccelerometer.setVisibility(View.GONE);
+        else
+            llAccelerometer.setVisibility(View.VISIBLE);
+
         if (!mSensorEngine.isSensorEnabled(Sensor.TYPE_ORIENTATION))
             llOrient.setVisibility(View.GONE);
+        else
+            llOrient.setVisibility(View.VISIBLE);
+
         if (!mSensorEngine.isSensorEnabled(Sensor.TYPE_GYROSCOPE))
             llGyro.setVisibility(View.GONE);
+        else
+            llGyro.setVisibility(View.VISIBLE);
+
         if (!mSensorEngine.isSensorEnabled(Sensor.TYPE_MAGNETIC_FIELD))
             llMagnetic.setVisibility(View.GONE);
+        else
+            llMagnetic.setVisibility(View.VISIBLE);
 
         tvAccelerometerTitle.setText(mSensorEngine.getAccelerometerName());
         tvOrientTitle.setText(mSensorEngine.getOrientName());
