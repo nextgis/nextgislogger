@@ -186,6 +186,5 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:clipToPadding="false"
-        android:paddingBottom="16dp"
-        android:visibility="invisible"/>
+        android:paddingBottom="16dp"/>
 </LinearLayout>

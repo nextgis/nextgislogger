@@ -37,8 +37,6 @@ import android.view.animation.AnimationUtils;
 import com.nextgis.logger.UI.ProgressBarActivity;
 
 public class InfoActivity extends ProgressBarActivity {
-    private static final String TITLE_CELL    = "Network";
-    private static final String TITLE_SENSORS = "Sensors";
     private static final String PREF_LAST_VISITED = "last_tab";
 
     private SharedPreferences mPreferences;
@@ -113,9 +111,9 @@ public class InfoActivity extends ProgressBarActivity {
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 0:
-                    return TITLE_CELL;
+                    return getString(R.string.info_title_network);
                 case 1:
-                    return TITLE_SENSORS;
+                    return getString(R.string.info_title_sensors);
             }
 
             return "";

@@ -29,6 +29,7 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
@@ -51,6 +52,7 @@ public class InfoCellFragment extends Fragment implements CellEngine.CellInfoLis
 
     private TextView tvGen, tvType, tvOperator, tvMNC, tvMCC, tvLAC, tvCID, tvPSC, tvPower, tvNeighbours;
     private ListView lvNeighbours;
+    private LinearLayout llActiveCell;
 
     @Override
     public void onPause() {
@@ -69,6 +71,9 @@ public class InfoCellFragment extends Fragment implements CellEngine.CellInfoLis
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.info_cell_fragment, container, false);
+
+        llActiveCell = (LinearLayout) rootView.findViewById(R.id.ll_network_active_cell);
+
         tvGen = (TextView) rootView.findViewById(R.id.tv_network_gen);
         tvType = (TextView) rootView.findViewById(R.id.tv_network_type);
         tvOperator = (TextView) rootView.findViewById(R.id.tv_network_operator);
@@ -172,31 +177,32 @@ public class InfoCellFragment extends Fragment implements CellEngine.CellInfoLis
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.tv_network_neighbours:
-                int active, neighbours, text;
+                int active, text;
 
-                if (lvNeighbours.getVisibility() == View.INVISIBLE) {
+//                if (lvNeighbours.getVisibility() == View.INVISIBLE) {
+                if (llActiveCell.getVisibility() == View.VISIBLE) {
                     if (lvNeighbours.getCount() == 0)
                         return;
 
                     active = View.GONE;
-                    neighbours = View.VISIBLE;
+//                    neighbours = View.VISIBLE;
                     text = R.string.info_collapse;
                 } else {
                     active = View.VISIBLE;
-                    neighbours = View.INVISIBLE;
+//                    neighbours = View.INVISIBLE;
                     text = R.string.info_expand;
                 }
 
                 ((TextView) v).setText(text);
-                lvNeighbours.getRootView().findViewById(R.id.ll_network_active_cell).setVisibility(active);
-                lvNeighbours.setVisibility(neighbours);
+                llActiveCell.setVisibility(active);
+//                lvNeighbours.setVisibility(neighbours);
                 tvNeighbours.setText(tvNeighbours.getTag() + getNeighboursString());
                 break;
         }
     }
 
     private String getNeighboursString() {
-        String hint = lvNeighbours.getVisibility() == View.INVISIBLE ? getString(R.string.info_expand) : getString(R.string.info_collapse);
+        String hint = llActiveCell.getVisibility() == View.VISIBLE ? getString(R.string.info_expand) : getString(R.string.info_collapse);
         return " (" + hint + ")";
     }
 }

@@ -20,11 +20,9 @@
  *****************************************************************************/
 package com.nextgis.logger;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Rect;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -65,7 +63,7 @@ import java.util.List;
 import java.util.Locale;
 
 public class MarkActivity extends ProgressBarActivity implements View.OnClickListener {
-	private static final int DELAY = 2000;
+	private static final int DELAY = 4000;
 
 	private static final int MARK_SAVE = 0;
 	private static final int MARK_UNDO = 1;
@@ -74,7 +72,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 	private static final String BUNDLE_SENSOR   = "data_sensors";
 
     private static int marksCount = 0;
-    private boolean mIsHot;
+    private boolean mIsHot, mIsVolumeControlEnabled;
 
     private MenuItem searchBox;
     private ListView lvCategories;
@@ -94,6 +92,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 		super.onCreate(savedInstanceState);
 
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        mIsVolumeControlEnabled = prefs.getBoolean(C.PREF_USE_VOL, true) && prefs.getBoolean(C.PREF_USE_CATS, false);
 
         if(prefs.getBoolean(C.PREF_KEEP_SCREEN, true))
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -112,7 +111,6 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 
         lvCategories = (ListView) findViewById(R.id.lv_categories);
         lvCategories.setOnItemClickListener(new OnItemClickListener() {
-			@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 MarkName match = substringMarkNameAdapter.getMatchedMarkItem(position);
@@ -192,9 +190,10 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 
 		substringMarkNameAdapter = new CustomArrayAdapter(this, markNames);
 		lvCategories.setAdapter(substringMarkNameAdapter);
+        lvCategories.setChoiceMode(AbsListView.CHOICE_MODE_SINGLE);
 
-        if (mFAB != null)
-            mFAB.attachToListView(lvCategories);
+//        if (mFAB != null)
+//            mFAB.attachToListView(lvCategories);
 	}
 
     protected void setFABIcon(boolean restore) {
@@ -240,7 +239,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 		prefs.edit().putInt(C.PREF_MARKS_COUNT, marksCount).apply();
 	}
 
-	@Override
+    @Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.mark, menu);
 
@@ -277,14 +276,13 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
     @Override
     public boolean dispatchKeyEvent(@NonNull KeyEvent event) {
         int position;
-        boolean isVolumeControlEnabled = prefs.getBoolean(C.PREF_USE_VOL, true) && prefs.getBoolean(C.PREF_USE_CATS, false);
 
         int action = event.getAction();
         int keyCode = event.getKeyCode();
 
         switch (keyCode) {
             case KeyEvent.KEYCODE_VOLUME_UP:
-                if (isVolumeControlEnabled) {
+                if (mIsVolumeControlEnabled) {
                     if (action == KeyEvent.ACTION_DOWN) {
                         position = mSavedMarkPosition + 1;
                         break;
@@ -292,7 +290,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
                         return true;
                 }
             case KeyEvent.KEYCODE_VOLUME_DOWN:
-                if (isVolumeControlEnabled) {
+                if (mIsVolumeControlEnabled) {
                     if (action == KeyEvent.ACTION_DOWN) {
                         position = mSavedMarkPosition - 1;
                         break;
@@ -304,7 +302,13 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
         }
 
         if (substringMarkNameAdapter.hasItem(position)) {
-            saveMark(substringMarkNameAdapter.getMarkItem(position));
+            MarkName mark = substringMarkNameAdapter.getMarkItem(position);
+            position = substringMarkNameAdapter.getMatchedMarkPosition(mark);
+
+            lvCategories.setItemChecked(position, true);
+            lvCategories.setSelection(position);
+
+            saveMark(mark);
         } else
             Toast.makeText(this, R.string.mark_no_items, Toast.LENGTH_SHORT).show();
 
@@ -362,6 +366,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
         }
 
         setFABIcon(false);
+//        mFAB.show();
 
         new Handler().postDelayed(new Runnable(){
             @Override
@@ -403,7 +408,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 		private MarkName temp;
 
 		public CustomArrayAdapter(final Context ctx, final List<MarkName> objects) {
-			super(ctx, android.R.layout.simple_list_item_1, android.R.id.text1);
+			super(ctx, android.R.layout.simple_list_item_activated_1, android.R.id.text1);
 			this.objects = objects;
 			substringFilter.filter("");
 		}
@@ -425,6 +430,10 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 
         public int getMarkPosition(MarkName item) {
             return objects.indexOf(item);
+        }
+
+        public int getMatchedMarkPosition(MarkName item) {
+            return matches.indexOf(item);
         }
 
 		public MarkName getMatchedMarkItem(int position) {

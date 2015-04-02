@@ -114,6 +114,9 @@
     <string name="btn_cancel">Cancel</string>
     <string name="choose_file_dialog">Select presets file</string>
 
+    <string name="info_title_network">Network</string>
+    <string name="info_title_sensors">Sensors</string>
+
     <string name="info_na" translatable="false">n/a</string>
     <string name="info_mnc" translatable="false">"MNC: "</string>
     <string name="info_mcc" translatable="false">"MCC: "</string>

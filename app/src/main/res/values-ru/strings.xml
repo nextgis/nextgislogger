@@ -109,6 +109,9 @@
     <string name="btn_cancel">Отмена</string>
     <string name="choose_file_dialog">Выбрать файл категорий</string>
 
+    <string name="info_title_network">Мобильная сеть</string>
+    <string name="info_title_sensors">Сенсоры</string>
+
     <string name="info_lat">"Широта: "</string>
     <string name="info_lon">"Долгота: "</string>
     <string name="info_ele">"Высота: "</string>
