@@ -21,7 +21,6 @@
 package com.nextgis.logger;
 
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Rect;
@@ -31,7 +30,9 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -58,6 +59,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -67,23 +70,25 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 	private static final int MARK_SAVE = 0;
 	private static final int MARK_UNDO = 1;
 
-	private static final String BUNDLE_CELL   = "data_network";
-	private static final String BUNDLE_SENSOR = "data_sensors";
+	private static final String BUNDLE_CELL     = "data_network";
+	private static final String BUNDLE_SENSOR   = "data_sensors";
+	private static final String BUNDLE_MARK_POS = "mark_position";
 
     private static int marksCount = 0;
     private boolean mIsHot;
 
-	MenuItem searchBox;
-	ListView lvCategories;
+    private MenuItem searchBox;
+    private ListView lvCategories;
 
-	CustomArrayAdapter substringMarkNameAdapter;
+	private CustomArrayAdapter substringMarkNameAdapter;
 
 	private CellEngine gsmEngine;
 	private SensorEngine sensorEngine;
 //	private WiFiEngine wifiEngine;
 
-	SharedPreferences prefs;
+	private SharedPreferences prefs;
     static MarksHandler marksHandler;
+    private static int mSavedMarkPosition = Integer.MIN_VALUE;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -102,75 +107,15 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 		sensorEngine = new SensorEngine(this);
 //		wifiEngine = new WiFiEngine(this);
 
-		lvCategories = (ListView) findViewById(R.id.lv_categories);
-		final Activity base = this;
-
-		marksCount = prefs.getInt(C.PREF_MARKS_COUNT, 0);
-
+        marksCount = prefs.getInt(C.PREF_MARKS_COUNT, 0);
         marksHandler = new MarksHandler(this);
 
+        lvCategories = (ListView) findViewById(R.id.lv_categories);
         lvCategories.setOnItemClickListener(new OnItemClickListener() {
 			@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if (mIsHot)
-                    return;
-
-				String info = getString(R.string.mark_saved);
-				FileUtil.checkOrCreateDirectory(MainActivity.dataDirPath);
-
-                final Bundle data = new Bundle();
-
-                String markName = substringMarkNameAdapter.getItem(position);
-                String ID = substringMarkNameAdapter.getSelectedMarkNameID(markName);
-
-                if (markName.length() == 0) {	// FIXME looks like doesn't need anymore
-                    markName = C.markDefaultName;
-                }
-
-                ArrayList<CellEngine.GSMInfo> gsmInfoArray = gsmEngine.getGSMInfoArray();
-                ArrayList<String> items = new ArrayList<>();
-                String userName = prefs.getString(C.PREF_USER_NAME, C.DEFAULT_USERNAME);
-
-                for (CellEngine.GSMInfo gsmInfo : gsmInfoArray) {
-                    String active = gsmInfo.isActive() ? "1" : gsmInfoArray.get(0).getMcc() + "-" + gsmInfoArray.get(0).getMnc() + "-"
-                            + gsmInfoArray.get(0).getLac() + "-" + gsmInfoArray.get(0).getCid();
-
-                    items.add(CellEngine.getItem(gsmInfo, active, ID, markName, userName));
-                }
-
-                data.putStringArrayList(BUNDLE_CELL, items);
-                info += " (" + ++marksCount + ")";
-
-                // checking accelerometer data state
-                if (sensorEngine.isAnySensorEnabled()) {
-                    data.putString(BUNDLE_SENSOR, SensorEngine.getItem(sensorEngine, ID, markName, userName, gsmInfoArray.get(0).getTimeStamp()));
-                }
-
-                Vibrator vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-                vibe.vibrate(100);
-				Toast.makeText(base, info, Toast.LENGTH_SHORT).show();
-                mIsHot = true;
-
-                InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-
-                if (imm.isActive()) {
-                    imm.hideSoftInputFromWindow(searchBox.getActionView().getWindowToken(), 0);
-                    lvCategories.requestFocus();
-//                    searchBox.collapseActionView();
-                }
-
-                setFABIcon(false);
-
-                new Handler().postDelayed(new Runnable(){
-                    @Override
-                    public void run() {
-                        Message msg = new Message();
-                        msg.what = MARK_SAVE;
-                        msg.setData(data);
-                        marksHandler.sendMessage(msg);
-                    }
-                }, DELAY);
+                saveMark(position);
 			}
 		});
 
@@ -220,7 +165,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 
 					while ((line = in.readLine()) != null) {
 						split = line.split(",");	// FIXME dup preferences
-						markNames.add(new MarkName(split[0], split[1]));
+						markNames.add(new MarkName(Integer.parseInt(split[0]), split[1]));
 					}
 
 					in.close();
@@ -231,9 +176,18 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 					Toast.makeText(this, R.string.fs_error_msg, Toast.LENGTH_SHORT).show();
 				} catch (ArrayIndexOutOfBoundsException e) {
 					Toast.makeText(this, R.string.cat_file_error, Toast.LENGTH_SHORT).show();
+				} catch (NumberFormatException e) {
+					Toast.makeText(this, R.string.cat_id_not_int, Toast.LENGTH_SHORT).show();
 				}
 			}
 		}
+
+        Collections.sort(markNames, new Comparator<MarkName>() {
+            @Override
+            public int compare(MarkName lhs, MarkName rhs) {
+                return lhs.getID() - rhs.getID();
+            }
+        });
 
 		substringMarkNameAdapter = new CustomArrayAdapter(this, markNames);
 		lvCategories.setAdapter(substringMarkNameAdapter);
@@ -319,20 +273,121 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 		return true;
 	}
 
+    @Override
+    public boolean dispatchKeyEvent(@NonNull KeyEvent event) {
+        int position;
+        boolean isVolumeControlEnabled = prefs.getBoolean(C.PREF_USE_VOL, true);
+
+        int action = event.getAction();
+        int keyCode = event.getKeyCode();
+
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_VOLUME_UP:
+                if (isVolumeControlEnabled) {
+                    if (action == KeyEvent.ACTION_DOWN) {
+                        position = mSavedMarkPosition + 1;
+                        break;
+                    } else
+                        return true;
+                }
+            case KeyEvent.KEYCODE_VOLUME_DOWN:
+                if (isVolumeControlEnabled) {
+                    if (action == KeyEvent.ACTION_DOWN) {
+                        position = mSavedMarkPosition - 1;
+                        break;
+                    } else
+                        return true;
+                }
+            default:
+                return super.dispatchKeyEvent(event);
+        }
+
+        if (substringMarkNameAdapter.hasItem(position)) {
+            saveMark(position);
+        } else
+            Toast.makeText(this, R.string.mark_no_items, Toast.LENGTH_SHORT).show();
+
+        return true;
+    }
+
+    private void saveMark(int markPosition) {
+        if (mIsHot)
+            return;
+
+        FileUtil.checkOrCreateDirectory(MainActivity.dataDirPath);
+
+        final Bundle data = new Bundle();
+
+        data.putInt(BUNDLE_MARK_POS, markPosition);
+        MarkName mark = substringMarkNameAdapter.getMarkItem(markPosition);
+        String markName = mark.getCAT();
+        String ID = mark.getID() + "";
+
+        if (markName.length() == 0) {	// FIXME looks like doesn't need anymore
+            markName = C.markDefaultName;
+        }
+
+        String info = String.format(getString(R.string.mark_saved), markName);
+
+        ArrayList<CellEngine.GSMInfo> gsmInfoArray = gsmEngine.getGSMInfoArray();
+        ArrayList<String> items = new ArrayList<>();
+        String userName = prefs.getString(C.PREF_USER_NAME, C.DEFAULT_USERNAME);
+
+        for (CellEngine.GSMInfo gsmInfo : gsmInfoArray) {
+            String active = gsmInfo.isActive() ? "1" : gsmInfoArray.get(0).getMcc() + "-" + gsmInfoArray.get(0).getMnc() + "-"
+                    + gsmInfoArray.get(0).getLac() + "-" + gsmInfoArray.get(0).getCid();
+
+            items.add(CellEngine.getItem(gsmInfo, active, ID, markName, userName));
+        }
+
+        data.putStringArrayList(BUNDLE_CELL, items);
+        info += " (" + ++marksCount + ")";
+
+        // checking sensors state
+        if (sensorEngine.isAnySensorEnabled()) {
+            data.putString(BUNDLE_SENSOR, SensorEngine.getItem(sensorEngine, ID, markName, userName, gsmInfoArray.get(0).getTimeStamp()));
+        }
+
+        Vibrator vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        vibe.vibrate(100);
+        Toast.makeText(this, info, Toast.LENGTH_SHORT).show();
+        mIsHot = true;
+
+        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+
+        if (imm.isActive()) {
+            imm.hideSoftInputFromWindow(searchBox.getActionView().getWindowToken(), 0);
+            lvCategories.requestFocus();
+//                    searchBox.collapseActionView();
+        }
+
+        setFABIcon(false);
+
+        new Handler().postDelayed(new Runnable(){
+            @Override
+            public void run() {
+                Message msg = new Message();
+                msg.what = MARK_SAVE;
+                msg.setData(data);
+                marksHandler.sendMessage(msg);
+            }
+        }, DELAY);
+    }
+
     protected void setIsHot(boolean isHot) {
         mIsHot = isHot;
     }
 
     public class MarkName {
-		private String ID = "";
+		private int ID = -1;
 		private String CAT = "Mark";
 
-		public MarkName(String ID, String CAT) {
+		public MarkName(int ID, String CAT) {
 			this.ID = ID;
 			this.CAT = CAT;
 		}
 
-		public String getID() {
+		public int getID() {
 			return ID;
 		}
 
@@ -368,21 +423,18 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 			return matches.get(position).getCAT();
 		}
 
+		public MarkName getMarkItem(int position) {
+			return matches.get(position);
+		}
+
 		@Override
 		public View getView(int position, View convertView, ViewGroup parent) {
 			return super.getView(position, convertView, parent);
 		}
 
-		public String getSelectedMarkNameID(String prefix) {
-			for (MarkName item : objects) {
-				String CAT = substringFilter.getUpperString(item.getCAT());
-
-				if (CAT.equals(substringFilter.getUpperString(prefix)))
-					return item.getID();
-			}
-
-			return "";
-		}
+        public boolean hasItem(int position) {
+            return position >= 0 && position < objects.size();
+        }
 
 		private class CustomFilter extends Filter {
 			@Override
@@ -404,7 +456,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 					results.values = resultList;
 
 					if (resultList.size() != 1 && !prefix.equals("")) {
-						temp = new MarkName("", prefix.toString());
+						temp = new MarkName(-1, prefix.toString());
 						results.count++;
 //						resultList.add(temp);
 					}
@@ -456,6 +508,8 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 
                             if (!TextUtils.isEmpty(sensorItem))
                                 FileUtil.saveItemToLog(C.LOG_TYPE_SENSORS, true, sensorItem);
+
+                            mSavedMarkPosition = msg.getData().getInt(BUNDLE_MARK_POS);
                         } catch (FileNotFoundException e) {
                             e.printStackTrace();
                         }

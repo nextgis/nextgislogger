@@ -60,6 +60,7 @@ public class C {
 	public static final String PREF_USE_API17 = "use_api17";
 	public static final String PREF_USE_CATS = "use_cats";
 	public static final String PREF_CAT_PATH = "cat_path";
+	public static final String PREF_USE_VOL = "use_volume_buttons";
 	public static final String PREF_USER_NAME = "user_name";
 	public static final String PREF_SESSION_NAME = "session_name";
 	public static final String PREF_MARKS_COUNT = "marks_count";

@@ -50,6 +50,8 @@
     <string name="settings_cats">Use categories file</string>
     <string name="settings_cats_sum">Mark name presets for text field</string>
     <string name="settings_cat_path">Load mark name presets from file…</string>
+    <string name="settings_mark_vol">Use vol +/- buttons</string>
+    <string name="settings_mark_vol_sum">Save next/previous mark</string>
     <string name="settings_user_name">Identification string (optional)</string>
     <string name="settings_keep_screen">Keep screen on</string>
     <string name="settings_keep_screen_sum">Screen does not turn off automatically at Markers screen</string>
@@ -98,13 +100,15 @@
 
     <string name="cat_file_structure_error">Wrong categories file structure</string>
     <string name="cat_file_error">No categories, please reload presets</string>
+    <string name="cat_id_not_int">ID column must be integer in presets file</string>
     <string name="error_no_file">No file selected</string>
     <string name="file_loaded">"Loaded from "</string>
 
     <string name="menu_search">Markers</string>
     <string name="mark_editor_hint">Enter Name of Mark</string>
-    <string name="mark_saved">Mark saved</string>
+    <string name="mark_saved">Mark %s saved</string>
     <string name="mark_undo">Last mark deleted</string>
+    <string name="mark_no_items">No more items</string>
 
     <string name="btn_ok">OK</string>
     <string name="btn_cancel">Cancel</string>

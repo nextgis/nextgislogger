@@ -19,71 +19,77 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-    android:title="@string/app_settings" >
+                  android:title="@string/app_settings">
 
-    <PreferenceCategory android:title="@string/settings_main" >
+    <PreferenceCategory android:title="@string/settings_main">
         <EditTextPreference
             android:defaultValue="User1"
             android:key="user_name"
-            android:title="@string/settings_user_name" />
+            android:title="@string/settings_user_name"/>
 
         <com.nextgis.logger.UI.IntEditTextPreference
             android:defaultValue="1"
             android:inputType="number"
             android:key="period_sec"
             android:numeric="integer"
-            android:title="@string/settings_period" />
+            android:title="@string/settings_period"/>
 
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="use_cats"
             android:summary="@string/settings_cats_sum"
-            android:title="@string/settings_cats" />
+            android:title="@string/settings_cats"/>
 
         <Preference
             android:dependency="use_cats"
             android:key="cat_path"
-            android:title="@string/settings_cat_path" />
+            android:title="@string/settings_cat_path"/>
+
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="use_volume_buttons"
+            android:summary="@string/settings_mark_vol_sum"
+            android:title="@string/settings_mark_vol"/>
 
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="use_api17"
             android:summary="@string/settings_cells_api17_sum"
-            android:title="@string/settings_cells_api17" />
+            android:title="@string/settings_cells_api17"/>
 
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="keep_screen"
             android:summary="@string/settings_keep_screen_sum"
-            android:title="@string/settings_keep_screen" />
+            android:title="@string/settings_keep_screen"/>
     </PreferenceCategory>
-    <PreferenceCategory android:title="@string/settings_sensors" >
+    <PreferenceCategory android:title="@string/settings_sensors">
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="gps"
-            android:title="@string/gps" />
+            android:title="@string/gps"/>
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="sensor_state"
-            android:title="@string/sensor_accelerometer" />
+            android:title="@string/sensor_accelerometer"/>
         <CheckBoxPreference
             android:defaultValue="false"
             android:dependency="sensor_state"
             android:key="sensor_mode"
             android:summary="@string/settings_sensor_mode_sum"
-            android:title="@string/sensor_linear" />
+            android:title="@string/sensor_linear"/>
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="sensor_magnetic_state"
-            android:title="@string/sensor_magnetic" />
+            android:title="@string/sensor_magnetic"/>
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="sensor_orientation_state"
-            android:title="@string/sensor_orientation" />
+            android:title="@string/sensor_orientation"/>
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="sensor_gyroscope_state"
-            android:title="@string/sensor_gyroscope" />
+            android:title="@string/sensor_gyroscope"/>
     </PreferenceCategory>
 
 </PreferenceScreen>
