@@ -1,4 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ ******************************************************************************
+  ~ Project: NextGIS Logger
+  ~ Purpose: Productive data logger for Android
+  ~ Author:  Nikita Kirin
+  ~ Author:  Stanislav Petriakov, becomeglory@gmail.com
+  ~ ******************************************************************************
+  ~ Copyright © 2014-2015 NextGIS
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 2 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  ~ ******************************************************************************
+  -->
+
 <resources>
     <string name="app_settings">Настройки</string>
     <string name="app_about">О программе</string>
@@ -21,6 +45,8 @@
     <string name="settings_cats">Использовать файлы категорий</string>
     <string name="settings_cats_sum">Предзаданные имена меток из файла</string>
     <string name="settings_cat_path">Загрузить имена из файла…</string>
+    <string name="settings_mark_vol">Использовать кнопки громкости +/-</string>
+    <string name="settings_mark_vol_sum">Cохранение следующей/предыдущей метки</string>
     <string name="settings_user_name">Строка идентификации (дополн.)</string>
     <string name="settings_keep_screen">Не отключать экран</string>
     <string name="settings_keep_screen_sum">Экран в окне Метки не отключается автоматически</string>
@@ -69,15 +95,35 @@
 
     <string name="cat_file_structure_error">Неверная структура файла категорий</string>
     <string name="cat_file_error">Нет категорий, перезагрузите файл</string>
+    <string name="cat_id_not_int">Столбец ID должен быть целочисленным в файле категорий</string>
     <string name="error_no_file">Файл не выбран</string>
     <string name="file_loaded">"Загружено из "</string>
     
     <string name="menu_search">Метки</string>
     <string name="mark_editor_hint">Имя метки</string>
-    <string name="mark_saved">Метка сохранена</string>
+    <string name="mark_saved">Метка %s сохранена</string>
     <string name="mark_undo">Последняя метка удалена</string>
+    <string name="mark_no_items">Больше нет меток</string>
     
     <string name="btn_ok">OK</string>
     <string name="btn_cancel">Отмена</string>
     <string name="choose_file_dialog">Выбрать файл категорий</string>
+
+    <string name="info_lat">"Широта: "</string>
+    <string name="info_lon">"Долгота: "</string>
+    <string name="info_ele">"Высота: "</string>
+    <string name="info_acc">"Точность: "</string>
+    <string name="info_speed">"Скорость: "</string>
+    <string name="info_sat">"Спутники: "</string>
+    <string name="info_time">"Время местоположения: "</string>
+    <string name="info_no_fix">Нет данных о последнем местоположении</string>
+
+    <string name="info_ms2">м/с&lt;sup&gt;&lt;small&gt;2&lt;/small&gt;&lt;/sup&gt;</string>
+    <string name="info_kmh">км/ч</string>
+    <string name="info_meter">м</string>
+    <string name="info_rads">рад/с</string>
+
+    <string name="info_neighbours">"Соседние вышки: "</string>
+    <string name="info_expand">раскрыть</string>
+    <string name="info_collapse">свернуть</string>
 </resources>
