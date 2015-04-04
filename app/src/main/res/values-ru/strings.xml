@@ -118,7 +118,7 @@
     <string name="info_acc">"Точность: "</string>
     <string name="info_speed">"Скорость: "</string>
     <string name="info_sat">"Спутники: "</string>
-    <string name="info_time">"Время местоположения: "</string>
+    <string name="info_time">"Локальное время: "</string>
     <string name="info_no_fix">Нет данных о последнем местоположении</string>
 
     <string name="info_ms2">м/с&lt;sup&gt;&lt;small&gt;2&lt;/small&gt;&lt;/sup&gt;</string>

@@ -171,9 +171,12 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/tv_accelerometer_title"
                 style="@style/tv_info_large"
                 android:text="@string/sensor_accelerometer"/>
+
+            <TextView
+                android:id="@+id/tv_accelerometer_title"
+                style="@style/tv_info"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -233,9 +236,12 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/tv_magnetometer_title"
                 style="@style/tv_info_large"
                 android:text="@string/sensor_magnetic"/>
+
+            <TextView
+                android:id="@+id/tv_magnetometer_title"
+                style="@style/tv_info"/>
 
             <TextView
                 android:id="@+id/tv_magnetic"
@@ -255,9 +261,12 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/tv_orient_title"
                 style="@style/tv_info_large"
                 android:text="@string/sensor_orientation"/>
+
+            <TextView
+                android:id="@+id/tv_orient_title"
+                style="@style/tv_info"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -317,9 +326,12 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/tv_gyroscope_title"
                 style="@style/tv_info_large"
                 android:text="@string/sensor_gyroscope"/>
+
+            <TextView
+                android:id="@+id/tv_gyroscope_title"
+                style="@style/tv_info"/>
 
             <LinearLayout
                 android:layout_width="match_parent"

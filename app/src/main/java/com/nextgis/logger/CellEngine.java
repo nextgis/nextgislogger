@@ -73,14 +73,14 @@ public class CellEngine {
 	}
 
 	public void onResume() {
-		mTelephonyManager.listen(mSignalListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
+        int listen = PhoneStateListener.LISTEN_SIGNAL_STRENGTHS;
 
         if (mCellListeners.size() > 0) {
-            mTelephonyManager.listen(mSignalListener, PhoneStateListener.LISTEN_CELL_LOCATION);
-            mTelephonyManager.listen(mSignalListener, PhoneStateListener.LISTEN_DATA_CONNECTION_STATE);
-            mTelephonyManager.listen(mSignalListener, PhoneStateListener.LISTEN_SERVICE_STATE);
+            listen |= PhoneStateListener.LISTEN_CELL_LOCATION | PhoneStateListener.LISTEN_DATA_CONNECTION_STATE | PhoneStateListener.LISTEN_SERVICE_STATE;
         }
-	}
+
+        mTelephonyManager.listen(mSignalListener, listen);
+    }
 
 	public void onPause() {
 		mTelephonyManager.listen(mSignalListener, PhoneStateListener.LISTEN_NONE);
@@ -183,6 +183,7 @@ public class CellEngine {
 
 		long timeStamp = System.currentTimeMillis();
 		boolean useAPI17 = PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean(C.PREF_USE_API17, false); // WCDMA uses API 18+, now min is 18
+        boolean isRegistered = false;
 
 		// #2 using API 17 to get all cell towers around, including one which phone registered to
 		if (osVersion >= api17 && useAPI17) {
@@ -196,6 +197,7 @@ public class CellEngine {
 						CellInfoGsm gsm = (CellInfoGsm) cell;
 						CellIdentityGsm gsmIdentity = gsm.getCellIdentity();
 
+                        isRegistered |= gsm.isRegistered();
 						gsmInfoArray.add(new GSMInfo(timeStamp, gsm.isRegistered(), nwType, gsmIdentity.getMcc(), gsmIdentity.getMnc(), gsmIdentity.getLac(),
 								gsmIdentity.getCid(), C.UNDEFINED, gsm.getCellSignalStrength().getDbm()));
 
@@ -204,6 +206,7 @@ public class CellEngine {
 						CellInfoWcdma wcdma = (CellInfoWcdma) cell;
 						CellIdentityWcdma wcdmaIdentity = wcdma.getCellIdentity();
 
+                        isRegistered |= wcdma.isRegistered();
 						gsmInfoArray.add(new GSMInfo(timeStamp, wcdma.isRegistered(), nwType, wcdmaIdentity.getMcc(), wcdmaIdentity.getMnc(), wcdmaIdentity
 								.getLac(), wcdmaIdentity.getCid(), wcdmaIdentity.getPsc(), wcdma.getCellSignalStrength().getDbm()));
 					}
@@ -236,6 +239,7 @@ public class CellEngine {
 				}
 
 				if (gsmCellLocation != null) {
+                    isRegistered = true;
 					gsmInfoArray.add(new GSMInfo(timeStamp, true, mTelephonyManager.getNetworkType(), mcc, mnc, gsmCellLocation.getLac(), gsmCellLocation
 							.getCid(), gsmCellLocation.getPsc(), signalStrength));
 				}
@@ -253,7 +257,7 @@ public class CellEngine {
 			}
 		}
 
-		if (gsmInfoArray.size() == 0) { // add default record if there is no items in array /-1
+		if (gsmInfoArray.size() == 0 || !isRegistered) { // add default record if there is no items in array /-1
 			gsmInfoArray.add(new GSMInfo(timeStamp));
 		}
 
