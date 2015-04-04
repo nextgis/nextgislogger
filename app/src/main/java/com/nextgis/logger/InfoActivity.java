@@ -56,7 +56,7 @@ public class InfoActivity extends ProgressBarActivity {
         vpScreens.setCurrentItem(mPreferences.getInt(PREF_LAST_VISITED, 0));
 
         mFAB.setOnClickListener(this);
-        mFAB.setImageResource(R.drawable.ic_undo_white_24dp);
+        mFAB.setImageResource(R.drawable.ic_arrow_back_white_24dp);
     }
 
     @Override
