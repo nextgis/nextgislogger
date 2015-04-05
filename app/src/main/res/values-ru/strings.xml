@@ -27,6 +27,7 @@
     <string name="app_settings">Настройки</string>
     <string name="app_about">О программе</string>
     <string name="title_activity_sessions">Сессии</string>
+    <string name="title_activity_info">Данные в реальном времени</string>
     
     <string name="about_info">Эта программа собирает текущие данные о БС и с датчиков устройства (акселерометр, гироскоп, и т.д.) постоянно и в определенные моменты (метки).</string>
     <string name="about_more">Подробнее:</string>
