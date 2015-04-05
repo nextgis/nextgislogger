@@ -165,12 +165,14 @@ public class InfoSensorsFragment extends Fragment implements SensorEngine.Sensor
 
     @Override
     public void onSensorInfoChanged() {
-        fillSensorsTextViews();
+        if (isAdded())
+            fillSensorsTextViews();
     }
 
     @Override
     public void onGPSInfoChanged() {
-        fillGPSTextViews();
+        if (isAdded())
+            fillGPSTextViews();
     }
 
     @Override

@@ -144,7 +144,8 @@ public class InfoCellFragment extends Fragment implements CellEngine.CellInfoLis
 
     @Override
     public void onCellInfoChanged() {
-        fillTextViews();
+        if (isAdded())
+            fillTextViews();
     }
 
     private class CellsAdapter extends SimpleAdapter {

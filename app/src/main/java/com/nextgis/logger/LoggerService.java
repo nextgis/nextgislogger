@@ -76,6 +76,7 @@ public class LoggerService extends Service {
 		interval = prefs.getInt(C.PREF_PERIOD_SEC, interval);
 
 		sensorEngine = new SensorEngine(this);
+        sensorEngine.onResume();
         notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 	}
 

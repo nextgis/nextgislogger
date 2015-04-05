@@ -20,9 +20,6 @@
  *****************************************************************************/
 package com.nextgis.logger;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.hardware.Sensor;
@@ -31,6 +28,9 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.preference.PreferenceManager;
 import android.widget.Toast;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SensorEngine implements SensorEventListener {
 	private float x, y, z, gyroX, gyroY, gyroZ, magnetic, azimuth, pitch, roll;
@@ -61,7 +61,7 @@ public class SensorEngine implements SensorEventListener {
 		sm = (SensorManager) ctx.getSystemService(Context.SENSOR_SERVICE);
         gpsEngine = new GPSEngine(ctx);
 		prefs = PreferenceManager.getDefaultSharedPreferences(ctx);
-		onResume();
+//		onResume();
 	}
 
     public void addSensorListener(SensorInfoListener listener) {

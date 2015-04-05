@@ -284,7 +284,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
             case KeyEvent.KEYCODE_VOLUME_UP:
                 if (mIsVolumeControlEnabled) {
                     if (action == KeyEvent.ACTION_DOWN) {
-                        position = mSavedMarkPosition + 1;
+                        position = mSavedMarkPosition - 1;
                         break;
                     } else
                         return true;
@@ -292,7 +292,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
             case KeyEvent.KEYCODE_VOLUME_DOWN:
                 if (mIsVolumeControlEnabled) {
                     if (action == KeyEvent.ACTION_DOWN) {
-                        position = mSavedMarkPosition - 1;
+                        position = mSavedMarkPosition + 1;
                         break;
                     } else
                         return true;

@@ -48,7 +48,7 @@ public class GPSEngine implements LocationListener {
         mContext = context;
         mGPSListeners = new ArrayList<>();
         mLocationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-        onResume();
+//        onResume();
     }
 
     public void addGPSListener(GPSInfoListener listener) {
