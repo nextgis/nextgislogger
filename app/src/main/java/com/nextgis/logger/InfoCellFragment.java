@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 
 public class InfoCellFragment extends Fragment implements CellEngine.CellInfoListener {
+    private static final String CELL_ID         = "id";
     private static final String CELL_ACTIVE     = "active";
     private static final String CELL_GEN        = "generation";
     private static final String CELL_TYPE       = "type";
@@ -107,6 +108,7 @@ public class InfoCellFragment extends Fragment implements CellEngine.CellInfoLis
             }
         });
 
+        int id = 1;
         for (CellEngine.GSMInfo gsmItem : gsmInfoArray) {
             String gen, type, mnc, mcc, lac, cid, psc, power;
 
@@ -122,6 +124,10 @@ public class InfoCellFragment extends Fragment implements CellEngine.CellInfoLis
             power = "" + gsmItem.getRssi() + " dBm";
 
             itemData = new HashMap<>();
+
+            if (!gsmItem.isActive())
+                itemData.put(CELL_ID, String.format("%s)", id++));
+
             itemData.put(CELL_ACTIVE, gsmItem.isActive());
             itemData.put(CELL_GEN, gen);
             itemData.put(CELL_TYPE, type);
@@ -134,8 +140,8 @@ public class InfoCellFragment extends Fragment implements CellEngine.CellInfoLis
             neighboursData.add(itemData);
         }
 
-        String[] from = { CELL_GEN, CELL_TYPE, CELL_MCC, CELL_MNC, CELL_LAC, CELL_CID, CELL_PSC, CELL_POWER };
-        int[] to = {R.id.tv_network_gen, R.id.tv_network_type, R.id.tv_network_mcc, R.id.tv_network_mnc,
+        String[] from = { CELL_ID, CELL_GEN, CELL_TYPE, CELL_MCC, CELL_MNC, CELL_LAC, CELL_CID, CELL_PSC, CELL_POWER };
+        int[] to = {R.id.tv_id, R.id.tv_network_gen, R.id.tv_network_type, R.id.tv_network_mcc, R.id.tv_network_mnc,
                 R.id.tv_network_lac, R.id.tv_network_cid, R.id.tv_network_psc, R.id.tv_network_power};
         CellsAdapter saNeighbours = new CellsAdapter(getActivity(), neighboursData, R.layout.info_cell_neighbour_row, from, to);
 
