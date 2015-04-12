@@ -51,7 +51,7 @@
 
             <TextView
                 android:id="@+id/tv_gps_no_fix"
-                style="@style/tv_info_row_small"
+                style="@style/tv_info_small"
                 android:layout_width="wrap_content"
                 android:gravity="center"
                 android:text="@string/info_no_fix"
@@ -69,15 +69,15 @@
                     android:orientation="horizontal">
 
                     <TextView
-                        style="@style/tv_info_row_small"
+                        style="@style/tv_info_small"
                         android:text="@string/info_lat"/>
 
                     <TextView
-                        style="@style/tv_info_row_small"
+                        style="@style/tv_info_small"
                         android:text="@string/info_lon"/>
 
                     <TextView
-                        style="@style/tv_info_row_small"
+                        style="@style/tv_info_small"
                         android:text="@string/info_ele"/>
 
                 </LinearLayout>
@@ -89,15 +89,15 @@
 
                     <TextView
                         android:id="@+id/tv_gps_lat"
-                        style="@style/tv_info_row_small"/>
+                        style="@style/tv_info_small"/>
 
                     <TextView
                         android:id="@+id/tv_gps_lon"
-                        style="@style/tv_info_row_small"/>
+                        style="@style/tv_info_small"/>
 
                     <TextView
                         android:id="@+id/tv_gps_ele"
-                        style="@style/tv_info_row_small"/>
+                        style="@style/tv_info_small"/>
                 </LinearLayout>
 
 
@@ -107,15 +107,15 @@
                     android:orientation="horizontal">
 
                     <TextView
-                        style="@style/tv_info_row_small"
+                        style="@style/tv_info_small"
                         android:text="@string/info_acc"/>
 
                     <TextView
-                        style="@style/tv_info_row_small"
+                        style="@style/tv_info_small"
                         android:text="@string/info_speed"/>
 
                     <TextView
-                        style="@style/tv_info_row_small"
+                        style="@style/tv_info_small"
                         android:text="@string/info_sat"/>
 
                 </LinearLayout>
@@ -127,15 +127,15 @@
 
                     <TextView
                         android:id="@+id/tv_gps_acc"
-                        style="@style/tv_info_row_small"/>
+                        style="@style/tv_info_small"/>
 
                     <TextView
                         android:id="@+id/tv_gps_speed"
-                        style="@style/tv_info_row_small"/>
+                        style="@style/tv_info_small"/>
 
                     <TextView
                         android:id="@+id/tv_gps_sat"
-                        style="@style/tv_info_row_small"/>
+                        style="@style/tv_info_small"/>
                 </LinearLayout>
 
                 <LinearLayout
@@ -144,14 +144,14 @@
                     android:orientation="horizontal">
 
                     <TextView
-                        style="@style/tv_info_row_small"
+                        style="@style/tv_info_small"
                         android:layout_width="wrap_content"
                         android:gravity="end"
                         android:text="@string/info_time"/>
 
                     <TextView
                         android:id="@+id/tv_gps_time"
-                        style="@style/tv_info_row_small"
+                        style="@style/tv_info_small"
                         android:layout_width="wrap_content"
                         android:gravity="start"/>
                 </LinearLayout>
@@ -189,15 +189,15 @@
                     android:orientation="horizontal">
 
                     <TextView
-                        style="@style/tv_info_row_small"
+                        style="@style/tv_info_small"
                         android:text="@string/info_x"/>
 
                     <TextView
-                        style="@style/tv_info_row_small"
+                        style="@style/tv_info_small"
                         android:text="@string/info_y"/>
 
                     <TextView
-                        style="@style/tv_info_row_small"
+                        style="@style/tv_info_small"
                         android:text="@string/info_z"/>
 
                 </LinearLayout>
@@ -210,15 +210,15 @@
 
                     <TextView
                         android:id="@+id/tv_accelerometer_x"
-                        style="@style/tv_info_row_small"/>
+                        style="@style/tv_info_small"/>
 
                     <TextView
                         android:id="@+id/tv_accelerometer_y"
-                        style="@style/tv_info_row_small"/>
+                        style="@style/tv_info_small"/>
 
                     <TextView
                         android:id="@+id/tv_accelerometer_z"
-                        style="@style/tv_info_row_small"/>
+                        style="@style/tv_info_small"/>
                 </LinearLayout>
 
             </LinearLayout>
@@ -245,7 +245,7 @@
 
             <TextView
                 android:id="@+id/tv_magnetic"
-                style="@style/tv_info_row_small"
+                style="@style/tv_info_small"
                 android:layout_width="wrap_content"/>
 
             <include layout="@layout/divider"/>
@@ -279,15 +279,15 @@
                     android:orientation="horizontal">
 
                     <TextView
-                        style="@style/tv_info_row_small"
+                        style="@style/tv_info_small"
                         android:text="@string/info_azimuth"/>
 
                     <TextView
-                        style="@style/tv_info_row_small"
+                        style="@style/tv_info_small"
                         android:text="@string/info_pitch"/>
 
                     <TextView
-                        style="@style/tv_info_row_small"
+                        style="@style/tv_info_small"
                         android:text="@string/info_roll"/>
 
                 </LinearLayout>
@@ -300,15 +300,15 @@
 
                     <TextView
                         android:id="@+id/tv_orient_azimuth"
-                        style="@style/tv_info_row_small"/>
+                        style="@style/tv_info_small"/>
 
                     <TextView
                         android:id="@+id/tv_orient_pitch"
-                        style="@style/tv_info_row_small"/>
+                        style="@style/tv_info_small"/>
 
                     <TextView
                         android:id="@+id/tv_orient_roll"
-                        style="@style/tv_info_row_small"/>
+                        style="@style/tv_info_small"/>
                 </LinearLayout>
 
             </LinearLayout>
@@ -344,15 +344,15 @@
                     android:orientation="horizontal">
 
                     <TextView
-                        style="@style/tv_info_row_small"
+                        style="@style/tv_info_small"
                         android:text="@string/info_x"/>
 
                     <TextView
-                        style="@style/tv_info_row_small"
+                        style="@style/tv_info_small"
                         android:text="@string/info_y"/>
 
                     <TextView
-                        style="@style/tv_info_row_small"
+                        style="@style/tv_info_small"
                         android:text="@string/info_z"/>
 
                 </LinearLayout>
@@ -365,15 +365,15 @@
 
                     <TextView
                         android:id="@+id/tv_gyroscope_x"
-                        style="@style/tv_info_row_small"/>
+                        style="@style/tv_info_small"/>
 
                     <TextView
                         android:id="@+id/tv_gyroscope_y"
-                        style="@style/tv_info_row_small"/>
+                        style="@style/tv_info_small"/>
 
                     <TextView
                         android:id="@+id/tv_gyroscope_z"
-                        style="@style/tv_info_row_small"/>
+                        style="@style/tv_info_small"/>
                 </LinearLayout>
 
             </LinearLayout>
