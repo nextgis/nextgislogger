@@ -176,6 +176,7 @@ public class SensorEngine implements SensorEventListener {
 				x = event.values[0];
 				y = event.values[1];
 				z = event.values[2];
+                notifySensorListeners();
 			}
 		}
 
@@ -185,6 +186,7 @@ public class SensorEngine implements SensorEventListener {
 				azimuth = event.values[0];
 				pitch = event.values[1];
 				roll = event.values[2];
+                notifySensorListeners();
 			}
 		}
 		
@@ -192,6 +194,7 @@ public class SensorEngine implements SensorEventListener {
 			if ((curTime - lastUpdateMag) > updateFrequency) {
 				lastUpdateMag = curTime;
 				magnetic = event.values[0];
+                notifySensorListeners();
 			}
 		}
 		
@@ -201,10 +204,9 @@ public class SensorEngine implements SensorEventListener {
 				gyroX = event.values[0];
 				gyroY = event.values[1];
 				gyroZ = event.values[2];
+                notifySensorListeners();
 			}
 		}
-
-        notifySensorListeners();
 	}
 
 	public float getX() {

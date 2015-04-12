@@ -37,7 +37,7 @@ import android.widget.TextView;
 import java.text.DateFormat;
 import java.util.Date;
 
-public class InfoSensorsFragment extends Fragment implements SensorEngine.SensorInfoListener, GPSEngine.GPSInfoListener {
+public class InfoSensorsFragment extends Fragment implements GPSEngine.GPSInfoListener {
     private SensorEngine mSensorEngine;
     private GPSEngine mGPSEngine;
 
@@ -56,7 +56,15 @@ public class InfoSensorsFragment extends Fragment implements SensorEngine.Sensor
         View rootView = inflater.inflate(R.layout.info_sensors_fragment, container, false);
 
         mSensorEngine = new SensorEngine(getActivity());
-        mSensorEngine.addSensorListener(this);
+//        mSensorEngine.addSensorListener(this);
+        mSensorEngine.addSensorListener(new SensorEngine.SensorInfoListener() {
+            @Override
+            public void onSensorInfoChanged() {
+                if (isAdded())
+                    fillSensorsTextViews();
+            }
+        });
+
         mGPSEngine = mSensorEngine.getGpsEngine();
         mGPSEngine.addGPSListener(this);
 
@@ -161,12 +169,6 @@ public class InfoSensorsFragment extends Fragment implements SensorEngine.Sensor
         }
 
         return Html.fromHtml(formatted);
-    }
-
-    @Override
-    public void onSensorInfoChanged() {
-        if (isAdded())
-            fillSensorsTextViews();
     }
 
     @Override
