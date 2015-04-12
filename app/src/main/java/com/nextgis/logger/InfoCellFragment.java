@@ -181,46 +181,69 @@ public class InfoCellFragment extends Fragment implements CellEngine.CellInfoLis
         @SuppressWarnings("unchecked")
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
+            View result;
+            Map<String, ?> item = (Map<String, ?>) getItem(position);
+
             if (position == 0) {
-                Map<String, ?> item = (Map<String, ?>) getItem(0);
                 boolean isActive = (Boolean) item.get(CELL_ACTIVE);
 
                 if (!isActive)
-                    return super.getView(position, null, parent);
+                    result = super.getView(position, null, parent);
+                else {
+                    View v = mInflater.inflate(R.layout.info_cell_active_row, parent, false);
 
-                View v = mInflater.inflate(R.layout.info_cell_active_row, parent, false);
+                    tvGen = (TextView) v.findViewById(R.id.tv_network_gen);
+                    tvType = (TextView) v.findViewById(R.id.tv_network_type);
+                    tvOperator = (TextView) v.findViewById(R.id.tv_network_operator);
+                    tvMCC = (TextView) v.findViewById(R.id.tv_network_mcc);
+                    tvMNC = (TextView) v.findViewById(R.id.tv_network_mnc);
+                    tvLAC = (TextView) v.findViewById(R.id.tv_network_lac);
+                    tvCID = (TextView) v.findViewById(R.id.tv_network_cid);
+                    tvPSC = (TextView) v.findViewById(R.id.tv_network_psc);
+                    tvPower = (TextView) v.findViewById(R.id.tv_network_power);
+                    tvNeighbours = (TextView) v.findViewById(R.id.tv_network_neighbours);
 
-                tvGen = (TextView) v.findViewById(R.id.tv_network_gen);
-                tvType = (TextView) v.findViewById(R.id.tv_network_type);
-                tvOperator = (TextView) v.findViewById(R.id.tv_network_operator);
-                tvMCC = (TextView) v.findViewById(R.id.tv_network_mcc);
-                tvMNC = (TextView) v.findViewById(R.id.tv_network_mnc);
-                tvLAC = (TextView) v.findViewById(R.id.tv_network_lac);
-                tvCID = (TextView) v.findViewById(R.id.tv_network_cid);
-                tvPSC = (TextView) v.findViewById(R.id.tv_network_psc);
-                tvPower = (TextView) v.findViewById(R.id.tv_network_power);
-                tvNeighbours = (TextView) v.findViewById(R.id.tv_network_neighbours);
+                    tvOperator.setText(gsmEngine.getNetworkOperator());
+                    tvGen.setText((String) item.get(CELL_GEN));
+                    tvType.setText((String) item.get(CELL_TYPE));
+                    tvMCC.setText((String) item.get(CELL_MCC));
+                    tvMNC.setText((String) item.get(CELL_MNC));
+                    tvLAC.setText((String) item.get(CELL_LAC));
+                    tvCID.setText((String) item.get(CELL_CID));
+                    tvPSC.setText((String) item.get(CELL_PSC));
+                    tvPower.setText((String) item.get(CELL_POWER));
 
-                tvOperator.setText(gsmEngine.getNetworkOperator());
-                tvGen.setText((String) item.get(CELL_GEN));
-                tvType.setText((String) item.get(CELL_TYPE));
-                tvMCC.setText((String) item.get(CELL_MCC));
-                tvMNC.setText((String) item.get(CELL_MNC));
-                tvLAC.setText((String) item.get(CELL_LAC));
-                tvCID.setText((String) item.get(CELL_CID));
-                tvPSC.setText((String) item.get(CELL_PSC));
-                tvPower.setText((String) item.get(CELL_POWER));
+                    int neighbours = getCount() - 1;
+                    tvNeighbours.setText("" + neighbours);
 
-                int neighbours = getCount() - 1;
-                tvNeighbours.setText("" + neighbours);
+                    if ((item.get(CELL_GEN)).equals("2G"))
+                        v.findViewById(R.id.ll_psc).setVisibility(View.GONE);
+                    else
+                        v.findViewById(R.id.ll_psc).setVisibility(View.VISIBLE);
 
-                return v;
+                    result = v;
+                }
             } else {
                 if (convertView != null && convertView.findViewById(R.id.tv_network_neighbours) != null)
                     convertView = null;
 
-                return super.getView(position, convertView, parent);
+                result = super.getView(position, convertView, parent);
             }
+
+            TextView psc = (TextView) result.findViewById(R.id.tv_network_psc);
+            TextView psc_title = (TextView) result.findViewById(R.id.tv_network_psc_title);
+
+            if (psc != null && psc_title != null) {
+                if ((item.get(CELL_GEN)).equals("2G")) {
+                    psc.setVisibility(View.INVISIBLE);
+                    psc_title.setVisibility(View.INVISIBLE);
+                } else {
+                    psc.setVisibility(View.VISIBLE);
+                    psc_title.setVisibility(View.VISIBLE);
+                }
+            }
+
+            return result;
         }
     }
 }

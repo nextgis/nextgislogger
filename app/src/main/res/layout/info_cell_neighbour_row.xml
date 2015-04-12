@@ -115,6 +115,7 @@
                 android:text="@string/info_mnc"/>
 
             <TextView
+                android:id="@+id/tv_network_psc_title"
                 style="@style/tv_info_row_small"
                 android:text="@string/info_psc"/>
         </LinearLayout>
