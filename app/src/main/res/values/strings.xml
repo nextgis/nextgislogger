@@ -54,7 +54,7 @@
     <string name="settings_mark_vol_sum">Save previous/next mark</string>
     <string name="settings_user_name">Identification string (optional)</string>
     <string name="settings_keep_screen">Keep screen on</string>
-    <string name="settings_keep_screen_sum">Screen does not turn off automatically at Markers screen</string>
+    <string name="settings_keep_screen_sum">Screen does not turn off automatically at Markers and Live data screens</string>
 
     <string name="settings_sensor_mode_sum">Without gravity of Earth (in all dims)</string>
     <string name="settings_sensor_sum">Sensor is not supported</string>

@@ -32,6 +32,7 @@ import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.Menu;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.animation.AnimationUtils;
 
 import com.nextgis.logger.UI.ProgressBarActivity;
@@ -63,6 +64,16 @@ public class InfoActivity extends ProgressBarActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if(mPreferences.getBoolean(C.PREF_KEEP_SCREEN, true))
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        else
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     @Override

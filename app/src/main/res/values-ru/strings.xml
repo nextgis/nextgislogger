@@ -50,7 +50,7 @@
     <string name="settings_mark_vol_sum">Cохранение предыдущей/следующей метки</string>
     <string name="settings_user_name">Строка идентификации (дополн.)</string>
     <string name="settings_keep_screen">Не отключать экран</string>
-    <string name="settings_keep_screen_sum">Экран в окне Метки не отключается автоматически</string>
+    <string name="settings_keep_screen_sum">Экран в окне Метки и Данные в реальном времени не отключается автоматически</string>
 
     <string name="settings_sensor_mode_sum">Без силы притяжения по всем осям</string>
     <string name="settings_sensor_sum">Сенсор не поддерживается</string>
