@@ -47,6 +47,7 @@ public class InfoActivity extends ProgressBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mHasFAB = false;
         setContentView(R.layout.info_activity);
 
         mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -55,9 +56,6 @@ public class InfoActivity extends ProgressBarActivity {
         vpScreens = (ViewPager) findViewById(R.id.vp_tabs);
         vpScreens.setAdapter(itemAdapter);
         vpScreens.setCurrentItem(mPreferences.getInt(PREF_LAST_VISITED, 0));
-
-        mFAB.setOnClickListener(this);
-        mFAB.setImageResource(R.drawable.ic_arrow_back_white_24dp);
     }
 
     @Override
@@ -83,19 +81,6 @@ public class InfoActivity extends ProgressBarActivity {
         mPreferences.edit().putInt(PREF_LAST_VISITED, vpScreens.getCurrentItem()).apply();
     }
 
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.fab:
-                mFAB.startAnimation(AnimationUtils.loadAnimation(this, R.anim.rotation));
-                finish();
-                break;
-            default:
-                super.onClick(v);
-                break;
-        }
-    }
-
     public class ItemPagerAdapter extends FragmentStatePagerAdapter {
         public ItemPagerAdapter(FragmentManager fm) {
             super(fm);
@@ -108,6 +93,8 @@ public class InfoActivity extends ProgressBarActivity {
                     return new InfoCellFragment();
                 case 1:
                     return new InfoSensorsFragment();
+                case 2:
+                    return new InfoExternalsFragment();
             }
 
             return new Fragment();
@@ -115,7 +102,7 @@ public class InfoActivity extends ProgressBarActivity {
 
         @Override
         public int getCount() {
-            return 2;
+            return 3;
         }
 
         @Override
@@ -125,6 +112,8 @@ public class InfoActivity extends ProgressBarActivity {
                     return getString(R.string.info_title_network);
                 case 1:
                     return getString(R.string.info_title_sensors);
+                case 2:
+                    return getString(R.string.info_title_external);
             }
 
             return "";

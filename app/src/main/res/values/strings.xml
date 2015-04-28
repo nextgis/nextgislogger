@@ -98,6 +98,13 @@
     <string name="sensor_orientation">Orientation</string>
     <string name="gps">GPS</string>
 
+    <string name="external_dht_temp">Temperature</string>
+    <string name="external_dht_humidity">Humidity</string>
+    <string name="external_noise">Noise</string>
+    <string name="external_CO">Carbon monoxide (CO)</string>
+    <string name="external_C4H10">Isobutane (C4H10)</string>
+    <string name="external_CH4">Methanum (CH4)</string>
+
     <string name="cat_file_structure_error">Wrong categories file structure</string>
     <string name="cat_file_error">No categories, please reload presets</string>
     <string name="cat_id_not_int">ID column must be integer in presets file</string>
@@ -116,6 +123,7 @@
 
     <string name="info_title_network">Network</string>
     <string name="info_title_sensors">Sensors</string>
+    <string name="info_title_external">External</string>
 
     <string name="info_na" translatable="false">n/a</string>
     <string name="info_mnc" translatable="false">"MNC: "</string>

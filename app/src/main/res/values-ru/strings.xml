@@ -94,6 +94,13 @@
     <string name="sensor_orientation">Ориентация</string>
     <string name="gps">GPS</string>
 
+    <string name="external_dht_temp">Температура</string>
+    <string name="external_dht_humidity">Влажноть</string>
+    <string name="external_noise">Шум</string>
+    <string name="external_CO">Угарный газ (CO)</string>
+    <string name="external_C4H10">Изобутан (C4H10)</string>
+    <string name="external_CH4">Метан (CH4)</string>
+
     <string name="cat_file_structure_error">Неверная структура файла категорий</string>
     <string name="cat_file_error">Нет категорий, перезагрузите файл</string>
     <string name="cat_id_not_int">Столбец ID должен быть целочисленным в файле категорий</string>
@@ -112,6 +119,7 @@
 
     <string name="info_title_network">Мобильная сеть</string>
     <string name="info_title_sensors">Сенсоры</string>
+    <string name="info_title_external">Внешние</string>
 
     <string name="info_lat">"Широта: "</string>
     <string name="info_lon">"Долгота: "</string>
