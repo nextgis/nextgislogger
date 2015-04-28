@@ -62,8 +62,10 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 	public static String dataDirPath = C.dataBasePath;
 	public static String csvLogFilePath = dataDirPath + File.separator + C.csvLogFile;
 	public static String csvLogFilePathSensor = dataDirPath + File.separator + C.csvLogFileSensor;
+	public static String csvLogFilePathExternal = dataDirPath + File.separator + C.csvLogFileExternal;
 	public static String csvMarkFilePath = dataDirPath + File.separator + C.csvMarkFile;
 	public static String csvMarkFilePathSensor = dataDirPath + File.separator + C.csvMarkFileSensor;
+	public static String csvMarkFilePathExternal = dataDirPath + File.separator + C.csvMarkFileExternal;
 
 	private static long timeStarted = 0;
 	private static int recordsCount = 0;
@@ -184,6 +186,7 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 				case C.STATUS_FINISHED:
                     updateFileForMTP(csvLogFilePath);
                     updateFileForMTP(csvLogFilePathSensor);
+                    updateFileForMTP(csvLogFilePathExternal);
 					recordsCount += intent.getIntExtra(C.PARAM_RECORDS_COUNT, 0);
 					loggerFinishedTime.setText(millisToDate(time, "dd.MM.yyyy hh:mm:ss"));
 					prefs.edit().putInt(C.PREF_RECORDS_COUNT, recordsCount).apply();
@@ -206,6 +209,7 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
             marksCollectedCount.setText(marksCount + "");
             updateFileForMTP(csvMarkFilePath);
             updateFileForMTP(csvMarkFilePathSensor);
+            updateFileForMTP(csvMarkFilePathExternal);
         }
 	}
 
@@ -368,8 +372,10 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 		dataDirPath = directory;
 		csvLogFilePath = directory + File.separator + C.csvLogFile;
 		csvLogFilePathSensor = directory + File.separator + C.csvLogFileSensor;
+		csvLogFilePathExternal = directory + File.separator + C.csvLogFileExternal;
 		csvMarkFilePath = directory + File.separator + C.csvMarkFile;
 		csvMarkFilePathSensor = directory + File.separator + C.csvMarkFileSensor;
+		csvMarkFilePathExternal = directory + File.separator + C.csvMarkFileExternal;
 
 		if (!FileUtil.checkOrCreateDirectory(dataDirPath))
 			setInterfaceState(R.string.ext_media_unmounted_msg, INTERFACE_STATE.ERROR);

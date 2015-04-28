@@ -28,8 +28,10 @@ public class C {
 	public static final String CSV_SEPARATOR = ";";
 	public static final String csvLogFile = "cell_time_log.csv";
 	public static final String csvLogFileSensor = "sensor_time_log.csv";
+	public static final String csvLogFileExternal = "external_time_log.csv";
 	public static final String csvMarkFile = "cell_time_marks.csv";
 	public static final String csvMarkFileSensor = "sensor_time_marks.csv";
+	public static final String csvMarkFileExternal = "external_time_marks.csv";
 	public static final String categoriesFile = "categories.csv";
 	public static final String deviceInfoFile = "device_info.txt";
 	public static final String dataBasePath = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "nextgis_logger";
@@ -44,7 +46,8 @@ public class C {
 			+ CSV_SEPARATOR + "Magnetic" + CSV_SEPARATOR + "Gyro_X" + CSV_SEPARATOR + "Gyro_Y" + CSV_SEPARATOR + "Gyro_Z" + CSV_SEPARATOR + "GPS_Lat" +
             CSV_SEPARATOR + "GPS_Lon" + CSV_SEPARATOR + "GPS_Alt" + CSV_SEPARATOR + "GPS_Accuracy" + CSV_SEPARATOR + "GPS_Speed" + CSV_SEPARATOR +
             "GPS_Bearing";
-//			+ CSV_SEPARATOR + "Magnetic" + CSV_SEPARATOR + "Gyro_X" + CSV_SEPARATOR + "Gyro_Y" + CSV_SEPARATOR + "Gyro_Z";
+
+	public static final String csvHeaderExternal = "ID" + CSV_SEPARATOR + "Name" + CSV_SEPARATOR + "User" + CSV_SEPARATOR + "TimeStamp" + CSV_SEPARATOR + "Temperature" + CSV_SEPARATOR + "Humidity" + CSV_SEPARATOR + "Noise" + CSV_SEPARATOR + "CO" + CSV_SEPARATOR + "C4H10" + CSV_SEPARATOR + "CH4";
 
 	public static final String logDefaultName = "ServiceLog";
 	public static final String markDefaultName = "Mark";
@@ -83,4 +86,5 @@ public class C {
 
     public static final short LOG_TYPE_NETWORK = 0;
     public static final short LOG_TYPE_SENSORS = 1;
+    public static final short LOG_TYPE_EXTERNAL = 2;
 }

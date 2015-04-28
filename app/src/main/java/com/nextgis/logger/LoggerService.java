@@ -45,6 +45,7 @@ public class LoggerService extends Service {
 
 	private boolean isRunning = false;
 
+	private ArduinoEngine arduinoEngine;
 	private CellEngine gsmEngine;
 	private SensorEngine sensorEngine;
 	private Thread thread = null;
@@ -67,6 +68,10 @@ public class LoggerService extends Service {
 		if (timeStart == 0) {
 			timeStart = System.currentTimeMillis();
 		}
+
+		arduinoEngine = ((LoggerApplication) getApplication()).getArduinoEngine();
+        arduinoEngine.setLoggerServiceRunning(true);
+        arduinoEngine.onResume();
 
 		gsmEngine = new CellEngine(this);
 		gsmEngine.onResume();
@@ -103,6 +108,8 @@ public class LoggerService extends Service {
 
 		gsmEngine.onPause();
 		sensorEngine.onPause();
+        arduinoEngine.setLoggerServiceRunning(false);
+        arduinoEngine.onPause();
 
 		if (thread != null) {
 			thread.interrupt();
@@ -193,6 +200,9 @@ public class LoggerService extends Service {
                             FileUtil.saveItemToLog(C.LOG_TYPE_SENSORS, false,
                                     SensorEngine.getItem(sensorEngine, "", C.logDefaultName, userName, gsmInfoArray.get(0).getTimeStamp()));
 						}
+
+                        // TODO settings
+                        FileUtil.saveItemToLog(C.LOG_TYPE_EXTERNAL, false, arduinoEngine.getItem("", C.logDefaultName, userName, gsmInfoArray.get(0).getTimeStamp()));
 
 						intentStatus.putExtra(C.PARAM_SERVICE_STATUS, C.STATUS_RUNNING).putExtra(C.PARAM_RECORDS_COUNT, ++recordsCount);
 						sendBroadcast(intentStatus);

@@ -35,7 +35,6 @@ public final class FileUtil {
      * Delete set of any files or directories.
      *
      * @param files File[] with all data to delete
-     * @return void
      */
     public static void deleteFiles(File[] files) {
         if (files != null) { // there are something to delete
@@ -98,7 +97,6 @@ public final class FileUtil {
      * @param logType   Log type (0 = Network, 1 = Sensors)
      * @param onDemand  Does entered by user or service
      * @param item      String item to save
-     * @return void
      */
     public static void saveItemToLog(short logType, boolean onDemand, String item) throws FileNotFoundException, RuntimeException {
         String logPath, logHeader;
@@ -119,6 +117,14 @@ public final class FileUtil {
                     logPath = MainActivity.csvMarkFilePathSensor;
                 else
                     logPath = MainActivity.csvLogFilePathSensor;
+                break;
+            case C.LOG_TYPE_EXTERNAL:
+                logHeader = C.csvHeaderExternal;
+
+                if (onDemand)
+                    logPath = MainActivity.csvMarkFilePathExternal;
+                else
+                    logPath = MainActivity.csvLogFilePathExternal;
                 break;
             default:
                 throw new RuntimeException("Can not handle type: " + logType + ". Supported types are: 0 = Network and 1 = Sensors.");
