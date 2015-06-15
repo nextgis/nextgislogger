@@ -31,9 +31,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.Menu;
-import android.view.View;
 import android.view.WindowManager;
-import android.view.animation.AnimationUtils;
 
 import com.nextgis.logger.UI.ProgressBarActivity;
 
@@ -95,6 +93,8 @@ public class InfoActivity extends ProgressBarActivity {
                     return new InfoSensorsFragment();
                 case 2:
                     return new InfoExternalsFragment();
+                case 3:
+                    return new IBeaconsInfoFragment();
             }
 
             return new Fragment();
@@ -102,7 +102,7 @@ public class InfoActivity extends ProgressBarActivity {
 
         @Override
         public int getCount() {
-            return 3;
+            return 4;
         }
 
         @Override
@@ -114,6 +114,8 @@ public class InfoActivity extends ProgressBarActivity {
                     return getString(R.string.info_title_sensors);
                 case 2:
                     return getString(R.string.info_title_external);
+                case 3:
+                    return getString(R.string.info_title_ibeacon);
             }
 
             return "";

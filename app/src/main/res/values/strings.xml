@@ -160,4 +160,13 @@
     <string name="info_neighbours">"Neighbouring cells: "</string>
     <string name="info_expand">expand</string>
     <string name="info_collapse">collapse</string>
+    <string name="info_title_ibeacon">IBeacon info</string>
+    <string name="info_id1">"ID 1: "</string>
+    <string name="info_id2">"ID 2: "</string>
+    <string name="info_id3">"ID 3: "</string>
+    <string name="info_tx">"TX: "</string>
+    <string name="info_rssi">"RSSI: "</string>
+    <string name="info_distance">"Distance: "</string>
+    <string name="info_bt_name">"BT name: "</string>
+    <string name="info_bt_addr">"BT address: "</string>
 </resources>
