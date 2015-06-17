@@ -67,6 +67,8 @@ public class BeaconEngine extends Observable implements BeaconConsumer{
         beaconManager.setRangeNotifier(new RangeNotifier() {
             @Override
             public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
+                Log.i("BEACONS!!!", Integer.toString(beacons.size()));
+
                 mBeacons = beacons;
                 if (beacons.size() > 0) {
                     Log.i("BEACON TEST!!!", "The first beacon I see is about " + beacons.iterator().next().getDistance() + " meters away.");

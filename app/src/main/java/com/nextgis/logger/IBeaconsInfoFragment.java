@@ -91,7 +91,7 @@ public class IBeaconsInfoFragment extends Fragment implements Observer, AdapterV
     private Runnable fillTextViews = new Runnable() {
         public void run() {
             Collection<Beacon> beacons = beaconsEngine.getBeacons();
-
+            Log.i("BEACONS!!!", beacons.toString());
             ArrayList<Map<String, Object>> beaconsData = new ArrayList<>();
             Map<String, Object> itemData;
             String na = getString(R.string.info_na);
@@ -114,7 +114,7 @@ public class IBeaconsInfoFragment extends Fragment implements Observer, AdapterV
             int[] to = {R.id.tv_id1, R.id.tv_id2, R.id.tv_id3, R.id.tv_bt_name, R.id.tv_bt_addr,
                     R.id.tv_tx, R.id.tv_rssi, R.id.tv_distance};
 
-            BeaconAdapter beaconAdapter = new BeaconAdapter(getActivity(), beaconsData, R.layout.info_cell_ibeacon_row, from, to);
+            SimpleAdapter beaconAdapter = new SimpleAdapter(getActivity(), beaconsData, R.layout.info_cell_ibeacon_row, from, to);
             lvBeacons.setAdapter(beaconAdapter);
         }
     };
