@@ -56,10 +56,8 @@ public class BeaconEngine extends Observable implements BeaconConsumer{
 
 		beaconManager = BeaconManager.getInstanceForApplication(mContext);
 		beaconManager.getBeaconParsers().add((new BeaconParser()).setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24"));
-
+		beaconManager.setForegroundScanPeriod(2500); //all beacons visible!
 		beaconManager.bind(this);
-
-        Log.i("BEACON TEST!!!", "test construct");
 	}
 
 	@Override
@@ -67,12 +65,9 @@ public class BeaconEngine extends Observable implements BeaconConsumer{
         beaconManager.setRangeNotifier(new RangeNotifier() {
             @Override
             public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
-                Log.i("BEACONS!!!", Integer.toString(beacons.size()));
-
-                mBeacons = beacons;
-                if (beacons.size() > 0) {
-                    Log.i("BEACON TEST!!!", "The first beacon I see is about " + beacons.iterator().next().getDistance() + " meters away.");
-                }
+				//Log.i("BEACONS DEBUG: ", beacons.toString());
+				mBeacons = new ArrayList<Beacon>();
+				mBeacons.addAll(beacons);
                 setChanged();
                 notifyObservers();
             }
@@ -138,7 +133,9 @@ public class BeaconEngine extends Observable implements BeaconConsumer{
 
 
     public Collection<Beacon> getBeacons() {
-        return mBeacons;
+		ArrayList<Beacon> clonedList = new ArrayList<>();
+		clonedList.addAll(mBeacons);
+		return clonedList;
     }
 
 }

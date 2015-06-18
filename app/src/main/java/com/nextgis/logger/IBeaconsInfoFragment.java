@@ -14,6 +14,7 @@ import android.widget.TextView;
 
 import org.altbeacon.beacon.Beacon;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -37,6 +38,9 @@ public class IBeaconsInfoFragment extends Fragment implements Observer, AdapterV
 
     private ListView lvBeacons;
     private BeaconEngine beaconsEngine;
+
+
+    private DecimalFormat distanceFormatter = new DecimalFormat("####.####");
 
     @Override
     public void onPause() {
@@ -91,7 +95,7 @@ public class IBeaconsInfoFragment extends Fragment implements Observer, AdapterV
     private Runnable fillTextViews = new Runnable() {
         public void run() {
             Collection<Beacon> beacons = beaconsEngine.getBeacons();
-            Log.i("BEACONS!!!", beacons.toString());
+            //Log.i("BEACONS DEBUG: ", beacons.toString());
             ArrayList<Map<String, Object>> beaconsData = new ArrayList<>();
             Map<String, Object> itemData;
             String na = getString(R.string.info_na);
@@ -106,7 +110,7 @@ public class IBeaconsInfoFragment extends Fragment implements Observer, AdapterV
                 itemData.put(BEACON_BT_ADDR, beacon.getBluetoothAddress());
                 itemData.put(BEACON_TX, beacon.getTxPower());
                 itemData.put(BEACON_RSSI, beacon.getRssi());
-                itemData.put(BEACON_DISTANCE, beacon.getDistance());
+                itemData.put(BEACON_DISTANCE, distanceFormatter.format(beacon.getDistance()));
                 beaconsData.add(itemData);
             }
 
@@ -124,28 +128,6 @@ public class IBeaconsInfoFragment extends Fragment implements Observer, AdapterV
 
     }
 
-    private class BeaconAdapter extends SimpleAdapter {
-        LayoutInflater mInflater;
-
-        public BeaconAdapter(Context context, List<? extends Map<String, ?>> data, int resource, String[] from, int[] to) {
-            super(context, data, resource, from, to);
-            mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-
-            View result;
-            Map<String, ?> item = (Map<String, ?>) getItem(position);
-
-            result = super.getView(position, convertView, parent);
-
-
-            return result;
-        }
-    }
 }
 
 

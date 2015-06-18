@@ -29,17 +29,9 @@
               android:gravity="center"
               android:orientation="horizontal">
 
-    <TextView
-        android:id="@+id/tv_id"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:padding="8dp"
-        android:textColor="@android:color/white"
-        android:textSize="24sp"/>
-
     <LinearLayout
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_marginEnd="16dp"
         android:layout_marginRight="16dp"
         android:layout_weight="1"
@@ -47,13 +39,15 @@
         android:orientation="vertical">
 
         <TextView
-            android:id="@+id/tv_network_gen"
-            style="@style/tv_info_medium"
-            android:textSize="28sp"/>
+            android:id="@+id/tv_bt_name"
+            android:layout_width="match_parent"
+            style="@style/tv_info_row_small"
+            android:textSize="@dimen/activity_vertical_margin" />
 
         <TextView
-            android:id="@+id/tv_network_type"
-            style="@style/tv_info_medium"/>
+            android:id="@+id/tv_bt_addr"
+            style="@style/tv_info_row_small"
+            android:layout_width="match_parent" />
 
     </LinearLayout>
 
@@ -70,14 +64,17 @@
 
             <TextView
                 style="@style/tv_info_row_small"
-                android:text="@string/info_id1"/>
+                android:text="@string/info_id1"
+                android:textStyle="bold" />
 
             <TextView
                 style="@style/tv_info_row_small"
-                android:text="@string/info_id2" />
+                android:text="@string/info_id2"
+                android:textStyle="bold" />
             <TextView
                 style="@style/tv_info_row_small"
-                android:text="@string/info_id3" />
+                android:text="@string/info_id3"
+                android:textStyle="bold" />
         </LinearLayout>
 
 
@@ -88,58 +85,19 @@
 
             <TextView
                 android:id="@+id/tv_id1"
-                style="@style/tv_info_row_small"/>
+                style="@style/tv_info_row_small" />
 
             <TextView
                 android:id="@+id/tv_id2"
-                style="@style/tv_info_row_small"/>
+                style="@style/tv_info_row_small"
+                android:paddingLeft="7dp" />
 
             <TextView
                 android:id="@+id/tv_id3"
-                style="@style/tv_info_row_small"/>
+                style="@style/tv_info_row_small"
+                android:paddingLeft="7dp" />
         </LinearLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:orientation="horizontal">
-
-            <TextView
-                style="@style/tv_info_row_small"
-                android:text="@string/info_bt_addr"
-                android:id="@+id/tv_info_bt_addr" />
-
-            <TextView
-                style="@style/tv_info_row_small"
-                android:text="@string/info_bt_name"
-                android:id="@+id/tv_info_bt_name" />
-
-            <TextView
-                android:id="@+id/tv_network_psc_title"
-                style="@style/tv_info_row_small"
-                android:text="@string/info_psc"/>
-        </LinearLayout>
-
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@+id/tv_bt_addr"
-                style="@style/tv_info_row_small"/>
-
-            <TextView
-                android:id="@+id/tv_bt_name"
-                style="@style/tv_info_row_small"/>
-
-            <TextView
-                android:id="@+id/tv_network_psc"
-                style="@style/tv_info_row_small"/>
-
-        </LinearLayout>
 
         <LinearLayout
             android:orientation="horizontal"
@@ -152,21 +110,24 @@
                 android:layout_height="match_parent"
                 android:text="@string/info_tx"
                 android:id="@+id/tv_info_tx"
-                style="@style/tv_info_row_small" />
+                style="@style/tv_info_row_small"
+                android:textStyle="bold" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:text="@string/info_rssi"
                 android:id="@+id/tv_info_rssi"
-                style="@style/tv_info_row_small" />
+                style="@style/tv_info_row_small"
+                android:textStyle="bold" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:text="@string/info_distance"
                 android:id="@+id/tv_info_distance"
-                style="@style/tv_info_row_small" />
+                style="@style/tv_info_row_small"
+                android:textStyle="bold" />
         </LinearLayout>
 
         <LinearLayout
@@ -178,19 +139,22 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/tv_tx"
-                style="@style/tv_info_row_small" />
+                style="@style/tv_info_row_small"
+                android:paddingLeft="7dp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/tv_rssi"
-                style="@style/tv_info_row_small" />
+                style="@style/tv_info_row_small"
+                android:paddingLeft="7dp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/tv_distance"
-                style="@style/tv_info_row_small" />
+                style="@style/tv_info_row_small"
+                android:paddingLeft="7dp" />
         </LinearLayout>
 
     </LinearLayout>
