@@ -22,11 +22,11 @@
   -->
 
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:clipToPadding="false"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingTop="@dimen/activity_vertical_margin">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="@dimen/activity_vertical_margin"
+            android:paddingTop="@dimen/activity_vertical_margin">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -46,7 +46,7 @@
 
             <TextView
                 style="@style/tv_info_large"
-                android:text="@string/gps" />
+                android:text="@string/gps"/>
 
             <TextView
                 android:id="@+id/tv_gps_no_fix"
@@ -54,7 +54,7 @@
                 android:layout_width="wrap_content"
                 android:gravity="center"
                 android:text="@string/info_no_fix"
-                android:visibility="gone" />
+                android:visibility="gone"/>
 
             <LinearLayout
                 android:id="@+id/ll_gps_info"
@@ -69,16 +69,15 @@
 
                     <TextView
                         style="@style/tv_info_small"
-                        android:text="@string/info_lat" />
+                        android:text="@string/info_lat"/>
 
                     <TextView
                         style="@style/tv_info_small"
-                        android:text="@string/info_lon" />
+                        android:text="@string/info_lon"/>
 
                     <TextView
                         style="@style/tv_info_small"
-                        android:text="@string/info_ele" />
-
+                        android:text="@string/info_ele"/>
                 </LinearLayout>
 
                 <LinearLayout
@@ -88,17 +87,16 @@
 
                     <TextView
                         android:id="@+id/tv_gps_lat"
-                        style="@style/tv_info_small" />
+                        style="@style/tv_info_small"/>
 
                     <TextView
                         android:id="@+id/tv_gps_lon"
-                        style="@style/tv_info_small" />
+                        style="@style/tv_info_small"/>
 
                     <TextView
                         android:id="@+id/tv_gps_ele"
-                        style="@style/tv_info_small" />
+                        style="@style/tv_info_small"/>
                 </LinearLayout>
-
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -107,16 +105,15 @@
 
                     <TextView
                         style="@style/tv_info_small"
-                        android:text="@string/info_acc" />
+                        android:text="@string/info_acc"/>
 
                     <TextView
                         style="@style/tv_info_small"
-                        android:text="@string/info_speed" />
+                        android:text="@string/info_speed"/>
 
                     <TextView
                         style="@style/tv_info_small"
-                        android:text="@string/info_sat" />
-
+                        android:text="@string/info_sat"/>
                 </LinearLayout>
 
                 <LinearLayout
@@ -126,15 +123,15 @@
 
                     <TextView
                         android:id="@+id/tv_gps_acc"
-                        style="@style/tv_info_small" />
+                        style="@style/tv_info_small"/>
 
                     <TextView
                         android:id="@+id/tv_gps_speed"
-                        style="@style/tv_info_small" />
+                        style="@style/tv_info_small"/>
 
                     <TextView
                         android:id="@+id/tv_gps_sat"
-                        style="@style/tv_info_small" />
+                        style="@style/tv_info_small"/>
                 </LinearLayout>
 
                 <LinearLayout
@@ -146,18 +143,17 @@
                         style="@style/tv_info_small"
                         android:layout_width="wrap_content"
                         android:gravity="end"
-                        android:text="@string/info_time" />
+                        android:text="@string/info_time"/>
 
                     <TextView
                         android:id="@+id/tv_gps_time"
                         style="@style/tv_info_small"
                         android:layout_width="wrap_content"
-                        android:gravity="start" />
+                        android:gravity="start"/>
                 </LinearLayout>
-
             </LinearLayout>
 
-            <include layout="@layout/divider" />
+            <include layout="@layout/divider"/>
         </LinearLayout>
 
         <LinearLayout
@@ -171,11 +167,11 @@
 
             <TextView
                 style="@style/tv_info_large"
-                android:text="@string/sensor_accelerometer" />
+                android:text="@string/sensor_accelerometer"/>
 
             <TextView
                 android:id="@+id/tv_accelerometer_title"
-                style="@style/tv_info" />
+                style="@style/tv_info"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -189,18 +185,16 @@
 
                     <TextView
                         style="@style/tv_info_small"
-                        android:text="@string/info_x" />
+                        android:text="@string/info_x"/>
 
                     <TextView
                         style="@style/tv_info_small"
-                        android:text="@string/info_y" />
+                        android:text="@string/info_y"/>
 
                     <TextView
                         style="@style/tv_info_small"
-                        android:text="@string/info_z" />
-
+                        android:text="@string/info_z"/>
                 </LinearLayout>
-
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -209,20 +203,19 @@
 
                     <TextView
                         android:id="@+id/tv_accelerometer_x"
-                        style="@style/tv_info_small" />
+                        style="@style/tv_info_small"/>
 
                     <TextView
                         android:id="@+id/tv_accelerometer_y"
-                        style="@style/tv_info_small" />
+                        style="@style/tv_info_small"/>
 
                     <TextView
                         android:id="@+id/tv_accelerometer_z"
-                        style="@style/tv_info_small" />
+                        style="@style/tv_info_small"/>
                 </LinearLayout>
-
             </LinearLayout>
 
-            <include layout="@layout/divider" />
+            <include layout="@layout/divider"/>
         </LinearLayout>
 
         <LinearLayout
@@ -236,18 +229,55 @@
 
             <TextView
                 style="@style/tv_info_large"
-                android:text="@string/sensor_magnetic" />
+                android:text="@string/sensor_magnetic"/>
 
             <TextView
                 android:id="@+id/tv_magnetometer_title"
-                style="@style/tv_info" />
+                style="@style/tv_info"/>
 
-            <TextView
-                android:id="@+id/tv_magnetic"
-                style="@style/tv_info_small"
-                android:layout_width="wrap_content" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
-            <include layout="@layout/divider" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        style="@style/tv_info_small"
+                        android:text="@string/info_x"/>
+
+                    <TextView
+                        style="@style/tv_info_small"
+                        android:text="@string/info_y"/>
+
+                    <TextView
+                        style="@style/tv_info_small"
+                        android:text="@string/info_z"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tv_magnetic_x"
+                        style="@style/tv_info_small"/>
+
+                    <TextView
+                        android:id="@+id/tv_magnetic_y"
+                        style="@style/tv_info_small"/>
+
+                    <TextView
+                        android:id="@+id/tv_magnetic_z"
+                        style="@style/tv_info_small"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <include layout="@layout/divider"/>
         </LinearLayout>
 
         <LinearLayout
@@ -261,11 +291,11 @@
 
             <TextView
                 style="@style/tv_info_large"
-                android:text="@string/sensor_orientation" />
+                android:text="@string/sensor_orientation"/>
 
             <TextView
                 android:id="@+id/tv_orient_title"
-                style="@style/tv_info" />
+                style="@style/tv_info"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -279,16 +309,15 @@
 
                     <TextView
                         style="@style/tv_info_small"
-                        android:text="@string/info_azimuth" />
+                        android:text="@string/info_azimuth"/>
 
                     <TextView
                         style="@style/tv_info_small"
-                        android:text="@string/info_pitch" />
+                        android:text="@string/info_pitch"/>
 
                     <TextView
                         style="@style/tv_info_small"
-                        android:text="@string/info_roll" />
-
+                        android:text="@string/info_roll"/>
                 </LinearLayout>
 
 
@@ -299,20 +328,19 @@
 
                     <TextView
                         android:id="@+id/tv_orient_azimuth"
-                        style="@style/tv_info_small" />
+                        style="@style/tv_info_small"/>
 
                     <TextView
                         android:id="@+id/tv_orient_pitch"
-                        style="@style/tv_info_small" />
+                        style="@style/tv_info_small"/>
 
                     <TextView
                         android:id="@+id/tv_orient_roll"
-                        style="@style/tv_info_small" />
+                        style="@style/tv_info_small"/>
                 </LinearLayout>
-
             </LinearLayout>
 
-            <include layout="@layout/divider" />
+            <include layout="@layout/divider"/>
         </LinearLayout>
 
         <LinearLayout
@@ -326,11 +354,11 @@
 
             <TextView
                 style="@style/tv_info_large"
-                android:text="@string/sensor_gyroscope" />
+                android:text="@string/sensor_gyroscope"/>
 
             <TextView
                 android:id="@+id/tv_gyroscope_title"
-                style="@style/tv_info" />
+                style="@style/tv_info"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -344,18 +372,16 @@
 
                     <TextView
                         style="@style/tv_info_small"
-                        android:text="@string/info_x" />
+                        android:text="@string/info_x"/>
 
                     <TextView
                         style="@style/tv_info_small"
-                        android:text="@string/info_y" />
+                        android:text="@string/info_y"/>
 
                     <TextView
                         style="@style/tv_info_small"
-                        android:text="@string/info_z" />
-
+                        android:text="@string/info_z"/>
                 </LinearLayout>
-
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -364,21 +390,19 @@
 
                     <TextView
                         android:id="@+id/tv_gyroscope_x"
-                        style="@style/tv_info_small" />
+                        style="@style/tv_info_small"/>
 
                     <TextView
                         android:id="@+id/tv_gyroscope_y"
-                        style="@style/tv_info_small" />
+                        style="@style/tv_info_small"/>
 
                     <TextView
                         android:id="@+id/tv_gyroscope_z"
-                        style="@style/tv_info_small" />
+                        style="@style/tv_info_small"/>
                 </LinearLayout>
-
             </LinearLayout>
 
-            <include layout="@layout/divider" />
+            <include layout="@layout/divider"/>
         </LinearLayout>
-
     </LinearLayout>
 </ScrollView>

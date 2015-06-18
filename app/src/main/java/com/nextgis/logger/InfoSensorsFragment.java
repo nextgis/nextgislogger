@@ -48,7 +48,7 @@ public class InfoSensorsFragment extends Fragment implements GPSEngine.GPSInfoLi
     private TextView tvAccelerometerX, tvAccelerometerY, tvAccelerometerZ;
     private TextView tvOrientAzimuth, tvOrientPitch, tvOrientRoll;
     private TextView tvGyroX, tvGyroY, tvGyroZ;
-    private TextView tvMagnetic;
+    private TextView tvMagneticX, tvMagneticY, tvMagneticZ;
 
     @SuppressWarnings("deprecation")
     @Override
@@ -97,7 +97,9 @@ public class InfoSensorsFragment extends Fragment implements GPSEngine.GPSInfoLi
         tvGyroX = (TextView) rootView.findViewById(R.id.tv_gyroscope_x);
         tvGyroY = (TextView) rootView.findViewById(R.id.tv_gyroscope_y);
         tvGyroZ = (TextView) rootView.findViewById(R.id.tv_gyroscope_z);
-        tvMagnetic = (TextView) rootView.findViewById(R.id.tv_magnetic);
+        tvMagneticX = (TextView) rootView.findViewById(R.id.tv_magnetic_x);
+        tvMagneticY = (TextView) rootView.findViewById(R.id.tv_magnetic_y);
+        tvMagneticZ = (TextView) rootView.findViewById(R.id.tv_magnetic_z);
 
         fillSensorsTextViews();
         fillGPSTextViews();
@@ -116,7 +118,9 @@ public class InfoSensorsFragment extends Fragment implements GPSEngine.GPSInfoLi
         tvGyroX.setText(format(Sensor.TYPE_GYROSCOPE, mSensorEngine.getGyroX()));
         tvGyroY.setText(format(Sensor.TYPE_GYROSCOPE, mSensorEngine.getGyroY()));
         tvGyroZ.setText(format(Sensor.TYPE_GYROSCOPE, mSensorEngine.getGyroZ()));
-        tvMagnetic.setText(format(Sensor.TYPE_MAGNETIC_FIELD, mSensorEngine.getMagnetic()));
+        tvMagneticX.setText(format(Sensor.TYPE_MAGNETIC_FIELD, mSensorEngine.getMagneticX()));
+        tvMagneticY.setText(format(Sensor.TYPE_MAGNETIC_FIELD, mSensorEngine.getMagneticY()));
+        tvMagneticZ.setText(format(Sensor.TYPE_MAGNETIC_FIELD, mSensorEngine.getMagneticZ()));
     }
 
     private void fillGPSTextViews() {

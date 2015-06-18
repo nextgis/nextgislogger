@@ -33,7 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SensorEngine implements SensorEventListener {
-	private float x, y, z, gyroX, gyroY, gyroZ, magnetic, azimuth, pitch, roll;
+	private float x, y, z, gyroX, gyroY, gyroZ, magneticX, magneticY, magneticZ, azimuth, pitch, roll;
 	private long lastUpdateAccel, lastUpdateGyro, lastUpdateMag, lastUpdateOrient;
 	private int sensorAccelerationType;
     private String mAccelerometerName, mMagneticName, mOrientName, mGyroName;
@@ -193,7 +193,9 @@ public class SensorEngine implements SensorEventListener {
 		if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
 			if ((curTime - lastUpdateMag) > updateFrequency) {
 				lastUpdateMag = curTime;
-				magnetic = event.values[0];
+				magneticX = event.values[0];
+				magneticY = event.values[1];
+				magneticZ = event.values[2];
                 notifySensorListeners();
 			}
 		}
@@ -233,10 +235,18 @@ public class SensorEngine implements SensorEventListener {
 		return gyroZ;
 	}
 	
-	public float getMagnetic() {
-		return magnetic;
+	public float getMagneticX() {
+		return magneticX;
 	}
-	
+
+	public float getMagneticY() {
+		return magneticY;
+	}
+
+	public float getMagneticZ() {
+		return magneticZ;
+	}
+
 	public float getAzimuth() {
 		return azimuth;
 	}
@@ -311,7 +321,9 @@ public class SensorEngine implements SensorEventListener {
 		sb.append(sensorEngine.getAzimuth()).append(C.CSV_SEPARATOR);
 		sb.append(sensorEngine.getPitch()).append(C.CSV_SEPARATOR);
 		sb.append(sensorEngine.getRoll()).append(C.CSV_SEPARATOR);
-		sb.append(sensorEngine.getMagnetic()).append(C.CSV_SEPARATOR);
+		sb.append(sensorEngine.getMagneticX()).append(C.CSV_SEPARATOR);
+		sb.append(sensorEngine.getMagneticY()).append(C.CSV_SEPARATOR);
+		sb.append(sensorEngine.getMagneticZ()).append(C.CSV_SEPARATOR);
 		sb.append(sensorEngine.getGyroX()).append(C.CSV_SEPARATOR);
 		sb.append(sensorEngine.getGyroY()).append(C.CSV_SEPARATOR);
 		sb.append(sensorEngine.getGyroZ()).append(C.CSV_SEPARATOR);

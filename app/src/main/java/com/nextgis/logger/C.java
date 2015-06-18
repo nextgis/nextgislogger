@@ -42,10 +42,10 @@ public class C {
 			+ CSV_SEPARATOR + "CID" + CSV_SEPARATOR + "PSC" + CSV_SEPARATOR + "Power";
 
 	public static final String csvHeaderSensor = "ID" + CSV_SEPARATOR + "Name" + CSV_SEPARATOR + "User" + CSV_SEPARATOR + "TimeStamp" + CSV_SEPARATOR + "Type"
-			+ CSV_SEPARATOR + "Accel_X" + CSV_SEPARATOR + "Accel_Y" + CSV_SEPARATOR + "Accel_Z" + CSV_SEPARATOR + "Azimuth" + CSV_SEPARATOR + "Pitch" + CSV_SEPARATOR + "Roll"
-			+ CSV_SEPARATOR + "Magnetic" + CSV_SEPARATOR + "Gyro_X" + CSV_SEPARATOR + "Gyro_Y" + CSV_SEPARATOR + "Gyro_Z" + CSV_SEPARATOR + "GPS_Lat" +
-            CSV_SEPARATOR + "GPS_Lon" + CSV_SEPARATOR + "GPS_Alt" + CSV_SEPARATOR + "GPS_Accuracy" + CSV_SEPARATOR + "GPS_Speed" + CSV_SEPARATOR +
-            "GPS_Bearing";
+			+ CSV_SEPARATOR + "Accel_X" + CSV_SEPARATOR + "Accel_Y" + CSV_SEPARATOR + "Accel_Z" + CSV_SEPARATOR + "Azimuth" + CSV_SEPARATOR + "Pitch"
+			+ CSV_SEPARATOR + "Roll" + CSV_SEPARATOR + "Magnetic_X" + CSV_SEPARATOR + "Magnetic_Y" + CSV_SEPARATOR + "Magnetic_Z" + CSV_SEPARATOR + "Gyro_X"
+			+ CSV_SEPARATOR + "Gyro_Y" + CSV_SEPARATOR + "Gyro_Z" + CSV_SEPARATOR + "GPS_Lat" + CSV_SEPARATOR + "GPS_Lon" + CSV_SEPARATOR + "GPS_Alt"
+			+ CSV_SEPARATOR + "GPS_Accuracy" + CSV_SEPARATOR + "GPS_Speed" + CSV_SEPARATOR + "GPS_Bearing";
 
 	public static final String csvHeaderExternal = "ID" + CSV_SEPARATOR + "Name" + CSV_SEPARATOR + "User" + CSV_SEPARATOR + "TimeStamp" + CSV_SEPARATOR + "Temperature" + CSV_SEPARATOR + "Humidity" + CSV_SEPARATOR + "Noise" + CSV_SEPARATOR + "CO" + CSV_SEPARATOR + "C4H10" + CSV_SEPARATOR + "CH4";
 
