@@ -12,13 +12,13 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-logger.txt')
         }
     }
 }
 
 dependencies {
     compile 'com.melnykov:floatingactionbutton:1.2.0'
-    compile 'com.android.support:support-v4:22.0.0'
+    compile 'com.android.support:support-v4:22.2.0'
 }

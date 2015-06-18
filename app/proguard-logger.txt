@@ -1,0 +1,12 @@
+-dontusemixedcaseclassnames
+-dontskipnonpubliclibraryclasses
+-dontskipnonpubliclibraryclassmembers
+-verbose
+
+-dontobfuscate
+-dontoptimize
+-dontpreverify
+
+-printseeds seeds.txt
+-printusage unused.txt
+-printmapping mapping.txt
