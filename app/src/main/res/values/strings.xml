@@ -157,7 +157,8 @@
     <string name="info_rads">rad/s</string>
     <string name="info_degree" translatable="false">°</string>
 
-    <string name="info_neighbours">"Neighbouring cells: "</string>
+    <string name="info_neighbours">"Neighbours: "</string>
+    <string name="info_active">"Active: "</string>
     <string name="info_expand">expand</string>
     <string name="info_collapse">collapse</string>
 </resources>

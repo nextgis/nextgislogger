@@ -135,7 +135,8 @@
     <string name="info_meter">м</string>
     <string name="info_rads">рад/с</string>
 
-    <string name="info_neighbours">"Соседние вышки: "</string>
+    <string name="info_neighbours">"Соседних: "</string>
+    <string name="info_active">"Активных: "</string>
     <string name="info_expand">раскрыть</string>
     <string name="info_collapse">свернуть</string>
 </resources>

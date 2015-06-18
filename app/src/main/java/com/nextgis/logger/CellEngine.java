@@ -27,8 +27,11 @@ import android.os.Build;
 import android.preference.PreferenceManager;
 import android.telephony.*;
 import android.telephony.gsm.GsmCellLocation;
+import android.text.TextUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class CellEngine {
@@ -49,7 +52,7 @@ public class CellEngine {
     private List<CellInfoListener> mCellListeners;
 
     interface CellInfoListener {
-        public void onCellInfoChanged();
+        void onCellInfoChanged();
     }
 
 	public CellEngine(Context context) {
@@ -147,20 +150,20 @@ public class CellEngine {
 			}
 			break;
 
-		//	3G -- UMTS network
+		//	3G -- 3GSM network
 		case TelephonyManager.NETWORK_TYPE_UMTS: // API 1+
+			// getRssi() returns RSCP for UMTS
+			if (-5 <= asu && asu <= 91) {
+				return asu - 116;
+			} else if (asu == 255) {
+				return 0;
+			}
+			break;
 		case TelephonyManager.NETWORK_TYPE_HSPA: // API 5+
 		case TelephonyManager.NETWORK_TYPE_HSDPA: // API 5+
 		case TelephonyManager.NETWORK_TYPE_HSUPA: // API 5+
 		case TelephonyManager.NETWORK_TYPE_HSPAP: // API 5+
-			// getRssi() returns RSCP for UMTS
-			//			if (-5 <= asu && asu <= 91) {
-			//				return asu - 116;
-			//			} else if (asu == 255) {
-			//				return 0;
-			//			}
 			return asu;
-			//			break;
 
 			// 4G -- LTE network
 			//            case TelephonyManager.NETWORK_TYPE_LTE : // API 11+
@@ -250,10 +253,8 @@ public class CellEngine {
 			for (NeighboringCellInfo neighbor : neighbors) {
 				int nbNetworkType = neighbor.getNetworkType();
 
-				//				if (nbNetworkType == TelephonyManager.NETWORK_TYPE_GPRS || nbNetworkType == TelephonyManager.NETWORK_TYPE_EDGE) {
 				gsmInfoArray.add(new GSMInfo(timeStamp, false, nbNetworkType, C.UNDEFINED, C.UNDEFINED, neighbor.getLac(), neighbor.getCid(), neighbor.getPsc(),
 						signalStrengthAsuToDbm(neighbor.getRssi(), nbNetworkType)));
-				//				}
 			}
 		}
 
@@ -268,7 +269,13 @@ public class CellEngine {
         return mTelephonyManager.getNetworkOperatorName();
     }
 
-	//	public static boolean isGSMNetwork(int network) {
+    public int getNetworkMNC() {
+        String operator = mTelephonyManager.getNetworkOperator();
+
+        return TextUtils.isEmpty(operator) ? -1 : Integer.parseInt(operator.substring(3));
+    }
+
+    //	public static boolean isGSMNetwork(int network) {
 	//		return network == TelephonyManager.NETWORK_TYPE_EDGE || network == TelephonyManager.NETWORK_TYPE_GPRS;
 	//	}
 
@@ -363,7 +370,27 @@ public class CellEngine {
 		return sb.toString();
 	}
 
-	public class GSMInfo {
+    public static void sortByActive(ArrayList<CellEngine.GSMInfo> array) {
+        Collections.sort(array, new Comparator<GSMInfo>() {
+            @Override
+            public int compare(CellEngine.GSMInfo lhs, CellEngine.GSMInfo rhs) {
+                boolean b1 = lhs.isActive();
+                boolean b2 = rhs.isActive();
+
+                if (b1 && !b2) {
+                    return -1;
+                }
+
+                if (!b1 && b2) {
+                    return +1;
+                }
+
+                return 0;
+            }
+        });
+    }
+
+    public class GSMInfo {
 		private long timeStamp;
 		private boolean active;
 		private int mcc;
@@ -383,7 +410,7 @@ public class CellEngine {
 			this.lac = C.UNDEFINED;
 			this.cid = C.UNDEFINED;
 			this.psc = C.UNDEFINED;
-			this.rssi = C.UNDEFINED;
+			this.rssi = SIGNAL_STRENGTH_NONE;
 		}
 
 		public GSMInfo(long timeStamp, boolean active, int networkType, int mcc, int mnc, int lac, int cid, int psc, int rssi) {
@@ -415,16 +442,18 @@ public class CellEngine {
                 case TelephonyManager.NETWORK_TYPE_HSDPA:
                 case TelephonyManager.NETWORK_TYPE_HSUPA:
                 case TelephonyManager.NETWORK_TYPE_HSPAP:
-                    if (lac <= LOW_BOUND || lac >= MAX_2G_LAC_CID)
-                        this.lac = -1;
+				default:
+					if (lac <= LOW_BOUND || lac >= MAX_2G_LAC_CID) {
+							this.lac = -1;
+					}
 
-                    if (cid <= LOW_BOUND || cid >= MAX_3G_CID)
-                        this.cid = -1;
+					if (cid <= LOW_BOUND || cid >= MAX_3G_CID) {
+							this.cid = -1;
+					}
 
-                    if (psc <= LOW_BOUND || psc >= MAX_PSC)
-                        this.psc = -1;
-                    break;
-                default:
+					if (psc <= LOW_BOUND || psc >= MAX_PSC) {
+							this.psc = -1;
+					}
                     break;
             }
 		}
