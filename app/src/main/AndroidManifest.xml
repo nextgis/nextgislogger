@@ -116,7 +116,7 @@
         </activity>
 
         <activity
-            android:name=".InfoActivity"
+            android:name=".livedata.InfoActivity"
             android:label="@string/title_activity_info"
             android:parentActivityName=".MainActivity">
 

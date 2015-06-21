@@ -40,6 +40,7 @@ import android.widget.Toast;
 
 import com.nextgis.logger.UI.IntEditTextPreference;
 import com.nextgis.logger.UI.SimpleFileChooser;
+import com.nextgis.logger.util.Constants;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -133,48 +134,48 @@ public class PreferencesActivity extends PreferenceActivity {
             LocationManager locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
 
             if (!locationManager.getAllProviders().contains(LocationManager.GPS_PROVIDER)) {
-                findPreference(C.PREF_GPS).setEnabled(false);
-                ((CheckBoxPreference) findPreference(C.PREF_GPS)).setChecked(false);
-                findPreference(C.PREF_GPS).setSummary(R.string.settings_sensor_sum);
+                findPreference(Constants.PREF_GPS).setEnabled(false);
+                ((CheckBoxPreference) findPreference(Constants.PREF_GPS)).setChecked(false);
+                findPreference(Constants.PREF_GPS).setSummary(R.string.settings_sensor_sum);
             }
 
 			SensorManager sm = (SensorManager) parent.getSystemService(Context.SENSOR_SERVICE);
 
 			if (sm.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION) == null) {
-                findPreference(C.PREF_SENSOR_MODE).setEnabled(false);
-                findPreference(C.PREF_SENSOR_MODE).setSummary(R.string.settings_sensor_sum);
+                findPreference(Constants.PREF_SENSOR_MODE).setEnabled(false);
+                findPreference(Constants.PREF_SENSOR_MODE).setSummary(R.string.settings_sensor_sum);
             }
 
 			if (sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD) == null) {
-                findPreference(C.PREF_SENSOR_MAG).setEnabled(false);
-                ((CheckBoxPreference) findPreference(C.PREF_SENSOR_MAG)).setChecked(false);
-                findPreference(C.PREF_SENSOR_MAG).setSummary(R.string.settings_sensor_sum);
+                findPreference(Constants.PREF_SENSOR_MAG).setEnabled(false);
+                ((CheckBoxPreference) findPreference(Constants.PREF_SENSOR_MAG)).setChecked(false);
+                findPreference(Constants.PREF_SENSOR_MAG).setSummary(R.string.settings_sensor_sum);
             }
 
 			if (sm.getDefaultSensor(Sensor.TYPE_ORIENTATION) == null) {
-                findPreference(C.PREF_SENSOR_ORIENT).setEnabled(false);
-                ((CheckBoxPreference) findPreference(C.PREF_SENSOR_ORIENT)).setChecked(false);
-                findPreference(C.PREF_SENSOR_ORIENT).setSummary(R.string.settings_sensor_sum);
+                findPreference(Constants.PREF_SENSOR_ORIENT).setEnabled(false);
+                ((CheckBoxPreference) findPreference(Constants.PREF_SENSOR_ORIENT)).setChecked(false);
+                findPreference(Constants.PREF_SENSOR_ORIENT).setSummary(R.string.settings_sensor_sum);
             }
 
 			if (sm.getDefaultSensor(Sensor.TYPE_GYROSCOPE) == null) {
-                findPreference(C.PREF_SENSOR_GYRO).setEnabled(false);
-                ((CheckBoxPreference) findPreference(C.PREF_SENSOR_GYRO)).setChecked(false);
-                findPreference(C.PREF_SENSOR_GYRO).setSummary(R.string.settings_sensor_sum);
+                findPreference(Constants.PREF_SENSOR_GYRO).setEnabled(false);
+                ((CheckBoxPreference) findPreference(Constants.PREF_SENSOR_GYRO)).setChecked(false);
+                findPreference(Constants.PREF_SENSOR_GYRO).setSummary(R.string.settings_sensor_sum);
             }
 
 			if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.JELLY_BEAN_MR1)
-				findPreference(C.PREF_USE_API17).setEnabled(false);
+				findPreference(Constants.PREF_USE_API17).setEnabled(false);
 
-			EditTextPreference userName = (EditTextPreference) findPreference(C.PREF_USER_NAME);
+			EditTextPreference userName = (EditTextPreference) findPreference(Constants.PREF_USER_NAME);
 			userName.setSummary(userName.getText());
 			userName.setOnPreferenceChangeListener(this);
 
-			IntEditTextPreference periodPreference = (IntEditTextPreference) findPreference(C.PREF_PERIOD_SEC);
+			IntEditTextPreference periodPreference = (IntEditTextPreference) findPreference(Constants.PREF_PERIOD_SEC);
 			periodPreference.setSummary(getString(R.string.settings_period_sum) + periodPreference.getPersistedString("1"));
 			periodPreference.setOnPreferenceChangeListener(this);
 
-			Preference catPathPreference = findPreference(C.PREF_CAT_PATH);
+			Preference catPathPreference = findPreference(Constants.PREF_CAT_PATH);
 
 			catPathPreference.setOnPreferenceClickListener(new OnPreferenceClickListener() {
                 @Override
@@ -199,7 +200,7 @@ public class PreferencesActivity extends PreferenceActivity {
 
                     if (file.isFile()) {
                         String internalPath = getActivity().getFilesDir().getAbsolutePath();
-                        File toCats = new File(internalPath + "/" + C.categoriesFile);
+                        File toCats = new File(internalPath + "/" + Constants.CATEGORIES);
 
                         try {
                             PrintWriter pw = new PrintWriter(new FileOutputStream(toCats, false));
@@ -239,10 +240,10 @@ public class PreferencesActivity extends PreferenceActivity {
         @Override
         public boolean onPreferenceChange(Preference preference, Object newValue) {
             switch (preference.getKey()) {
-                case C.PREF_USER_NAME:
+                case Constants.PREF_USER_NAME:
                     preference.setSummary((String) newValue);
                     return true;
-                case C.PREF_PERIOD_SEC:
+                case Constants.PREF_PERIOD_SEC:
                     int period;
 
                     try {

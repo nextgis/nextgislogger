@@ -21,9 +21,11 @@
  * *****************************************************************************
  */
 
-package com.nextgis.logger;
+package com.nextgis.logger.util;
 
 import android.os.Environment;
+
+import com.nextgis.logger.MainActivity;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -102,24 +104,24 @@ public final class FileUtil {
         String logPath, logHeader;
 
         switch (logType) {
-            case C.LOG_TYPE_NETWORK:
-                logHeader = C.csvMarkHeader;
+            case Constants.LOG_TYPE_NETWORK:
+                logHeader = Constants.CSV_HEADER_CELL;
 
                 if (onDemand)
                     logPath = MainActivity.csvMarkFilePath;
                 else
                     logPath = MainActivity.csvLogFilePath;
                 break;
-            case C.LOG_TYPE_SENSORS:
-                logHeader = C.csvHeaderSensor;
+            case Constants.LOG_TYPE_SENSORS:
+                logHeader = Constants.CSV_HEADER_SENSOR;
 
                 if (onDemand)
                     logPath = MainActivity.csvMarkFilePathSensor;
                 else
                     logPath = MainActivity.csvLogFilePathSensor;
                 break;
-            case C.LOG_TYPE_EXTERNAL:
-                logHeader = C.csvHeaderExternal;
+            case Constants.LOG_TYPE_EXTERNAL:
+                logHeader = Constants.CSV_HEADER_EXTERNAL;
 
                 if (onDemand)
                     logPath = MainActivity.csvMarkFilePathExternal;

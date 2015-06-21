@@ -21,23 +21,24 @@
  * *****************************************************************************
  */
 
-package com.nextgis.logger;
+package com.nextgis.logger.engines;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.Context;
 import android.text.TextUtils;
+
+import com.nextgis.logger.util.Constants;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 // http://stackoverflow.com/q/10327506
-public class ArduinoEngine {
+public class ArduinoEngine extends BaseEngine {
     private final static byte DELIMITER = 10;
 
     private BluetoothAdapter mBluetoothAdapter;
@@ -58,32 +59,17 @@ public class ArduinoEngine {
     private volatile int mTemperature, mHumidity, mNoise;
     private volatile double mCO, mCH4, mC4H10;
 
-    private List<ArduinoInfoListener> mArduinoListeners;
-
-    interface ArduinoInfoListener {
-        public void onArduinoInfoChanged();
+    public ArduinoEngine(Context context) {
+        super(context);
     }
 
-    public void addArduinoListener(ArduinoInfoListener listener) {
-        mArduinoListeners.add(listener);
-    }
+    public boolean removeListener(BaseEngine.EngineListener listener) {
+        boolean result = super.removeListener(listener);
 
-    public boolean removeArduinoListener(ArduinoInfoListener listener) {
-        boolean result = mArduinoListeners.remove(listener);
-
-        if (mArduinoListeners.size() == 0 && !mIsLoggerServiceRunning)
+        if (getListenersCount() == 0 && !mIsLoggerServiceRunning)
             closeConnection();
 
         return result;
-    }
-
-    private void notifyArduinoListeners() {
-        for (ArduinoInfoListener listener : mArduinoListeners)
-            listener.onArduinoInfoChanged();
-    }
-
-    public ArduinoEngine() {
-        mArduinoListeners = new ArrayList<>();
     }
 
     public void setLoggerServiceRunning(boolean serviceStatus) {
@@ -132,7 +118,7 @@ public class ArduinoEngine {
                                 }
                             }
 
-                            notifyArduinoListeners();
+                            notifyListeners();
                         }
                     } catch (IOException | NullPointerException ignored) { }
                 }
@@ -258,12 +244,13 @@ public class ArduinoEngine {
     public String getItem(String ID, String markName, String userName, long timeStamp) {
         StringBuilder sb = new StringBuilder();
 
-        sb.append(ID).append(C.CSV_SEPARATOR);
-        sb.append(markName).append(C.CSV_SEPARATOR);
-        sb.append(userName).append(C.CSV_SEPARATOR);
-        sb.append(timeStamp).append(C.CSV_SEPARATOR);
+        sb.append(ID).append(Constants.CSV_SEPARATOR);
+        sb.append(markName).append(Constants.CSV_SEPARATOR);
+        sb.append(userName).append(Constants.CSV_SEPARATOR);
+        sb.append(timeStamp).append(Constants.CSV_SEPARATOR);
         sb.append(getData());
 
+        sb.length();
         return sb.toString();
     }
 }

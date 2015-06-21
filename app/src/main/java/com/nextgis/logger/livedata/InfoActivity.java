@@ -21,7 +21,7 @@
  * *****************************************************************************
  */
 
-package com.nextgis.logger;
+package com.nextgis.logger.livedata;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -31,10 +31,10 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.Menu;
-import android.view.View;
 import android.view.WindowManager;
-import android.view.animation.AnimationUtils;
 
+import com.nextgis.logger.util.Constants;
+import com.nextgis.logger.R;
 import com.nextgis.logger.UI.ProgressBarActivity;
 
 public class InfoActivity extends ProgressBarActivity {
@@ -68,7 +68,7 @@ public class InfoActivity extends ProgressBarActivity {
     protected void onResume() {
         super.onResume();
 
-        if(mPreferences.getBoolean(C.PREF_KEEP_SCREEN, true))
+        if(mPreferences.getBoolean(Constants.PREF_KEEP_SCREEN, true))
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         else
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);

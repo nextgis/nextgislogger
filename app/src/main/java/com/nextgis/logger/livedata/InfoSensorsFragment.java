@@ -21,7 +21,7 @@
  * *****************************************************************************
  */
 
-package com.nextgis.logger;
+package com.nextgis.logger.livedata;
 
 import android.hardware.Sensor;
 import android.os.Bundle;
@@ -34,10 +34,15 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.nextgis.logger.R;
+import com.nextgis.logger.engines.BaseEngine;
+import com.nextgis.logger.engines.GPSEngine;
+import com.nextgis.logger.engines.SensorEngine;
+
 import java.text.DateFormat;
 import java.util.Date;
 
-public class InfoSensorsFragment extends Fragment implements GPSEngine.GPSInfoListener {
+public class InfoSensorsFragment extends Fragment implements BaseEngine.EngineListener {
     private SensorEngine mSensorEngine;
     private GPSEngine mGPSEngine;
 
@@ -56,17 +61,16 @@ public class InfoSensorsFragment extends Fragment implements GPSEngine.GPSInfoLi
         View rootView = inflater.inflate(R.layout.info_sensors_fragment, container, false);
 
         mSensorEngine = new SensorEngine(getActivity());
-//        mSensorEngine.addSensorListener(this);
-        mSensorEngine.addSensorListener(new SensorEngine.SensorInfoListener() {
+        mSensorEngine.addListener(new BaseEngine.EngineListener() {
             @Override
-            public void onSensorInfoChanged() {
+            public void onInfoChanged() {
                 if (isAdded())
                     fillSensorsTextViews();
             }
         });
 
         mGPSEngine = mSensorEngine.getGpsEngine();
-        mGPSEngine.addGPSListener(this);
+        mGPSEngine.addListener(this);
 
         llGPS = (LinearLayout) rootView.findViewById(R.id.ll_gps);
         llGPSInfo = (LinearLayout) rootView.findViewById(R.id.ll_gps_info);
@@ -109,15 +113,15 @@ public class InfoSensorsFragment extends Fragment implements GPSEngine.GPSInfoLi
 
     @SuppressWarnings("deprecation")
     private void fillSensorsTextViews() {
-        tvAccelerometerX.setText(format(Sensor.TYPE_ACCELEROMETER, mSensorEngine.getX()));
-        tvAccelerometerY.setText(format(Sensor.TYPE_ACCELEROMETER, mSensorEngine.getY()));
-        tvAccelerometerZ.setText(format(Sensor.TYPE_ACCELEROMETER, mSensorEngine.getZ()));
+        tvAccelerometerX.setText(format(Sensor.TYPE_ACCELEROMETER, mSensorEngine.getAccelerometerX()));
+        tvAccelerometerY.setText(format(Sensor.TYPE_ACCELEROMETER, mSensorEngine.getAccelerometerY()));
+        tvAccelerometerZ.setText(format(Sensor.TYPE_ACCELEROMETER, mSensorEngine.getAccelerometerZ()));
         tvOrientAzimuth.setText(format(Sensor.TYPE_ORIENTATION, mSensorEngine.getAzimuth()));
         tvOrientPitch.setText(format(Sensor.TYPE_ORIENTATION, mSensorEngine.getPitch()));
         tvOrientRoll.setText(format(Sensor.TYPE_ORIENTATION, mSensorEngine.getRoll()));
-        tvGyroX.setText(format(Sensor.TYPE_GYROSCOPE, mSensorEngine.getGyroX()));
-        tvGyroY.setText(format(Sensor.TYPE_GYROSCOPE, mSensorEngine.getGyroY()));
-        tvGyroZ.setText(format(Sensor.TYPE_GYROSCOPE, mSensorEngine.getGyroZ()));
+        tvGyroX.setText(format(Sensor.TYPE_GYROSCOPE, mSensorEngine.getGyroscopeX()));
+        tvGyroY.setText(format(Sensor.TYPE_GYROSCOPE, mSensorEngine.getGyroscopeY()));
+        tvGyroZ.setText(format(Sensor.TYPE_GYROSCOPE, mSensorEngine.getGyroscopeZ()));
         tvMagneticX.setText(format(Sensor.TYPE_MAGNETIC_FIELD, mSensorEngine.getMagneticX()));
         tvMagneticY.setText(format(Sensor.TYPE_MAGNETIC_FIELD, mSensorEngine.getMagneticY()));
         tvMagneticZ.setText(format(Sensor.TYPE_MAGNETIC_FIELD, mSensorEngine.getMagneticZ()));
@@ -176,7 +180,7 @@ public class InfoSensorsFragment extends Fragment implements GPSEngine.GPSInfoLi
     }
 
     @Override
-    public void onGPSInfoChanged() {
+    public void onInfoChanged() {
         if (isAdded())
             fillGPSTextViews();
     }

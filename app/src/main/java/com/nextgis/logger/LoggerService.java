@@ -34,6 +34,12 @@ import android.os.IBinder;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 
+import com.nextgis.logger.engines.ArduinoEngine;
+import com.nextgis.logger.engines.CellEngine;
+import com.nextgis.logger.engines.SensorEngine;
+import com.nextgis.logger.util.Constants;
+import com.nextgis.logger.util.FileUtil;
+
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
@@ -77,8 +83,8 @@ public class LoggerService extends Service {
 		gsmEngine.onResume();
 
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        userName = prefs.getString(C.PREF_USER_NAME, C.DEFAULT_USERNAME);
-		interval = prefs.getInt(C.PREF_PERIOD_SEC, interval);
+        userName = prefs.getString(Constants.PREF_USER_NAME, Constants.DEFAULT_USERNAME);
+		interval = prefs.getInt(Constants.PREF_PERIOD_SEC, interval);
 
 		sensorEngine = new SensorEngine(this);
         sensorEngine.onResume();
@@ -174,9 +180,9 @@ public class LoggerService extends Service {
 			public void run() {
 
 				boolean isFileSystemError = false;
-				Intent intentStatus = new Intent(C.BROADCAST_ACTION);
+				Intent intentStatus = new Intent(Constants.BROADCAST_ACTION);
 
-				intentStatus.putExtra(C.PARAM_SERVICE_STATUS, C.STATUS_STARTED).putExtra(C.PARAM_TIME, timeStart);
+				intentStatus.putExtra(Constants.PARAM_SERVICE_STATUS, Constants.STATUS_STARTED).putExtra(Constants.PARAM_TIME, timeStart);
 				sendBroadcast(intentStatus);
 
 				PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
@@ -193,18 +199,18 @@ public class LoggerService extends Service {
 							String active = gsmInfo.isActive() ? "1" : gsmInfoArray.get(0).getMcc() + "-" + gsmInfoArray.get(0).getMnc() + "-"
 									+ gsmInfoArray.get(0).getLac() + "-" + gsmInfoArray.get(0).getCid();
 
-                            FileUtil.saveItemToLog(C.LOG_TYPE_NETWORK, false, CellEngine.getItem(gsmInfo, active, "", C.logDefaultName, userName));
+                            FileUtil.saveItemToLog(Constants.LOG_TYPE_NETWORK, false, CellEngine.getItem(gsmInfo, active, "", Constants.LOG_UID, userName));
 						}
 
 						if (sensorEngine.isAnySensorEnabled()) {
-                            FileUtil.saveItemToLog(C.LOG_TYPE_SENSORS, false,
-                                    SensorEngine.getItem(sensorEngine, "", C.logDefaultName, userName, gsmInfoArray.get(0).getTimeStamp()));
+                            FileUtil.saveItemToLog(Constants.LOG_TYPE_SENSORS, false,
+                                    SensorEngine.getItem(sensorEngine, "", Constants.LOG_UID, userName, gsmInfoArray.get(0).getTimeStamp()));
 						}
 
                         // TODO settings
-                        FileUtil.saveItemToLog(C.LOG_TYPE_EXTERNAL, false, arduinoEngine.getItem("", C.logDefaultName, userName, gsmInfoArray.get(0).getTimeStamp()));
+                        FileUtil.saveItemToLog(Constants.LOG_TYPE_EXTERNAL, false, arduinoEngine.getItem("", Constants.LOG_UID, userName, gsmInfoArray.get(0).getTimeStamp()));
 
-						intentStatus.putExtra(C.PARAM_SERVICE_STATUS, C.STATUS_RUNNING).putExtra(C.PARAM_RECORDS_COUNT, ++recordsCount);
+						intentStatus.putExtra(Constants.PARAM_SERVICE_STATUS, Constants.STATUS_RUNNING).putExtra(Constants.PARAM_RECORDS_COUNT, ++recordsCount);
 						sendBroadcast(intentStatus);
 
 						Thread.sleep(interval * 1000);
@@ -223,10 +229,10 @@ public class LoggerService extends Service {
 
 				if (isFileSystemError) {
 					sendErrorNotification();
-					intentStatus.putExtra(C.PARAM_SERVICE_STATUS, C.STATUS_ERROR);
+					intentStatus.putExtra(Constants.PARAM_SERVICE_STATUS, Constants.STATUS_ERROR);
 
 				} else {
-					intentStatus.putExtra(C.PARAM_SERVICE_STATUS, C.STATUS_FINISHED).putExtra(C.PARAM_TIME,
+					intentStatus.putExtra(Constants.PARAM_SERVICE_STATUS, Constants.STATUS_FINISHED).putExtra(Constants.PARAM_TIME,
 							System.currentTimeMillis());
 
 				}

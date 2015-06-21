@@ -33,6 +33,8 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.nextgis.logger.UI.ProgressBarActivity;
+import com.nextgis.logger.util.Constants;
+import com.nextgis.logger.util.FileUtil;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -83,7 +85,7 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
                     if (fileName.contains("*"))
                         fileName = fileName.substring(0, fileName.indexOf(" *"));
 
-                    result.add(new File(C.dataBasePath + File.separator + fileName));
+                    result.add(new File(Constants.DATA_PATH + File.separator + fileName));
                 }
             }
 
@@ -95,10 +97,10 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
                         try {
                             byte[] buffer = new byte[1024];
 
-                            FileUtil.checkOrCreateDirectory(C.tempPath);
+                            FileUtil.checkOrCreateDirectory(Constants.TEMP_PATH);
 
                             for (File file : result) { // for each selected logs directory
-                                String tempFileName = C.tempPath + File.separator + file.getName() + ".zip"; // set temp zip file path
+                                String tempFileName = Constants.TEMP_PATH + File.separator + file.getName() + ".zip"; // set temp zip file path
 
                                 File[] files = file.listFiles(); // get all files in current log directory
 
@@ -163,7 +165,7 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
         ArrayList<String> sessions = new ArrayList<>();
 
         try {
-            File baseDir = new File(C.dataBasePath);
+            File baseDir = new File(Constants.DATA_PATH);
 
             if (!baseDir.exists() || !baseDir.isDirectory()) {
                 return sessions;
@@ -171,7 +173,7 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
 
             for (File file : baseDir.listFiles())
                 if (file.isDirectory() && !file.isHidden())
-                    if (file.getName().equals(PreferenceManager.getDefaultSharedPreferences(this).getString(C.PREF_SESSION_NAME, "")))  // TODO should we block this session?
+                    if (file.getName().equals(PreferenceManager.getDefaultSharedPreferences(this).getString(Constants.PREF_SESSION_NAME, "")))  // TODO should we block this session?
                         sessions.add(file.getName() + " *" + getString(R.string.scl_current_session) + "*");    // it's current opened session
                     else
                         sessions.add(file.getName());

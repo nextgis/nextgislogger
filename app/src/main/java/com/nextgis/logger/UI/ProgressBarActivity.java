@@ -41,7 +41,7 @@ import android.widget.ProgressBar;
 
 import com.melnykov.fab.FloatingActionButton;
 import com.nextgis.logger.AboutActivity;
-import com.nextgis.logger.InfoActivity;
+import com.nextgis.logger.livedata.InfoActivity;
 import com.nextgis.logger.LoggerService;
 import com.nextgis.logger.PreferencesActivity;
 import com.nextgis.logger.R;

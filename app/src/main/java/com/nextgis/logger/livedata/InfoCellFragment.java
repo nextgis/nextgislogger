@@ -21,7 +21,7 @@
  * *****************************************************************************
  */
 
-package com.nextgis.logger;
+package com.nextgis.logger.livedata;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -33,14 +33,16 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
+import com.nextgis.logger.R;
+import com.nextgis.logger.engines.BaseEngine;
+import com.nextgis.logger.engines.CellEngine;
+
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class InfoCellFragment extends Fragment implements CellEngine.CellInfoListener {
+public class InfoCellFragment extends Fragment implements BaseEngine.EngineListener {
     private static final String CELL_ID         = "id";
     private static final String CELL_ACTIVE     = "active";
     private static final String CELL_GEN        = "generation";
@@ -80,7 +82,7 @@ public class InfoCellFragment extends Fragment implements CellEngine.CellInfoLis
         tvActive = (TextView) rootView.findViewById(R.id.tv_network_active);
 
         gsmEngine = new CellEngine(getActivity());
-        gsmEngine.addCellListener(this);
+        gsmEngine.addListener(this);
 
         fillTextViews();
 
@@ -137,7 +139,7 @@ public class InfoCellFragment extends Fragment implements CellEngine.CellInfoLis
     }
 
     @Override
-    public void onCellInfoChanged() {
+    public void onInfoChanged() {
         if (isAdded())
             fillTextViews();
     }

@@ -21,7 +21,7 @@
  * *****************************************************************************
  */
 
-package com.nextgis.logger;
+package com.nextgis.logger.livedata;
 
 import android.os.Bundle;
 import android.os.Handler;
@@ -31,9 +31,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.nextgis.logger.LoggerApplication;
+import com.nextgis.logger.R;
+import com.nextgis.logger.engines.ArduinoEngine;
+import com.nextgis.logger.engines.BaseEngine;
+
 public class InfoExternalsFragment extends Fragment {
     private ArduinoEngine mArduinoEngine;
-    ArduinoEngine.ArduinoInfoListener mArduinoListener;
+    BaseEngine.EngineListener mArduinoListener;
     private TextView mTvTemperature, mTvHumidity, mTvNoise, mTvCO, mTvC4H10, mTvCH4;
     private Handler mHandler;
 
@@ -43,9 +48,9 @@ public class InfoExternalsFragment extends Fragment {
 
         mHandler = new Handler();
         mArduinoEngine = ((LoggerApplication) getActivity().getApplication()).getArduinoEngine();
-        mArduinoListener = new ArduinoEngine.ArduinoInfoListener() {
+        mArduinoListener = new BaseEngine.EngineListener() {
             @Override
-            public void onArduinoInfoChanged() {
+            public void onInfoChanged() {
                 mHandler.post(new Runnable() {
                     @Override
                     public void run() {
@@ -55,7 +60,7 @@ public class InfoExternalsFragment extends Fragment {
                 });
             }
         };
-        mArduinoEngine.addArduinoListener(mArduinoListener);
+        mArduinoEngine.addListener(mArduinoListener);
 
         mTvTemperature = (TextView) rootView.findViewById(R.id.tv_temperature);
         mTvHumidity = (TextView) rootView.findViewById(R.id.tv_humidity);
@@ -92,6 +97,6 @@ public class InfoExternalsFragment extends Fragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        mArduinoEngine.removeArduinoListener(mArduinoListener);
+        mArduinoEngine.removeListener(mArduinoListener);
     }
 }

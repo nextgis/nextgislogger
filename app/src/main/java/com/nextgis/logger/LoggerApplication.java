@@ -25,13 +25,15 @@ package com.nextgis.logger;
 
 import android.app.Application;
 
+import com.nextgis.logger.engines.ArduinoEngine;
+
 public class LoggerApplication extends Application {
     private static ArduinoEngine mArduinoEngine;
     @Override
     public void onCreate() {
         super.onCreate();
 
-        mArduinoEngine = new ArduinoEngine();
+        mArduinoEngine = new ArduinoEngine(this);
     }
 
     public ArduinoEngine getArduinoEngine() {

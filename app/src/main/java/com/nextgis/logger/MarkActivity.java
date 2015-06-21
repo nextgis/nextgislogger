@@ -50,6 +50,10 @@ import android.widget.SearchView.OnQueryTextListener;
 import android.widget.Toast;
 
 import com.nextgis.logger.UI.ProgressBarActivity;
+import com.nextgis.logger.engines.CellEngine;
+import com.nextgis.logger.engines.SensorEngine;
+import com.nextgis.logger.util.Constants;
+import com.nextgis.logger.util.FileUtil;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -92,9 +96,9 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 		super.onCreate(savedInstanceState);
 
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        mIsVolumeControlEnabled = prefs.getBoolean(C.PREF_USE_VOL, true) && prefs.getBoolean(C.PREF_USE_CATS, false);
+        mIsVolumeControlEnabled = prefs.getBoolean(Constants.PREF_USE_VOL, true) && prefs.getBoolean(Constants.PREF_USE_CATS, false);
 
-        if(prefs.getBoolean(C.PREF_KEEP_SCREEN, true))
+        if(prefs.getBoolean(Constants.PREF_KEEP_SCREEN, true))
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 		setContentView(R.layout.mark_activity);
@@ -105,8 +109,8 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 		sensorEngine = new SensorEngine(this);
 //		wifiEngine = new WiFiEngine(this);
 
-        mSavedMarkPosition = prefs.getInt(C.PREF_MARK_POS, Integer.MIN_VALUE);
-        marksCount = prefs.getInt(C.PREF_MARKS_COUNT, 0);
+        mSavedMarkPosition = prefs.getInt(Constants.PREF_MARK_POS, Integer.MIN_VALUE);
+        marksCount = prefs.getInt(Constants.PREF_MARKS_COUNT, 0);
         marksHandler = new MarksHandler(this);
 
         lvCategories = (ListView) findViewById(R.id.lv_categories);
@@ -149,9 +153,9 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 
 		List<MarkName> markNames = new ArrayList<>();
 
-		if (prefs.getBoolean(C.PREF_USE_CATS, false)) {
+		if (prefs.getBoolean(Constants.PREF_USE_CATS, false)) {
 			String internalPath = getFilesDir().getAbsolutePath();
-			File cats = new File(internalPath + "/" + C.categoriesFile);
+			File cats = new File(internalPath + "/" + Constants.CATEGORIES);
 
 			if (cats.isFile()) {
 				BufferedReader in;
@@ -236,7 +240,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 		sensorEngine.onPause();
 //		wifiEngine.onPause();
 
-		prefs.edit().putInt(C.PREF_MARKS_COUNT, marksCount).apply();
+		prefs.edit().putInt(Constants.PREF_MARKS_COUNT, marksCount).apply();
 	}
 
     @Override
@@ -323,19 +327,15 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 
         final Bundle data = new Bundle();
 
-        data.putInt(C.PREF_MARK_POS, substringMarkNameAdapter.getMarkPosition(mark));
+        data.putInt(Constants.PREF_MARK_POS, substringMarkNameAdapter.getMarkPosition(mark));
         String markName = mark.getCAT();
         String ID = mark.getID() + "";
-
-        if (markName.length() == 0) {	// FIXME looks like doesn't need anymore
-            markName = C.markDefaultName;
-        }
 
         String info = String.format(getString(R.string.mark_saved), markName);
 
         ArrayList<CellEngine.GSMInfo> gsmInfoArray = gsmEngine.getGSMInfoArray();
         ArrayList<String> items = new ArrayList<>();
-        String userName = prefs.getString(C.PREF_USER_NAME, C.DEFAULT_USERNAME);
+        String userName = prefs.getString(Constants.PREF_USER_NAME, Constants.DEFAULT_USERNAME);
 
         for (CellEngine.GSMInfo gsmInfo : gsmInfoArray) {
             String active = gsmInfo.isActive() ? "1" : gsmInfoArray.get(0).getMcc() + "-" + gsmInfoArray.get(0).getMnc() + "-"
@@ -525,15 +525,15 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
                     if (Math.abs(System.currentTimeMillis() - mUndoTimeStamp) >= DELAY) {
                         try {
                             for (String item : msg.getData().getStringArrayList(BUNDLE_CELL))
-                                FileUtil.saveItemToLog(C.LOG_TYPE_NETWORK, true, item);
+                                FileUtil.saveItemToLog(Constants.LOG_TYPE_NETWORK, true, item);
 
                             String sensorItem = msg.getData().getString(BUNDLE_SENSOR);
 
                             if (!TextUtils.isEmpty(sensorItem))
-                                FileUtil.saveItemToLog(C.LOG_TYPE_SENSORS, true, sensorItem);
+                                FileUtil.saveItemToLog(Constants.LOG_TYPE_SENSORS, true, sensorItem);
 
-                            mSavedMarkPosition = msg.getData().getInt(C.PREF_MARK_POS);
-                            PreferenceManager.getDefaultSharedPreferences(mParent).edit().putInt(C.PREF_MARK_POS, mSavedMarkPosition).apply();
+                            mSavedMarkPosition = msg.getData().getInt(Constants.PREF_MARK_POS);
+                            PreferenceManager.getDefaultSharedPreferences(mParent).edit().putInt(Constants.PREF_MARK_POS, mSavedMarkPosition).apply();
                         } catch (FileNotFoundException e) {
                             e.printStackTrace();
                         }
