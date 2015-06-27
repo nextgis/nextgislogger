@@ -27,6 +27,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
+import android.preference.PreferenceManager;
 import android.text.TextUtils;
 
 import com.nextgis.logger.util.Constants;
@@ -35,6 +36,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -57,7 +59,7 @@ public class ArduinoEngine extends BaseEngine {
     private boolean mIsLoggerServiceRunning = false;
 
     private String data = "No data";
-    private String mDeviceName = "HC-06";
+    private String mDeviceName, mDeviceMAC;
 
     private volatile int mTemperature, mHumidity, mNoise;
     private volatile double mCO, mCH4, mC4H10;
@@ -74,6 +76,9 @@ public class ArduinoEngine extends BaseEngine {
         super(context);
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         mConnectionListeners = new ArrayList<>();
+        String nameWithMAC = PreferenceManager.getDefaultSharedPreferences(context).getString(Constants.PREF_EXTERNAL_DEVICE, "");
+        mDeviceMAC = splitDeviceMAC(nameWithMAC);
+        mDeviceName = splitDeviceName(nameWithMAC);
     }
 
     public boolean removeListener(BaseEngine.EngineListener listener) {
@@ -210,17 +215,22 @@ public class ArduinoEngine extends BaseEngine {
             throw new IOException("Bluetooth adapter is not available");
         }
 
-        Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
-        if (pairedDevices != null) {
-            for (BluetoothDevice device : pairedDevices) {
-                if (device.getName().equals(mDeviceName)) {
-                    mDevice = device;
-                    return;
-                }
+        Set<BluetoothDevice> pairedDevices = getPairedDevices();
+        for (BluetoothDevice device : pairedDevices) {
+            if (device.getAddress().equals(mDeviceMAC)) {
+                mDevice = device;
+                return;
             }
         }
 
         throw new IOException("Can not find Arduino's bluetooth");
+    }
+
+    public Set<BluetoothDevice> getPairedDevices() {
+        if (mBluetoothAdapter != null)
+            return mBluetoothAdapter.getBondedDevices();
+        else
+            return Collections.emptySet();
     }
 
     public boolean isBTEnabled() {
@@ -267,6 +277,32 @@ public class ArduinoEngine extends BaseEngine {
 
     public String getDeviceName() {
         return mDeviceName;
+    }
+
+    public void setDeviceName(String newName) {
+        mDeviceName = newName;
+    }
+
+    public void setDeviceMAC(String newMAC) {
+        mDeviceMAC = newMAC;
+    }
+
+    public String splitDeviceMAC(String nameWithMAC) {
+        int i = nameWithMAC.indexOf("(");
+
+        if (i > 0)
+            return nameWithMAC.substring(i + 1, nameWithMAC.length() - 1);
+        else
+            return null;
+    }
+
+    public String splitDeviceName(String nameWithMAC) {
+        int i = nameWithMAC.indexOf("(");
+
+        if (i > 0)
+            return nameWithMAC.substring(0, i - 1);
+        else
+            return null;
     }
 
     public String getItem(String ID, String markName, String userName, long timeStamp) {

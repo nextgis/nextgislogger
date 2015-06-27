@@ -101,7 +101,8 @@
 
     <string name="external_data">Enable external data</string>
     <string name="external_data_sum">Supports only Arduino now</string>
-    <string name="external_device">Select Bluetooth pairing device</string>
+    <string name="external_device">Select Bluetooth paired device</string>
+    <string name="external_paired">Paired devices:</string>
     <string name="external_disabled">External data is disabled.</string>
     <string name="external_bt_disabled">Bluetooth is disabled.</string>
     <string name="external_goto_settings">Check settings</string>

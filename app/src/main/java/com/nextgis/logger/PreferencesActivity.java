@@ -21,7 +21,10 @@
 package com.nextgis.logger;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
@@ -35,11 +38,14 @@ import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
+import android.preference.PreferenceManager;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import com.nextgis.logger.UI.IntEditTextPreference;
 import com.nextgis.logger.UI.SimpleFileChooser;
+import com.nextgis.logger.engines.ArduinoEngine;
 import com.nextgis.logger.util.Constants;
 
 import java.io.BufferedReader;
@@ -183,6 +189,56 @@ public class PreferencesActivity extends PreferenceActivity {
                     Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
                     intent.setType("file/*");
                     startActivityForResult(intent, CHOOSE_FILE);
+
+                    return true;
+                }
+            });
+
+            final Preference selectExternalDevice = findPreference(Constants.PREF_EXTERNAL_DEVICE);
+            selectExternalDevice.setSummary(PreferenceManager.getDefaultSharedPreferences(getActivity()).getString(Constants.PREF_EXTERNAL_DEVICE, null));
+
+            selectExternalDevice.setOnPreferenceClickListener(new OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(final Preference preference) {
+                    AlertDialog.Builder dialog = new AlertDialog.Builder(getActivity());
+                    final ArduinoEngine engine = ((LoggerApplication) getActivity().getApplication()).getArduinoEngine();
+
+                    if (!engine.isBTEnabled()) {
+                        dialog.setTitle(R.string.external_goto_settings);
+                        dialog.setMessage(R.string.external_bt_disabled);
+                    } else {
+                        dialog.setTitle(R.string.external_paired);
+                        final ArrayAdapter<String> devicesNames = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_dropdown_item);
+
+                        for (BluetoothDevice device : engine.getPairedDevices())
+                            devicesNames.add(device.getName() + " (" + device.getAddress() + ")");
+
+                        dialog.setAdapter(devicesNames,
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        String name = devicesNames.getItem(which);
+                                        PreferenceManager.getDefaultSharedPreferences(getActivity()).edit()
+                                                .putString(Constants.PREF_EXTERNAL_DEVICE, name).commit();
+                                        engine.setDeviceMAC(engine.splitDeviceMAC(name));
+                                        engine.setDeviceName(engine.splitDeviceName(name));
+                                        selectExternalDevice.setSummary(name);
+                                    }
+                                });
+                    }
+
+                    dialog.setNegativeButton(android.R.string.cancel, null);
+                    dialog.setPositiveButton(R.string.app_settings,
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Intent btSettings = new Intent();
+                                    btSettings.setAction(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS);
+                                    startActivity(btSettings);
+                                }
+                            });
+
+                    dialog.show();
 
                     return true;
                 }
