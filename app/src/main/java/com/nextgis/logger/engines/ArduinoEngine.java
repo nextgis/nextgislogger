@@ -34,6 +34,8 @@ import com.nextgis.logger.util.Constants;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -54,13 +56,24 @@ public class ArduinoEngine extends BaseEngine {
     private volatile boolean mIsWorking;
     private boolean mIsLoggerServiceRunning = false;
 
-    String data = "No data";
+    private String data = "No data";
+    private String mDeviceName = "HC-06";
 
     private volatile int mTemperature, mHumidity, mNoise;
     private volatile double mCO, mCH4, mC4H10;
 
+    protected List<ConnectionListener> mConnectionListeners;
+
+    public interface ConnectionListener {
+        void onTimeoutOrFailure();
+
+        void onConnected();
+    }
+
     public ArduinoEngine(Context context) {
         super(context);
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        mConnectionListeners = new ArrayList<>();
     }
 
     public boolean removeListener(BaseEngine.EngineListener listener) {
@@ -70,6 +83,14 @@ public class ArduinoEngine extends BaseEngine {
             closeConnection();
 
         return result;
+    }
+
+    public void addConnectionListener(ConnectionListener listener) {
+        mConnectionListeners.add(listener);
+    }
+
+    public boolean removeConnectionListener(ConnectionListener listener) {
+        return mConnectionListeners.remove(listener);
     }
 
     public void setLoggerServiceRunning(boolean serviceStatus) {
@@ -87,8 +108,6 @@ public class ArduinoEngine extends BaseEngine {
         if (mIsLoggerServiceRunning && mWorkerThread != null && mWorkerThread.isAlive())
             return;
 
-        openConnection();
-
         mIsWorking = false;
         mBufferPosition = 0;
         mBuffer = new byte[1024];
@@ -96,7 +115,7 @@ public class ArduinoEngine extends BaseEngine {
             public void run() {
                 while (!mIsWorking) {
                     try {
-                        if (!isAvailable() || !isConnected())
+                        if (!isDeviceAvailable() || !isConnected())
                             openConnection();
 
                         int bytesAvailable = mInputStream.available();
@@ -120,7 +139,14 @@ public class ArduinoEngine extends BaseEngine {
 
                             notifyListeners();
                         }
-                    } catch (IOException | NullPointerException ignored) { }
+                    } catch (IOException e) {
+                        for (ConnectionListener listener : mConnectionListeners)
+                            listener.onTimeoutOrFailure();
+
+                        if (!mIsLoggerServiceRunning)
+                            mIsWorking = true;
+                    } catch (NullPointerException ignored) {
+                    }
                 }
 
                 closeConnection();
@@ -143,16 +169,12 @@ public class ArduinoEngine extends BaseEngine {
         }
     }
 
-    private boolean openConnection() {
-        try {
-            findBT();
-            openBT();
-            return true;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    private void openConnection() throws IOException {
+        findBT();
+        openBT();
 
-        return false;
+        for (ConnectionListener listener : mConnectionListeners)
+            listener.onConnected();
     }
 
     public String getData() {
@@ -184,16 +206,14 @@ public class ArduinoEngine extends BaseEngine {
     }
 
     private void findBT() throws IOException {
-        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-
-        if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
+        if (!isBTEnabled()) {
             throw new IOException("Bluetooth adapter is not available");
         }
 
         Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
-        if (pairedDevices.size() > 0) {
+        if (pairedDevices != null) {
             for (BluetoothDevice device : pairedDevices) {
-                if (device.getName().equals("HC-06")) {
+                if (device.getName().equals(mDeviceName)) {
                     mDevice = device;
                     return;
                 }
@@ -203,8 +223,12 @@ public class ArduinoEngine extends BaseEngine {
         throw new IOException("Can not find Arduino's bluetooth");
     }
 
-    public boolean isAvailable() {
-        return (mBluetoothAdapter != null && mBluetoothAdapter.isEnabled() && mDevice != null);
+    public boolean isBTEnabled() {
+        return (mBluetoothAdapter != null && mBluetoothAdapter.isEnabled());
+    }
+
+    public boolean isDeviceAvailable() {
+        return (isBTEnabled() && mDevice != null);
     }
 
     private void openBT() throws IOException {
@@ -239,6 +263,10 @@ public class ArduinoEngine extends BaseEngine {
         mOutputStream = null;
         mInputStream = null;
         mSocket = null;
+    }
+
+    public String getDeviceName() {
+        return mDeviceName;
     }
 
     public String getItem(String ID, String markName, String userName, long timeStamp) {

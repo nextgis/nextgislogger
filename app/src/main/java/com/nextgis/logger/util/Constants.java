@@ -69,6 +69,8 @@ public interface Constants {
     String PREF_MARK_POS = "mark_position";
     String PREF_RECORDS_COUNT = "records_count";
     String PREF_KEEP_SCREEN = "keep_screen";
+    String PREF_EXTERNAL = "external_data";
+    String PREF_EXTERNAL_DEVICE = "external_device";
     String DEFAULT_USERNAME = "User1";
     String LOG_UID = "ServiceLog";
 

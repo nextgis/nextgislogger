@@ -41,6 +41,7 @@
 
     <string name="settings_sensors">Sensors</string>
     <string name="settings_main">Main</string>
+    <string name="settings_external">External</string>
 
     <string name="settings_period">Set Period (sec)</string>
     <string name="settings_period_sum">"Current is "</string>
@@ -98,6 +99,15 @@
     <string name="sensor_orientation">Orientation</string>
     <string name="gps">GPS</string>
 
+    <string name="external_data">Enable external data</string>
+    <string name="external_data_sum">Supports only Arduino now</string>
+    <string name="external_device">Select Bluetooth pairing device</string>
+    <string name="external_disabled">External data is disabled.</string>
+    <string name="external_bt_disabled">Bluetooth is disabled.</string>
+    <string name="external_goto_settings">Check settings</string>
+    <string name="external_not_found">Can not connect to %s. Device not found or connection timeout.</string>
+    <string name="external_connecting">Connecting to %s…</string>
+    <string name="external_retry">Retry</string>
     <string name="external_dht_temp">Temperature</string>
     <string name="external_dht_humidity">Humidity</string>
     <string name="external_noise">Noise</string>

@@ -67,33 +67,51 @@
             android:summary="@string/settings_keep_screen_sum"
             android:title="@string/settings_keep_screen"/>
     </PreferenceCategory>
+
     <PreferenceCategory android:title="@string/settings_sensors">
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="gps"
             android:title="@string/gps"/>
+
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="sensor_state"
             android:title="@string/sensor_accelerometer"/>
+
         <CheckBoxPreference
             android:defaultValue="false"
             android:dependency="sensor_state"
             android:key="sensor_mode"
             android:summary="@string/settings_sensor_mode_sum"
             android:title="@string/sensor_linear"/>
+
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="sensor_magnetic_state"
             android:title="@string/sensor_magnetic"/>
+
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="sensor_orientation_state"
             android:title="@string/sensor_orientation"/>
+
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="sensor_gyroscope_state"
             android:title="@string/sensor_gyroscope"/>
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="@string/settings_external">
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="external_data"
+            android:summary="@string/external_data_sum"
+            android:title="@string/external_data"/>
+
+        <Preference
+            android:dependency="external_data"
+            android:key="external_device"
+            android:title="@string/external_device"/>
+    </PreferenceCategory>
 </PreferenceScreen>
