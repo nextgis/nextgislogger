@@ -108,6 +108,7 @@
     <string name="external_goto_settings">Check settings</string>
     <string name="external_not_found">Can not connect to %s. Device not found or connection timeout.</string>
     <string name="external_connecting">Connecting to %s…</string>
+    <string name="external_connected">Connected to %s</string>
     <string name="external_retry">Retry</string>
     <string name="external_dht_temp">Temperature</string>
     <string name="external_dht_humidity">Humidity</string>

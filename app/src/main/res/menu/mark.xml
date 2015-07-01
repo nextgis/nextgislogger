@@ -1,28 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-Project: NextGIS Logger
-Purpose: Productive data logger for Android
-Authors: Stanislav Petriakov
-Copyright © 2014 NextGIS
+  ~ ******************************************************************************
+  ~ Project: NextGIS Logger
+  ~ Purpose: Productive data logger for Android
+  ~ Author:  Stanislav Petriakov, becomeglory@gmail.com
+  ~ ******************************************************************************
+  ~ Copyright © 2014-2015 NextGIS
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 2 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  ~ ******************************************************************************
+  -->
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 2 of the License, or
-(at your option) any later version.
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
--->
-<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+    <item
+        android:id="@+id/bt_lost"
+        android:icon="@drawable/ic_bluetooth_white_24dp"
+        android:orderInCategory="0"
+        android:showAsAction="ifRoom"
+        android:title="@string/external_retry"/>
 
     <item
         android:id="@+id/search"
         android:actionViewClass="android.widget.SearchView"
+        android:orderInCategory="10"
         android:showAsAction="always"
         android:title="@string/menu_search"/>
 

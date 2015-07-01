@@ -24,10 +24,8 @@
 package com.nextgis.logger.livedata;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
-import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -43,12 +41,10 @@ import com.nextgis.logger.PreferencesActivity;
 import com.nextgis.logger.R;
 import com.nextgis.logger.engines.ArduinoEngine;
 import com.nextgis.logger.engines.BaseEngine;
-import com.nextgis.logger.util.Constants;
 
 public class InfoExternalsFragment extends Fragment implements View.OnClickListener, ArduinoEngine.ConnectionListener {
     private enum EXTERNAL_STATUS {DISABLED, BT_DISABLED, NOT_FOUND, CONNECTING, CONNECTED}
 
-    ;
     private ArduinoEngine mArduinoEngine;
     private BaseEngine.EngineListener mArduinoListener;
     private TextView mTvTemperature, mTvHumidity, mTvNoise, mTvCO, mTvC4H10, mTvCH4, mTvInfo;
@@ -57,7 +53,6 @@ public class InfoExternalsFragment extends Fragment implements View.OnClickListe
     private Button mBtnSettings;
     private ProgressBar mPbConnecting;
     private Handler mHandler;
-    private SharedPreferences mPreferences;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -69,7 +64,6 @@ public class InfoExternalsFragment extends Fragment implements View.OnClickListe
         mPbConnecting = (ProgressBar) rootView.findViewById(R.id.pb_connecting);
         mBtnSettings.setOnClickListener(this);
 
-        mPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
         mHandler = new Handler();
         mArduinoEngine = ((LoggerApplication) getActivity().getApplication()).getArduinoEngine();
         mArduinoEngine.addConnectionListener(this);
@@ -99,7 +93,7 @@ public class InfoExternalsFragment extends Fragment implements View.OnClickListe
     public void onResume() {
         super.onResume();
 
-        if (isExternalEnabled()) {
+        if (mArduinoEngine.isLogEnabled()) {
             if (mArduinoEngine.isBTEnabled())
                 connect();
             else
@@ -112,8 +106,7 @@ public class InfoExternalsFragment extends Fragment implements View.OnClickListe
     public void onPause() {
         super.onPause();
 
-        if (isExternalEnabled())
-            mArduinoEngine.onPause();
+        mArduinoEngine.onPause();
     }
 
     @Override
@@ -124,6 +117,7 @@ public class InfoExternalsFragment extends Fragment implements View.OnClickListe
             mArduinoEngine.removeListener(mArduinoListener);
 
         mArduinoEngine.removeConnectionListener(this);
+        mArduinoEngine.onPause();
     }
 
     private void connect() {
@@ -177,8 +171,16 @@ public class InfoExternalsFragment extends Fragment implements View.OnClickListe
         });
     }
 
-    private boolean isExternalEnabled() {
-        return mPreferences.getBoolean(Constants.PREF_EXTERNAL, false);
+    @Override
+    public void onConnectionLost() {
+        mArduinoEngine.onPause();
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (isAdded())
+                    setInterface(EXTERNAL_STATUS.NOT_FOUND);
+            }
+        });
     }
 
     private void setInterface(EXTERNAL_STATUS status) {
@@ -225,7 +227,7 @@ public class InfoExternalsFragment extends Fragment implements View.OnClickListe
             case R.id.btn_settings:
                 Intent preferencesActivity = new Intent();
 
-                if (!isExternalEnabled())
+                if (!mArduinoEngine.isLogEnabled())
                     preferencesActivity.setClass(getActivity(), PreferencesActivity.class);
                 else if (!mArduinoEngine.isBTEnabled())
                     preferencesActivity.setAction(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS);

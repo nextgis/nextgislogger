@@ -26,7 +26,10 @@ package com.nextgis.logger.engines;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
 
@@ -54,22 +57,22 @@ public class ArduinoEngine extends BaseEngine {
     private byte[] mBuffer;
     private int mBufferPosition;
 
+    private volatile boolean mIsWorking, mIsConnectionLost;
+    private String mData, mDeviceName, mDeviceMAC;
     private Thread mWorkerThread;
-    private volatile boolean mIsWorking;
-    private boolean mIsLoggerServiceRunning = false;
-
-    private String data = "No data";
-    private String mDeviceName, mDeviceMAC;
+    private List<ConnectionListener> mConnectionListeners;
 
     private volatile int mTemperature, mHumidity, mNoise;
     private volatile double mCO, mCH4, mC4H10;
 
-    protected List<ConnectionListener> mConnectionListeners;
+    public boolean isLogEnabled() {
+        return PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean(Constants.PREF_EXTERNAL, false);
+    }
 
     public interface ConnectionListener {
         void onTimeoutOrFailure();
-
         void onConnected();
+        void onConnectionLost();
     }
 
     public ArduinoEngine(Context context) {
@@ -79,12 +82,34 @@ public class ArduinoEngine extends BaseEngine {
         String nameWithMAC = PreferenceManager.getDefaultSharedPreferences(context).getString(Constants.PREF_EXTERNAL_DEVICE, "");
         mDeviceMAC = splitDeviceMAC(nameWithMAC);
         mDeviceName = splitDeviceName(nameWithMAC);
+
+        final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String action = intent.getAction();
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+
+                if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action) && device.getAddress().equals(mDeviceMAC)) {
+                    mIsConnectionLost = true;
+                    mData = null;
+
+                    for (ConnectionListener listener : mConnectionListeners)
+                        listener.onConnectionLost();
+
+                    if (!mIsWorking)
+                        closeConnection();
+                }
+            }
+        };
+
+        IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+        mContext.registerReceiver(mReceiver, filter);
     }
 
     public boolean removeListener(BaseEngine.EngineListener listener) {
         boolean result = super.removeListener(listener);
 
-        if (getListenersCount() == 0 && !mIsLoggerServiceRunning)
+        if (!hasListeners())
             closeConnection();
 
         return result;
@@ -98,27 +123,27 @@ public class ArduinoEngine extends BaseEngine {
         return mConnectionListeners.remove(listener);
     }
 
-    public void setLoggerServiceRunning(boolean serviceStatus) {
-        mIsLoggerServiceRunning = serviceStatus;
+    private boolean hasListeners() {
+        return mConnectionListeners.size() > 0 || getListenersCount() > 0;
     }
 
     public void onPause() {
-        if (mIsLoggerServiceRunning)
+        if (hasListeners())
             return;
 
         closeConnection();
     }
 
     public void onResume() {
-        if (mIsLoggerServiceRunning && mWorkerThread != null && mWorkerThread.isAlive())
+        if (hasListeners() && (mWorkerThread != null && mWorkerThread.isAlive()))
             return;
 
-        mIsWorking = false;
+        mIsWorking = true;
         mBufferPosition = 0;
         mBuffer = new byte[1024];
         mWorkerThread = new Thread(new Runnable() {
             public void run() {
-                while (!mIsWorking) {
+                while (mIsWorking) {
                     try {
                         if (!isDeviceAvailable() || !isConnected())
                             openConnection();
@@ -134,7 +159,7 @@ public class ArduinoEngine extends BaseEngine {
                                 if (b == DELIMITER) {
                                     byte[] encodedBytes = new byte[mBufferPosition];
                                     System.arraycopy(mBuffer, 0, encodedBytes, 0, encodedBytes.length);
-                                    data = new String(encodedBytes, "US-ASCII");
+                                    mData = new String(encodedBytes, "US-ASCII");
                                     parseData();
                                     mBufferPosition = 0;
                                 } else {
@@ -145,11 +170,13 @@ public class ArduinoEngine extends BaseEngine {
                             notifyListeners();
                         }
                     } catch (IOException e) {
-                        for (ConnectionListener listener : mConnectionListeners)
-                            listener.onTimeoutOrFailure();
+                        mData = null;
 
-                        if (!mIsLoggerServiceRunning)
-                            mIsWorking = true;
+                        for (ConnectionListener listener : mConnectionListeners)
+                            listener.onConnectionLost();
+
+                        if (!hasListeners())
+                            mIsWorking = false;
                     } catch (NullPointerException ignored) {
                     }
                 }
@@ -162,9 +189,9 @@ public class ArduinoEngine extends BaseEngine {
     }
 
     private void parseData() {
-        String[] fields = data.split(";");
+        String[] fields = mData.split(";");
 
-        if (!TextUtils.isEmpty(data) && fields.length == 6) {
+        if (!TextUtils.isEmpty(mData) && fields.length == 6) {
             mTemperature = Integer.parseInt(fields[0]);
             mHumidity = Integer.parseInt(fields[1]);
             mNoise = Integer.parseInt((fields[2]));
@@ -174,16 +201,25 @@ public class ArduinoEngine extends BaseEngine {
         }
     }
 
-    private void openConnection() throws IOException {
-        findBT();
-        openBT();
+    private void openConnection() {
+        try {
+            findBT();
+            openBT();
+        } catch (IOException e) {
+            for (ConnectionListener listener : mConnectionListeners)
+                listener.onTimeoutOrFailure();
 
+            mIsConnectionLost = true;
+            return;
+        }
+
+        mIsConnectionLost = false;
         for (ConnectionListener listener : mConnectionListeners)
             listener.onConnected();
     }
 
     public String getData() {
-        return data;
+        return mData;
     }
 
     public int getTemperature() {
@@ -250,29 +286,30 @@ public class ArduinoEngine extends BaseEngine {
     }
 
     public boolean isConnected() {
-        return (mInputStream != null && mOutputStream != null && mSocket != null);
+        return (mInputStream != null && mOutputStream != null && mSocket != null && !mIsConnectionLost);
     }
 
     private void closeConnection() {
-        mIsWorking = true;
+        mIsWorking = false;
 
-        if (isConnected()) {
-            try {
+        try {
+            if (mSocket != null)
                 mSocket.close();
 
-                if (mInputStream != null)
-                    mInputStream.close();
+            if (mInputStream != null)
+                mInputStream.close();
 
-                if (mOutputStream != null)
-                    mOutputStream.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            if (mOutputStream != null)
+                mOutputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         mOutputStream = null;
         mInputStream = null;
         mSocket = null;
+        mDevice = null;
+        mData = null;
     }
 
     public String getDeviceName() {

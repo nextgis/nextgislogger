@@ -50,6 +50,7 @@ import android.widget.SearchView.OnQueryTextListener;
 import android.widget.Toast;
 
 import com.nextgis.logger.UI.ProgressBarActivity;
+import com.nextgis.logger.engines.ArduinoEngine;
 import com.nextgis.logger.engines.CellEngine;
 import com.nextgis.logger.engines.SensorEngine;
 import com.nextgis.logger.util.Constants;
@@ -66,7 +67,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
-public class MarkActivity extends ProgressBarActivity implements View.OnClickListener {
+public class MarkActivity extends ProgressBarActivity implements View.OnClickListener, ArduinoEngine.ConnectionListener {
 	private static final int DELAY = 4000;
 
 	private static final int MARK_SAVE = 0;
@@ -74,20 +75,21 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 
 	private static final String BUNDLE_CELL     = "data_network";
 	private static final String BUNDLE_SENSOR   = "data_sensors";
+	private static final String BUNDLE_EXTERNAL = "data_external";
 
     private static int marksCount = 0;
-    private boolean mIsHot, mIsVolumeControlEnabled;
+    private boolean mIsHot, mIsVolumeControlEnabled, mIsActive, mLastConnection;
 
-    private MenuItem searchBox;
+    private MenuItem mSearchBox, mBtRetry;
     private ListView lvCategories;
-
 	private CustomArrayAdapter substringMarkNameAdapter;
 
-	private CellEngine gsmEngine;
-	private SensorEngine sensorEngine;
+	private CellEngine mGsmEngine;
+	private SensorEngine mSensorEngine;
+	private ArduinoEngine mArduinoEngine;
 //	private WiFiEngine wifiEngine;
 
-	private SharedPreferences prefs;
+	private SharedPreferences mPreferences;
     static MarksHandler marksHandler;
     private static int mSavedMarkPosition;
 
@@ -95,22 +97,24 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-        prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        mIsVolumeControlEnabled = prefs.getBoolean(Constants.PREF_USE_VOL, true) && prefs.getBoolean(Constants.PREF_USE_CATS, false);
+        mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        mIsVolumeControlEnabled = mPreferences.getBoolean(Constants.PREF_USE_VOL, true) && mPreferences.getBoolean(Constants.PREF_USE_CATS, false);
 
-        if(prefs.getBoolean(Constants.PREF_KEEP_SCREEN, true))
+        if(mPreferences.getBoolean(Constants.PREF_KEEP_SCREEN, true))
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 		setContentView(R.layout.mark_activity);
 
         mFAB.setOnClickListener(this);
 
-		gsmEngine = new CellEngine(this);
-		sensorEngine = new SensorEngine(this);
+		mGsmEngine = new CellEngine(this);
+		mSensorEngine = new SensorEngine(this);
+        mArduinoEngine = ((LoggerApplication) getApplication()).getArduinoEngine();
+        mArduinoEngine.addConnectionListener(this);
 //		wifiEngine = new WiFiEngine(this);
 
-        mSavedMarkPosition = prefs.getInt(Constants.PREF_MARK_POS, Integer.MIN_VALUE);
-        marksCount = prefs.getInt(Constants.PREF_MARKS_COUNT, 0);
+        mSavedMarkPosition = mPreferences.getInt(Constants.PREF_MARK_POS, Integer.MIN_VALUE);
+        marksCount = mPreferences.getInt(Constants.PREF_MARKS_COUNT, 0);
         marksHandler = new MarksHandler(this);
 
         lvCategories = (ListView) findViewById(R.id.lv_categories);
@@ -153,7 +157,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 
 		List<MarkName> markNames = new ArrayList<>();
 
-		if (prefs.getBoolean(Constants.PREF_USE_CATS, false)) {
+		if (mPreferences.getBoolean(Constants.PREF_USE_CATS, false)) {
 			String internalPath = getFilesDir().getAbsolutePath();
 			File cats = new File(internalPath + "/" + Constants.CATEGORIES);
 
@@ -195,9 +199,6 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 		substringMarkNameAdapter = new CustomArrayAdapter(this, markNames);
 		lvCategories.setAdapter(substringMarkNameAdapter);
         lvCategories.setChoiceMode(AbsListView.CHOICE_MODE_SINGLE);
-
-//        if (mFAB != null)
-//            mFAB.attachToListView(lvCategories);
 	}
 
     protected void setFABIcon(boolean restore) {
@@ -226,41 +227,64 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 	@Override
 	protected void onResume() {
 		super.onResume();
+        mIsActive = true;
 
-		gsmEngine.onResume();
-		sensorEngine.onResume();
+		mGsmEngine.onResume();
+
+        if (mSensorEngine.isAnySensorEnabled())
+		    mSensorEngine.onResume();
+
+        if (mArduinoEngine.isLogEnabled())
+            mArduinoEngine.onResume();
 //		wifiEngine.onResume();
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
+        mIsActive = false;
 
-		gsmEngine.onPause();
-		sensorEngine.onPause();
+		mGsmEngine.onPause();
+		mSensorEngine.onPause();
+        mArduinoEngine.onPause();
 //		wifiEngine.onPause();
 
-		prefs.edit().putInt(Constants.PREF_MARKS_COUNT, marksCount).apply();
+		mPreferences.edit().putInt(Constants.PREF_MARKS_COUNT, marksCount).apply();
 	}
 
     @Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		getMenuInflater().inflate(R.menu.mark, menu);
+    protected void onDestroy() {
+        mArduinoEngine.removeConnectionListener(this);
+        mArduinoEngine.onPause();
 
-		searchBox = menu.findItem(R.id.search);
-		SearchView search = (SearchView) searchBox.getActionView();
-		search.setQueryHint(getString(R.string.mark_editor_hint));
-//		search.setIconifiedByDefault(true);	// set icon inside edit text view
-//		search.setIconified(false);	// expand search view in action bar
+        super.onDestroy();
+    }
 
-//		search.setOnCloseListener(new OnCloseListener() {
-//			@Override
-//			public boolean onClose() {
-//				return true;	// prevent collapse search view
-//			}
-//		});
+    @Override
+    public boolean onCreateOptionsMenu(final Menu menu) {
+        getMenuInflater().inflate(R.menu.mark, menu);
+        mBtRetry = menu.findItem(R.id.bt_lost);
+		mSearchBox = menu.findItem(R.id.search);
 
-//		search.requestFocus();
+        final SearchView search = (SearchView) mSearchBox.getActionView();
+        search.setQueryHint(getString(R.string.mark_editor_hint));
+
+        search.setOnSearchClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setItemsVisibility(menu, mSearchBox, false);
+                search.requestFocus();
+            }
+        });
+
+		search.setOnCloseListener(new SearchView.OnCloseListener() {
+			@Override
+			public boolean onClose() {
+                setItemsVisibility(menu, mSearchBox, true);
+				return false;	// true = prevent collapse search view
+			}
+		});
+
 		search.setOnQueryTextListener(new OnQueryTextListener() {
 			@Override
 			public boolean onQueryTextSubmit(String query) {
@@ -276,6 +300,36 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 
 		return true;
 	}
+
+    // http://stackoverflow.com/q/30577252/2088273
+    private void setItemsVisibility(final Menu menu, final MenuItem exception, final boolean visible) {
+        int flags = visible ? MenuItem.SHOW_AS_ACTION_IF_ROOM : MenuItem.SHOW_AS_ACTION_NEVER;
+        for (int i = 0; i < menu.size(); ++i) {
+            MenuItem item = menu.getItem(i);
+            if (item != exception)
+                item.setShowAsAction(flags);
+        }
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        mBtRetry.setVisible(mArduinoEngine.isLogEnabled() && !(mArduinoEngine.isConnected() && mArduinoEngine.isDeviceAvailable()));
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.bt_lost:
+                if (mArduinoEngine.isDeviceAvailable() && mArduinoEngine.isConnected())
+                    mBtRetry.setVisible(false);
+                else
+                    mArduinoEngine.onResume();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
 
     @Override
     public boolean dispatchKeyEvent(@NonNull KeyEvent event) {
@@ -333,9 +387,9 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 
         String info = String.format(getString(R.string.mark_saved), markName);
 
-        ArrayList<CellEngine.GSMInfo> gsmInfoArray = gsmEngine.getGSMInfoArray();
+        ArrayList<CellEngine.GSMInfo> gsmInfoArray = mGsmEngine.getGSMInfoArray();
         ArrayList<String> items = new ArrayList<>();
-        String userName = prefs.getString(Constants.PREF_USER_NAME, Constants.DEFAULT_USERNAME);
+        String userName = mPreferences.getString(Constants.PREF_USER_NAME, Constants.DEFAULT_USERNAME);
 
         for (CellEngine.GSMInfo gsmInfo : gsmInfoArray) {
             String active = gsmInfo.isActive() ? "1" : gsmInfoArray.get(0).getMcc() + "-" + gsmInfoArray.get(0).getMnc() + "-"
@@ -348,9 +402,12 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
         info += " (" + ++marksCount + ")";
 
         // checking sensors state
-        if (sensorEngine.isAnySensorEnabled()) {
-            data.putString(BUNDLE_SENSOR, SensorEngine.getItem(sensorEngine, ID, markName, userName, gsmInfoArray.get(0).getTimeStamp()));
-        }
+        if (mSensorEngine.isAnySensorEnabled())
+            data.putString(BUNDLE_SENSOR, SensorEngine.getItem(mSensorEngine, ID, markName, userName, gsmInfoArray.get(0).getTimeStamp()));
+
+        // checking external state
+        if (mArduinoEngine.isLogEnabled())
+            data.putString(BUNDLE_EXTERNAL, mArduinoEngine.getItem(ID, markName, userName, gsmInfoArray.get(0).getTimeStamp()));
 
         Vibrator vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         vibe.vibrate(100);
@@ -360,13 +417,11 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
         InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
 
         if (imm.isActive()) {
-            imm.hideSoftInputFromWindow(searchBox.getActionView().getWindowToken(), 0);
+            imm.hideSoftInputFromWindow(mSearchBox.getActionView().getWindowToken(), 0);
             lvCategories.requestFocus();
-//                    searchBox.collapseActionView();
         }
 
         setFABIcon(false);
-//        mFAB.show();
 
         new Handler().postDelayed(new Runnable(){
             @Override
@@ -381,6 +436,37 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 
     protected void setIsHot(boolean isHot) {
         mIsHot = isHot;
+    }
+
+    @Override
+    public void onTimeoutOrFailure() {
+        showExternalStatus(false);
+    }
+
+    @Override
+    public void onConnected() {
+        showExternalStatus(true);
+    }
+
+    @Override
+    public void onConnectionLost() {
+        showExternalStatus(false);
+    }
+
+    private void showExternalStatus(final boolean isConnected) {
+        final String info = isConnected ? String.format(getString(R.string.external_connected), mArduinoEngine.getDeviceName()) :
+                String.format(getString(R.string.external_not_found), mArduinoEngine.getDeviceName());
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (mIsActive && mLastConnection != isConnected)
+                    Toast.makeText(MarkActivity.this, info, Toast.LENGTH_SHORT).show();
+
+                mBtRetry.setVisible(!isConnected);
+                mLastConnection = isConnected;
+            }
+        });
     }
 
     public class MarkName {
@@ -481,7 +567,6 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 					if (resultList.size() != 1 && !prefix.equals("")) {
 						temp = new MarkName(-1, prefix.toString());
 						results.count++;
-//						resultList.add(temp);
 					}
 					else
 						temp = null;
@@ -527,10 +612,13 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
                             for (String item : msg.getData().getStringArrayList(BUNDLE_CELL))
                                 FileUtil.saveItemToLog(Constants.LOG_TYPE_NETWORK, true, item);
 
-                            String sensorItem = msg.getData().getString(BUNDLE_SENSOR);
+                            String item = msg.getData().getString(BUNDLE_SENSOR);
+                            if (!TextUtils.isEmpty(item))
+                                FileUtil.saveItemToLog(Constants.LOG_TYPE_SENSORS, true, item);
 
-                            if (!TextUtils.isEmpty(sensorItem))
-                                FileUtil.saveItemToLog(Constants.LOG_TYPE_SENSORS, true, sensorItem);
+                            item = msg.getData().getString(BUNDLE_EXTERNAL);
+                            if (!TextUtils.isEmpty(item))
+                                FileUtil.saveItemToLog(Constants.LOG_TYPE_EXTERNAL, true, item);
 
                             mSavedMarkPosition = msg.getData().getInt(Constants.PREF_MARK_POS);
                             PreferenceManager.getDefaultSharedPreferences(mParent).edit().putInt(Constants.PREF_MARK_POS, mSavedMarkPosition).apply();

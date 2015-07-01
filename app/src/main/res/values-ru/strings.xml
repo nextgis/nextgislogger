@@ -104,6 +104,7 @@
     <string name="external_goto_settings">Настройки</string>
     <string name="external_not_found">Не удалось подключиться к %s. Устройство не найдено или превышено время ожидания.</string>
     <string name="external_connecting">Подключение к %s…</string>
+    <string name="external_connected">Подключено к %s</string>
     <string name="external_retry">Повторить</string>
     <string name="external_dht_temp">Температура</string>
     <string name="external_dht_humidity">Влажноть</string>

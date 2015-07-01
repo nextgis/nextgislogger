@@ -43,7 +43,7 @@ import com.nextgis.logger.util.FileUtil;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
-public class LoggerService extends Service {
+public class LoggerService extends Service implements ArduinoEngine.ConnectionListener {
 
 	private static long timeStart = 0;
 	private static int recordsCount = 0;
@@ -51,9 +51,9 @@ public class LoggerService extends Service {
 
 	private boolean isRunning = false;
 
-	private ArduinoEngine arduinoEngine;
-	private CellEngine gsmEngine;
-	private SensorEngine sensorEngine;
+	private ArduinoEngine mArduinoEngine;
+	private CellEngine mGsmEngine;
+	private SensorEngine mSensorEngine;
 	private Thread thread = null;
 	private LocalBinder localBinder = new LocalBinder();
     private NotificationManager notificationManager;
@@ -69,32 +69,29 @@ public class LoggerService extends Service {
 	public void onCreate() {
 		super.onCreate();
 
-		//android.os.Debug.waitForDebugger();
-
 		if (timeStart == 0) {
 			timeStart = System.currentTimeMillis();
 		}
 
-		arduinoEngine = ((LoggerApplication) getApplication()).getArduinoEngine();
-        arduinoEngine.setLoggerServiceRunning(true);
-        arduinoEngine.onResume();
-
-		gsmEngine = new CellEngine(this);
-		gsmEngine.onResume();
-
-		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         userName = prefs.getString(Constants.PREF_USER_NAME, Constants.DEFAULT_USERNAME);
-		interval = prefs.getInt(Constants.PREF_PERIOD_SEC, interval);
+        interval = prefs.getInt(Constants.PREF_PERIOD_SEC, interval);
 
-		sensorEngine = new SensorEngine(this);
-        sensorEngine.onResume();
+		mGsmEngine = new CellEngine(this);
+		mGsmEngine.onResume();
+
+		mSensorEngine = new SensorEngine(this);
+        mSensorEngine.onResume();
+
+        mArduinoEngine = ((LoggerApplication) getApplication()).getArduinoEngine();
+        mArduinoEngine.addConnectionListener(this);
+        mArduinoEngine.onResume();
+
         notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 	}
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-
-		//android.os.Debug.waitForDebugger();
 
 		if (!isRunning) {
 			isRunning = true;
@@ -110,12 +107,10 @@ public class LoggerService extends Service {
 	public void onDestroy() {
 		super.onDestroy();
 
-		//android.os.Debug.waitForDebugger();
-
-		gsmEngine.onPause();
-		sensorEngine.onPause();
-        arduinoEngine.setLoggerServiceRunning(false);
-        arduinoEngine.onPause();
+		mGsmEngine.onPause();
+		mSensorEngine.onPause();
+        mArduinoEngine.removeConnectionListener(this);
+        mArduinoEngine.onPause();
 
 		if (thread != null) {
 			thread.interrupt();
@@ -128,7 +123,6 @@ public class LoggerService extends Service {
 	}
 
 	private void sendNotification() {
-		//android.os.Debug.waitForDebugger();
 		Intent intentNotification = new Intent(this, MainActivity.class);
 		PendingIntent pIntent = PendingIntent.getActivity(this, 0, intentNotification, 0);
 
@@ -148,7 +142,6 @@ public class LoggerService extends Service {
 	}
 
 	private void sendErrorNotification() {
-		//android.os.Debug.waitForDebugger();
 		PendingIntent pIntent = PendingIntent.getActivity(this, 0, new Intent(), 0);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
@@ -174,8 +167,6 @@ public class LoggerService extends Service {
 	}
 
 	private void RunTask() {
-		//android.os.Debug.waitForDebugger();
-
 		thread = new Thread(new Runnable() {
 			public void run() {
 
@@ -193,7 +184,7 @@ public class LoggerService extends Service {
 					FileUtil.checkOrCreateDirectory(MainActivity.dataDirPath);
 
 					try {
-						ArrayList<CellEngine.GSMInfo> gsmInfoArray = gsmEngine.getGSMInfoArray();
+						ArrayList<CellEngine.GSMInfo> gsmInfoArray = mGsmEngine.getGSMInfoArray();
 
 						for (CellEngine.GSMInfo gsmInfo : gsmInfoArray) {
 							String active = gsmInfo.isActive() ? "1" : gsmInfoArray.get(0).getMcc() + "-" + gsmInfoArray.get(0).getMnc() + "-"
@@ -202,13 +193,15 @@ public class LoggerService extends Service {
                             FileUtil.saveItemToLog(Constants.LOG_TYPE_NETWORK, false, CellEngine.getItem(gsmInfo, active, "", Constants.LOG_UID, userName));
 						}
 
-						if (sensorEngine.isAnySensorEnabled()) {
+						if (mSensorEngine.isAnySensorEnabled()) {
                             FileUtil.saveItemToLog(Constants.LOG_TYPE_SENSORS, false,
-                                    SensorEngine.getItem(sensorEngine, "", Constants.LOG_UID, userName, gsmInfoArray.get(0).getTimeStamp()));
+                                    SensorEngine.getItem(mSensorEngine, "", Constants.LOG_UID, userName, gsmInfoArray.get(0).getTimeStamp()));
 						}
 
-                        // TODO settings
-                        FileUtil.saveItemToLog(Constants.LOG_TYPE_EXTERNAL, false, arduinoEngine.getItem("", Constants.LOG_UID, userName, gsmInfoArray.get(0).getTimeStamp()));
+						if (mArduinoEngine.isLogEnabled()) {
+							FileUtil.saveItemToLog(Constants.LOG_TYPE_EXTERNAL, false,
+									mArduinoEngine.getItem("", Constants.LOG_UID, userName, gsmInfoArray.get(0).getTimeStamp()));
+						}
 
 						intentStatus.putExtra(Constants.PARAM_SERVICE_STATUS, Constants.STATUS_RUNNING).putExtra(Constants.PARAM_RECORDS_COUNT, ++recordsCount);
 						sendBroadcast(intentStatus);
@@ -244,4 +237,19 @@ public class LoggerService extends Service {
 
 		thread.start();
 	}
+
+    @Override
+    public void onTimeoutOrFailure() {
+
+    }
+
+    @Override
+    public void onConnected() {
+
+    }
+
+    @Override
+    public void onConnectionLost() {
+
+    }
 }

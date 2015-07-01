@@ -96,7 +96,7 @@ public final class FileUtil {
     /**
      * Save item to log.
      *
-     * @param logType   Log type (0 = Network, 1 = Sensors)
+     * @param logType   Log type (0 = Network, 1 = Sensors, 2 = External)
      * @param onDemand  Does entered by user or service
      * @param item      String item to save
      */
