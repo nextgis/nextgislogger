@@ -44,9 +44,9 @@ import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import com.nextgis.logger.UI.IntEditTextPreference;
-import com.nextgis.logger.UI.SimpleFileChooser;
 import com.nextgis.logger.engines.ArduinoEngine;
 import com.nextgis.logger.util.Constants;
+import com.nextgis.sfcdialog.SimpleFileChooser;
 
 import java.io.BufferedReader;
 import java.io.File;
