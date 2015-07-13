@@ -117,17 +117,23 @@
     <string name="external_C4H10">Isobutane (C4H10)</string>
     <string name="external_CH4">Methanum (CH4)</string>
 
-    <string name="cat_file_structure_error">Wrong categories file structure</string>
-    <string name="cat_file_error">No categories, please reload presets</string>
-    <string name="cat_id_not_int">ID column must be integer in presets file</string>
+    <string name="cat_file_error">Wrong categories file structure</string>
+    <string name="cat_file_empty">Presets file is empty</string>
+    <string name="cat_id_not_int">ID column must be positive integer</string>
+    <string name="cat_split_error">Must be two columns splitted by \',\'!</string>
     <string name="error_no_file">No file selected</string>
     <string name="file_loaded">"Loaded from "</string>
+    <string name="cat_name_empty">Mark name can\'t be empty</string>
 
     <string name="menu_search">Markers</string>
     <string name="mark_editor_hint">Enter Name of Mark</string>
     <string name="mark_saved">Mark %s saved</string>
     <string name="mark_undo">Last mark deleted</string>
     <string name="mark_no_items">No more items</string>
+    <string name="mark_new">Add new mark</string>
+    <string name="mark_id">ID</string>
+    <string name="mark_name">Name</string>
+    <string name="mark_save_preset">Save to preset</string>
 
     <string name="btn_ok">OK</string>
     <string name="btn_cancel">Cancel</string>

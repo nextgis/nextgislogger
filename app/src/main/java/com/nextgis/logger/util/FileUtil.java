@@ -23,14 +23,26 @@
 
 package com.nextgis.logger.util;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Environment;
+import android.text.TextUtils;
+import android.widget.Toast;
 
 import com.nextgis.logger.MainActivity;
+import com.nextgis.logger.R;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.channels.FileChannel;
+import java.util.ArrayList;
+import java.util.List;
 
 public final class FileUtil {
     /**
@@ -141,5 +153,101 @@ public final class FileUtil {
 
         pw.println(item);
         pw.close();
+    }
+
+    public static File getCategoriesFile(Context context) {
+        String internalPath = context.getFilesDir().getAbsolutePath();
+        return new File(internalPath + "/" + Constants.CATEGORIES);
+    }
+
+    public static boolean loadMarksFromPreset(Context context, File from, List<MarkName> list) {
+        boolean result = false;
+
+        if (from.isFile()) {
+            BufferedReader in;
+            String[] split;
+            int info = -1;
+
+            try {
+                in = new BufferedReader(new FileReader(from));
+                String line;
+                in.readLine();  // skip header "ID,NAME"
+
+                while ((line = in.readLine()) != null) {
+                    if (TextUtils.isEmpty(line.trim()))
+                        continue;
+
+                    split = line.split(",");
+
+                    if (split.length != 2)
+                        throw new ArrayIndexOutOfBoundsException();
+
+                    list.add(new MarkName(Integer.parseInt(split[0]), split[1]));
+                }
+
+                in.close();
+                result = true;
+
+                if (list.size() == 0)
+                    throw new IndexOutOfBoundsException();
+            } catch (IOException e) {
+                info = R.string.fs_error_msg;
+            } catch (ArrayIndexOutOfBoundsException e) {
+                info = R.string.cat_split_error;
+            } catch (NumberFormatException e) {
+                info = R.string.cat_id_not_int;
+            } catch (IndexOutOfBoundsException e) {
+                info = R.string.cat_file_empty;
+            } catch (Exception e) {
+                info = R.string.cat_file_error;
+            } finally {
+                if (info != -1)
+                    Toast.makeText(context, info, Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        return result;
+    }
+
+    public static void copyPreset(Context context, Intent data) {
+        String info = context.getString(R.string.error_no_file);
+
+        if (data != null && data.getData() != null) {
+            File from = new File(data.getData().getPath());
+
+            if (loadMarksFromPreset(context, from, new ArrayList<MarkName>())) {
+                File cats = getCategoriesFile(context);
+
+                try {
+                    FileInputStream inStream = new FileInputStream(from);
+                    FileOutputStream outStream = new FileOutputStream(cats);
+                    FileChannel inChannel = inStream.getChannel();
+                    FileChannel outChannel = outStream.getChannel();
+                    inChannel.transferTo(0, inChannel.size(), outChannel);
+                    inStream.close();
+                    outStream.close();
+
+                    info = context.getString(R.string.file_loaded) + from.getAbsolutePath();
+                } catch (FileNotFoundException ignored) {
+                } catch (IOException e) {
+                    info = context.getString(R.string.fs_error_msg);
+                }
+            } else
+                info = null;
+        }
+
+        if (info != null)
+            Toast.makeText(context, info, Toast.LENGTH_SHORT).show();
+    }
+
+    public static void addMarkToPreset(Context context, MarkName mark) {
+        File cats = getCategoriesFile(context);
+
+        try {
+            PrintWriter pw = new PrintWriter(new FileOutputStream(cats, true));
+            pw.print("\r\n" + mark.getID() + "," + mark.getCAT());
+            pw.close();
+        } catch (IOException ignored) {
+        }
     }
 }

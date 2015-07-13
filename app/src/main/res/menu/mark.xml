@@ -32,6 +32,13 @@
         android:title="@string/external_retry"/>
 
     <item
+        android:id="@+id/new_mark"
+        android:icon="@drawable/ic_add_white_24dp"
+        android:orderInCategory="5"
+        android:showAsAction="ifRoom"
+        android:title="@string/mark_new"/>
+
+    <item
         android:id="@+id/search"
         android:actionViewClass="android.widget.SearchView"
         android:orderInCategory="10"

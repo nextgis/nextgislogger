@@ -20,7 +20,9 @@
  *****************************************************************************/
 package com.nextgis.logger;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Rect;
 import android.os.Bundle;
@@ -31,6 +33,7 @@ import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -42,6 +45,8 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.ListView;
@@ -55,12 +60,10 @@ import com.nextgis.logger.engines.CellEngine;
 import com.nextgis.logger.engines.SensorEngine;
 import com.nextgis.logger.util.Constants;
 import com.nextgis.logger.util.FileUtil;
+import com.nextgis.logger.util.MarkName;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -81,8 +84,8 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
     private boolean mIsHot, mIsVolumeControlEnabled, mIsActive, mLastConnection;
 
     private MenuItem mSearchBox, mBtRetry;
-    private ListView lvCategories;
-	private CustomArrayAdapter substringMarkNameAdapter;
+    private ListView mLvCategories;
+	private CustomArrayAdapter mMarksAdapter;
 
 	private CellEngine mGsmEngine;
 	private SensorEngine mSensorEngine;
@@ -117,16 +120,16 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
         marksCount = mPreferences.getInt(Constants.PREF_MARKS_COUNT, 0);
         marksHandler = new MarksHandler(this);
 
-        lvCategories = (ListView) findViewById(R.id.lv_categories);
-        lvCategories.setOnItemClickListener(new OnItemClickListener() {
-			@Override
-			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                MarkName match = substringMarkNameAdapter.getMatchedMarkItem(position);
+        mLvCategories = (ListView) findViewById(R.id.lv_categories);
+        mLvCategories.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                MarkName match = mMarksAdapter.getMatchedMarkItem(position);
                 saveMark(match);
-			}
-		});
+            }
+        });
 
-        lvCategories.setOnScrollListener(new AbsListView.OnScrollListener() {
+        mLvCategories.setOnScrollListener(new AbsListView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(AbsListView view, int scrollState) {
                 if (scrollState == SCROLL_STATE_IDLE) {
@@ -138,7 +141,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
                     // http://stackoverflow.com/a/15339238/2088273
                     View firstChild = view.getChildAt(0);    // first visible child
                     Rect r = new Rect(0, 0, firstChild.getWidth(), firstChild.getHeight());     // set this initially, as required by the docs
-                    double height = firstChild.getHeight () * 1.0;
+                    double height = firstChild.getHeight() * 1.0;
 
                     view.getChildVisibleRect(firstChild, r, null);
 
@@ -158,35 +161,8 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 		List<MarkName> markNames = new ArrayList<>();
 
 		if (mPreferences.getBoolean(Constants.PREF_USE_CATS, false)) {
-			String internalPath = getFilesDir().getAbsolutePath();
-			File cats = new File(internalPath + "/" + Constants.CATEGORIES);
-
-			if (cats.isFile()) {
-				BufferedReader in;
-				String[] split;
-
-				try {
-					in = new BufferedReader(new FileReader(cats));
-					String line;
-                    in.readLine();  // skip header "ID,NAME"
-
-					while ((line = in.readLine()) != null) {
-						split = line.split(",");	// FIXME dup preferences
-						markNames.add(new MarkName(Integer.parseInt(split[0]), split[1]));
-					}
-
-					in.close();
-
-					if (markNames.size() == 0)
-						throw new ArrayIndexOutOfBoundsException();
-				} catch (IOException e) {
-					Toast.makeText(this, R.string.fs_error_msg, Toast.LENGTH_SHORT).show();
-				} catch (ArrayIndexOutOfBoundsException e) {
-					Toast.makeText(this, R.string.cat_file_error, Toast.LENGTH_SHORT).show();
-				} catch (NumberFormatException e) {
-					Toast.makeText(this, R.string.cat_id_not_int, Toast.LENGTH_SHORT).show();
-				}
-			}
+            File cats = FileUtil.getCategoriesFile(this);
+            FileUtil.loadMarksFromPreset(this, cats, markNames);
 		}
 
         Collections.sort(markNames, new Comparator<MarkName>() {
@@ -196,9 +172,9 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
             }
         });
 
-		substringMarkNameAdapter = new CustomArrayAdapter(this, markNames);
-		lvCategories.setAdapter(substringMarkNameAdapter);
-        lvCategories.setChoiceMode(AbsListView.CHOICE_MODE_SINGLE);
+		mMarksAdapter = new CustomArrayAdapter(this, markNames);
+		mLvCategories.setAdapter(mMarksAdapter);
+        mLvCategories.setChoiceMode(AbsListView.CHOICE_MODE_SINGLE);
 	}
 
     protected void setFABIcon(boolean restore) {
@@ -278,25 +254,25 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
         });
 
 		search.setOnCloseListener(new SearchView.OnCloseListener() {
-			@Override
-			public boolean onClose() {
+            @Override
+            public boolean onClose() {
                 setItemsVisibility(menu, mSearchBox, true);
-				return false;	// true = prevent collapse search view
-			}
-		});
+                return false;    // true = prevent collapse search view
+            }
+        });
 
 		search.setOnQueryTextListener(new OnQueryTextListener() {
-			@Override
-			public boolean onQueryTextSubmit(String query) {
-				return false;
-			}
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
 
-			@Override
-			public boolean onQueryTextChange(String newText) {
-				substringMarkNameAdapter.getFilter().filter(newText);
-				return true;
-			}
-		});
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                mMarksAdapter.getFilter().filter(newText);
+                return true;
+            }
+        });
 
 		return true;
 	}
@@ -325,6 +301,55 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
                     mBtRetry.setVisible(false);
                 else
                     mArduinoEngine.onResume();
+                return true;
+            case R.id.new_mark:
+                final AlertDialog.Builder newMarkDialog = new AlertDialog.Builder(this);
+                newMarkDialog.setTitle(getString(R.string.mark_new));
+                View layout = LayoutInflater.from(this).inflate(R.layout.dialog_new_mark, null);
+                final EditText etID = (EditText) layout.findViewById(R.id.et_mark_id);
+                etID.setText(mMarksAdapter.getMarkItem(mMarksAdapter.getTotalCount() - 1).getID() + 1 + "");
+                final EditText etName = (EditText) layout.findViewById(R.id.et_mark_name);
+                final CheckBox cbSave = (CheckBox) layout.findViewById(R.id.ctv_save);
+                newMarkDialog.setView(layout);
+
+                newMarkDialog.setPositiveButton(getString(R.string.btn_ok), new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        Context context = MarkActivity.this;
+                        String sId = etID.getText().toString();
+                        String name = etName.getText().toString();
+                        int info = -1;
+                        MarkName mark;
+
+                        try {
+                            int id = Integer.parseInt(sId);
+                            if (id < 0)
+                                throw new NumberFormatException();
+
+                            if (TextUtils.isEmpty(name) || TextUtils.isEmpty(name.trim()))
+                                throw new NullPointerException();
+
+                            mark = new MarkName(id, name.trim());
+                            saveMark(mark);
+
+                            if (cbSave.isChecked())
+                                FileUtil.addMarkToPreset(context, mark);
+                        } catch (NumberFormatException e) {
+                            info = R.string.cat_id_not_int;
+                        } catch (NullPointerException e) {
+                            info = R.string.cat_name_empty;
+                        } finally {
+                            if (info != -1)
+                                Toast.makeText(context, info, Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+
+                newMarkDialog.setNegativeButton(getString(R.string.btn_cancel), new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                    }
+                });
+
+                newMarkDialog.create().show();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -359,12 +384,12 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
                 return super.dispatchKeyEvent(event);
         }
 
-        if (substringMarkNameAdapter.hasItem(position)) {
-            MarkName mark = substringMarkNameAdapter.getMarkItem(position);
-            position = substringMarkNameAdapter.getMatchedMarkPosition(mark);
+        if (mMarksAdapter.hasItem(position)) {
+            MarkName mark = mMarksAdapter.getMarkItem(position);
+            position = mMarksAdapter.getMatchedMarkPosition(mark);
 
-            lvCategories.setItemChecked(position, true);
-            lvCategories.setSelection(position);
+            mLvCategories.setItemChecked(position, true);
+            mLvCategories.setSelection(position);
 
             saveMark(mark);
         } else
@@ -381,7 +406,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 
         final Bundle data = new Bundle();
 
-        data.putInt(Constants.PREF_MARK_POS, substringMarkNameAdapter.getMarkPosition(mark));
+        data.putInt(Constants.PREF_MARK_POS, mMarksAdapter.getMarkPosition(mark));
         String markName = mark.getCAT();
         String ID = mark.getID() + "";
 
@@ -418,7 +443,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 
         if (imm.isActive()) {
             imm.hideSoftInputFromWindow(mSearchBox.getActionView().getWindowToken(), 0);
-            lvCategories.requestFocus();
+            mLvCategories.requestFocus();
         }
 
         setFABIcon(false);
@@ -463,29 +488,13 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
                 if (mIsActive && mLastConnection != isConnected)
                     Toast.makeText(MarkActivity.this, info, Toast.LENGTH_SHORT).show();
 
-                mBtRetry.setVisible(!isConnected);
+                if (mBtRetry != null)
+                    mBtRetry.setVisible(!isConnected);
+
                 mLastConnection = isConnected;
             }
         });
     }
-
-    public class MarkName {
-		private int ID = -1;
-		private String CAT = "Mark";
-
-		public MarkName(int ID, String CAT) {
-			this.ID = ID;
-			this.CAT = CAT;
-		}
-
-		public int getID() {
-			return ID;
-		}
-
-		public String getCAT() {
-			return CAT;
-		}
-	}
 
 	public class CustomArrayAdapter extends ArrayAdapter<String> implements Filterable {
 		private List<MarkName> objects;
@@ -507,6 +516,10 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 		@Override
 		public int getCount() {
 			return matches.size();
+		}
+
+		public int getTotalCount() {
+			return objects.size();
 		}
 
 		@Override

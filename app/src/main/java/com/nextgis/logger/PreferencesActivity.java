@@ -46,6 +46,7 @@ import android.widget.Toast;
 import com.nextgis.logger.UI.IntEditTextPreference;
 import com.nextgis.logger.engines.ArduinoEngine;
 import com.nextgis.logger.util.Constants;
+import com.nextgis.logger.util.FileUtil;
 import com.nextgis.sfcdialog.SimpleFileChooser;
 
 import java.io.BufferedReader;
@@ -247,49 +248,9 @@ public class PreferencesActivity extends PreferenceActivity {
 
         @Override
         public void onActivityResult(int requestCode, int resultCode, Intent data) {
-            if (requestCode == CHOOSE_FILE) {
-                String info = getString(R.string.error_no_file);
-                Uri uri;
-
-                if (data != null && (uri = data.getData()) != null) {
-                    File file = new File(uri.getPath());
-
-                    if (file.isFile()) {
-                        String internalPath = getActivity().getFilesDir().getAbsolutePath();
-                        File toCats = new File(internalPath + "/" + Constants.CATEGORIES);
-
-                        try {
-                            PrintWriter pw = new PrintWriter(new FileOutputStream(toCats, false));
-                            BufferedReader in = new BufferedReader(new FileReader(file));
-
-                            String[] split;
-                            String line;
-
-                            while ((line = in.readLine()) != null) {
-                                split = line.split(",");
-
-                                if (split.length != 2) {
-                                    in.close();
-                                    pw.close();
-                                    throw new ArrayIndexOutOfBoundsException("Must be two columns splitted by ','!");
-                                } else
-                                    pw.println(line);
-                            }
-
-                            in.close();
-                            pw.close();
-
-                            info = getString(R.string.file_loaded) + file.getAbsolutePath();
-                        } catch (IOException e) {
-                            info = getString(R.string.fs_error_msg);
-                        } catch (ArrayIndexOutOfBoundsException e) {
-                            info = getString(R.string.cat_file_structure_error);
-                        }
-                    }
-                }
-
-                Toast.makeText(getActivity(), info, Toast.LENGTH_SHORT).show();
-            } else
+            if (requestCode == CHOOSE_FILE)
+                FileUtil.copyPreset(getActivity(), data);
+            else
                 super.onActivityResult(requestCode, resultCode, data);
         }
 
