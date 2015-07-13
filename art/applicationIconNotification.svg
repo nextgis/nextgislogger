@@ -1,0 +1,22 @@
+<svg width="90" height="90" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+ <metadata id="metadata23">image/svg+xml</metadata>
+ <g>
+  <title>Layer 1</title>
+  <path fill="#000000" d="m86.625,66.67348c0,2.55379 -1.62237,5.43964 -4.62476,6.58289s-29.136,11.46016 -32.68135,12.51276s-4.94202,1.12567 -7.86302,0c-2.921,-1.12566 -30.95353,-11.2502 -33.39911,-12.51368s-4.62476,-4.02817 -4.62476,-6.58289l0,-58.70766c0,-2.55379 2.07097,-4.62476 4.62476,-4.62476l73.94347,0c2.55379,0 4.62476,2.07097 4.62476,4.62476l0,58.70858l0.00001,0z" id="path3" fill-opacity="0" stroke-width="6" stroke="#31b7da"/>
+  <g id="g11">
+   <defs>
+    <rect id="SVGID_1_" x="0" y="0" width="90" height="90"/>
+   </defs>
+   <clipPath id="SVGID_2_">
+    <use xlink:href="#SVGID_1_" id="use17"/>
+   </clipPath>
+  </g>
+  <g stroke="null" id="g3798" display="inline">
+   <g stroke="null" id="g3862" transform="matrix(1.166374600627985,0,0,1.166374600627985,-2.9091317030631814,8.230264963865125) ">
+    <path stroke="#ffffff" id="path3800" d="m14.19959,30.8148c5.1338,-9.63995 15.28501,-16.20228 26.96893,-16.20228c11.54404,0 21.59185,6.40614 26.78239,15.85738" stroke-miterlimit="4" stroke-linejoin="bevel" stroke-linecap="round" stroke-width="6.22169" fill="none"/>
+    <path stroke="#ffffff" id="path3802" d="m22.34621,39.8204c3.96312,-6.20313 10.9095,-10.31601 18.81649,-10.31601c7.79193,0 14.65101,3.99406 18.64159,10.04655" stroke-miterlimit="4" stroke-linejoin="bevel" stroke-linecap="round" stroke-width="6.22169" fill="none"/>
+    <path stroke="#ffffff" id="path3804" d="m30.08923,48.4371c2.77828,-2.88435 6.68022,-4.6788 11.00128,-4.6788c4.30526,0 8.19446,1.78135 10.97076,4.6472" stroke-miterlimit="4" stroke-linejoin="bevel" stroke-linecap="round" stroke-width="6.22169" fill="none"/>
+   </g>
+  </g>
+ </g>
+</svg>
