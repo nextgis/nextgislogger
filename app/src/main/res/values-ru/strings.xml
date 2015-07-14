@@ -99,8 +99,8 @@
     <string name="external_data_sum">Поддерживается только Arduino</string>
     <string name="external_device">Выбрать Bluetooth-устройство</string>
     <string name="external_paired">Сопряженные устройства:</string>
-    <string name="external_disabled">Внешние датчики отключены.</string>
-    <string name="external_bt_disabled">Bluetooth выключен.</string>
+    <string name="external_disabled">Внешние датчики отключены</string>
+    <string name="external_bt_disabled">Bluetooth выключен</string>
     <string name="external_goto_settings">Настройки</string>
     <string name="external_not_found">Не удалось подключиться к %s. Устройство не найдено или превышено время ожидания.</string>
     <string name="external_connecting">Подключение к %s…</string>
