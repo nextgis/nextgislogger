@@ -157,7 +157,18 @@ public final class FileUtil {
 
     public static File getCategoriesFile(Context context) {
         String internalPath = context.getFilesDir().getAbsolutePath();
-        return new File(internalPath + "/" + Constants.CATEGORIES);
+        File result = new File(internalPath + "/" + Constants.CATEGORIES);
+
+        if (!result.exists()) {
+            try {
+                PrintWriter pw = new PrintWriter(new FileOutputStream(result, false));
+                pw.print("ID,NAME");
+                pw.close();
+            } catch (IOException ignored) {
+            }
+        }
+
+        return result;
     }
 
     public static boolean loadMarksFromPreset(Context context, File from, List<MarkName> list) {

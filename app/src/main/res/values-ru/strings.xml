@@ -47,6 +47,7 @@
     <string name="settings_cats">Использовать файлы категорий</string>
     <string name="settings_cats_sum">Предзаданные имена меток из файла</string>
     <string name="settings_cat_path">Загрузить имена из файла…</string>
+    <string name="settings_marks">Метки</string>
     <string name="settings_mark_vol">Использовать кнопки громкости +/-</string>
     <string name="settings_mark_vol_sum">Cохранение предыдущей/следующей метки</string>
     <string name="settings_user_name">Строка идентификации (дополн.)</string>

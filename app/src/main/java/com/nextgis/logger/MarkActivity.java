@@ -33,7 +33,6 @@ import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -83,9 +82,10 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
     private static int marksCount = 0;
     private boolean mIsHot, mIsVolumeControlEnabled, mIsActive, mLastConnection;
 
+    private SearchView mSearchView;
     private MenuItem mSearchBox, mBtRetry;
     private ListView mLvCategories;
-	private CustomArrayAdapter mMarksAdapter;
+	private MarkArrayAdapter mMarksAdapter;
 
 	private CellEngine mGsmEngine;
 	private SensorEngine mSensorEngine;
@@ -101,7 +101,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 		super.onCreate(savedInstanceState);
 
         mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        mIsVolumeControlEnabled = mPreferences.getBoolean(Constants.PREF_USE_VOL, true) && mPreferences.getBoolean(Constants.PREF_USE_CATS, false);
+        mIsVolumeControlEnabled = mPreferences.getBoolean(Constants.PREF_USE_VOL, true);
 
         if(mPreferences.getBoolean(Constants.PREF_KEEP_SCREEN, true))
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -158,21 +158,17 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
             }
         });
 
+        // load marks from presets to ListView
 		List<MarkName> markNames = new ArrayList<>();
-
-		if (mPreferences.getBoolean(Constants.PREF_USE_CATS, false)) {
-            File cats = FileUtil.getCategoriesFile(this);
-            FileUtil.loadMarksFromPreset(this, cats, markNames);
-		}
-
+        File cats = FileUtil.getCategoriesFile(this);
+        FileUtil.loadMarksFromPreset(this, cats, markNames);
         Collections.sort(markNames, new Comparator<MarkName>() {
             @Override
             public int compare(MarkName lhs, MarkName rhs) {
                 return lhs.getID() - rhs.getID();
             }
         });
-
-		mMarksAdapter = new CustomArrayAdapter(this, markNames);
+		mMarksAdapter = new MarkArrayAdapter(this, markNames);
 		mLvCategories.setAdapter(mMarksAdapter);
         mLvCategories.setChoiceMode(AbsListView.CHOICE_MODE_SINGLE);
 	}
@@ -242,26 +238,26 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
         mBtRetry = menu.findItem(R.id.bt_lost);
 		mSearchBox = menu.findItem(R.id.search);
 
-        final SearchView search = (SearchView) mSearchBox.getActionView();
-        search.setQueryHint(getString(R.string.mark_editor_hint));
+        mSearchView = (SearchView) mSearchBox.getActionView();
+        mSearchView.setQueryHint(getString(R.string.mark_editor_hint));
 
-        search.setOnSearchClickListener(new View.OnClickListener() {
+        mSearchView.setOnSearchClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 setItemsVisibility(menu, mSearchBox, false);
-                search.requestFocus();
+                mSearchView.requestFocus();
             }
         });
 
-		search.setOnCloseListener(new SearchView.OnCloseListener() {
+		mSearchView.setOnCloseListener(new SearchView.OnCloseListener() {
             @Override
             public boolean onClose() {
                 setItemsVisibility(menu, mSearchBox, true);
-                return false;    // true = prevent collapse search view
+                return false;    // true = prevent collapse mSearchView
             }
         });
 
-		search.setOnQueryTextListener(new OnQueryTextListener() {
+		mSearchView.setOnQueryTextListener(new OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 return false;
@@ -305,7 +301,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
             case R.id.new_mark:
                 final AlertDialog.Builder newMarkDialog = new AlertDialog.Builder(this);
                 newMarkDialog.setTitle(getString(R.string.mark_new));
-                View layout = LayoutInflater.from(this).inflate(R.layout.dialog_new_mark, null);
+                View layout = View.inflate(this, R.layout.dialog_new_mark, null);
                 final EditText etID = (EditText) layout.findViewById(R.id.et_mark_id);
                 etID.setText(mMarksAdapter.getMarkItem(mMarksAdapter.getTotalCount() - 1).getID() + 1 + "");
                 final EditText etName = (EditText) layout.findViewById(R.id.et_mark_name);
@@ -331,8 +327,11 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
                             mark = new MarkName(id, name.trim());
                             saveMark(mark);
 
-                            if (cbSave.isChecked())
+                            if (cbSave.isChecked()) {
                                 FileUtil.addMarkToPreset(context, mark);
+                                mMarksAdapter.addMark(mark);
+                                mMarksAdapter.getFilter().filter(mSearchView.getQuery());
+                            }
                         } catch (NumberFormatException e) {
                             info = R.string.cat_id_not_int;
                         } catch (NullPointerException e) {
@@ -496,55 +495,54 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
         });
     }
 
-	public class CustomArrayAdapter extends ArrayAdapter<String> implements Filterable {
-		private List<MarkName> objects;
-		private ArrayList<MarkName> matches = new ArrayList<>();
-		private final CustomFilter substringFilter = new CustomFilter();
-		private MarkName temp;
+	public class MarkArrayAdapter extends ArrayAdapter<String> implements Filterable {
+		private List<MarkName> mMarks;
+		private List<MarkName> mMatchedMarks = new ArrayList<>();
+		private final SubstringFilter mFilter = new SubstringFilter();
 
-		public CustomArrayAdapter(final Context ctx, final List<MarkName> objects) {
-			super(ctx, android.R.layout.simple_list_item_activated_1, android.R.id.text1);
-			this.objects = objects;
-			substringFilter.filter("");
+		public MarkArrayAdapter(final Context context, final List<MarkName> objects) {
+			super(context, android.R.layout.simple_list_item_activated_1, android.R.id.text1);
+			this.mMarks = objects;
+			mFilter.filter("");
 		}
 
 		@Override
 		public Filter getFilter() {
-			return substringFilter;
+			return mFilter;
 		}
 
 		@Override
 		public int getCount() {
-			return matches.size();
+			return mMatchedMarks.size();
 		}
 
 		public int getTotalCount() {
-			return objects.size();
+			return mMarks.size();
 		}
 
 		@Override
 		public String getItem(int position) {
-			return matches.get(position).getCAT();
+			return mMatchedMarks.get(position).getCAT();
 		}
 
         public int getMarkPosition(MarkName item) {
-            return objects.indexOf(item);
+            return mMarks.indexOf(item);
         }
 
         public int getMatchedMarkPosition(MarkName item) {
-            return matches.indexOf(item);
+            return mMatchedMarks.indexOf(item);
         }
 
 		public MarkName getMatchedMarkItem(int position) {
-            if (position >= 0 && position < matches.size())
-			    return matches.get(position);
+            if (position >= 0 && position < mMatchedMarks.size())
+			    return mMatchedMarks.get(position);
             else
                 return new MarkName(-1, "null");
 		}
 
 		public MarkName getMarkItem(int position) {
             if (hasItem(position))
-			    return objects.get(position);
+			    return mMarks.get(position);
             else
                 return new MarkName(-1, "null");
 		}
@@ -555,10 +553,15 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 		}
 
         public boolean hasItem(int position) {
-            return position >= 0 && position < objects.size();
+            return position >= 0 && position < mMarks.size();
         }
 
-		private class CustomFilter extends Filter {
+        public void addMark(MarkName mark) {
+            mMarks.add(mark);
+            notifyDataSetChanged();
+        }
+
+        private class SubstringFilter extends Filter {
 			@Override
 			protected FilterResults performFiltering(final CharSequence prefix) {
 				final FilterResults results = new FilterResults();
@@ -566,7 +569,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 				if (prefix != null) {
 					ArrayList<MarkName> resultList = new ArrayList<>();
 
-					for (MarkName item : objects) {
+					for (MarkName item : mMarks) {
 						String CAT = getUpperString(item.getCAT());
 						String substr = getUpperString(prefix.toString());
 
@@ -576,28 +579,18 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 
 					results.count = resultList.size();
 					results.values = resultList;
-
-					if (resultList.size() != 1 && !prefix.equals("")) {
-						temp = new MarkName(-1, prefix.toString());
-						results.count++;
-					}
-					else
-						temp = null;
 				}
 
 				return results;
 			}
 
-			@SuppressWarnings("unchecked")
+            @SuppressWarnings("unchecked")
 			@Override
 			protected void publishResults(final CharSequence constraint, final FilterResults results) {
-				matches.clear();
+				mMatchedMarks.clear();
 
 				if (results != null && results.count > 0) {
-					if (temp != null)
-						matches.add(temp);
-
-					matches.addAll((ArrayList<MarkName>) results.values);
+					mMatchedMarks.addAll((ArrayList<MarkName>) results.values);
 					notifyDataSetChanged();
 				} else
 					notifyDataSetInvalidated();

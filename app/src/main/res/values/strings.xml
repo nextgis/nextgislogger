@@ -51,6 +51,7 @@
     <string name="settings_cats">Use categories file</string>
     <string name="settings_cats_sum">Mark name presets for text field</string>
     <string name="settings_cat_path">Load mark name presets from file…</string>
+    <string name="settings_marks">Marks</string>
     <string name="settings_mark_vol">Use vol +/- buttons</string>
     <string name="settings_mark_vol_sum">Save previous/next mark</string>
     <string name="settings_user_name">Identification string (optional)</string>

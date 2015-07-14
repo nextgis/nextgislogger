@@ -38,24 +38,6 @@
             android:title="@string/settings_period"/>
 
         <CheckBoxPreference
-            android:defaultValue="false"
-            android:key="use_cats"
-            android:summary="@string/settings_cats_sum"
-            android:title="@string/settings_cats"/>
-
-        <Preference
-            android:dependency="use_cats"
-            android:key="cat_path"
-            android:title="@string/settings_cat_path"/>
-
-        <CheckBoxPreference
-            android:defaultValue="true"
-            android:dependency="use_cats"
-            android:key="use_volume_buttons"
-            android:summary="@string/settings_mark_vol_sum"
-            android:title="@string/settings_mark_vol"/>
-
-        <CheckBoxPreference
             android:defaultValue="true"
             android:key="use_api17"
             android:summary="@string/settings_cells_api17_sum"
@@ -66,6 +48,18 @@
             android:key="keep_screen"
             android:summary="@string/settings_keep_screen_sum"
             android:title="@string/settings_keep_screen"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/settings_marks">
+        <Preference
+            android:key="cat_path"
+            android:title="@string/settings_cat_path"/>
+
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="use_volume_buttons"
+            android:summary="@string/settings_mark_vol_sum"
+            android:title="@string/settings_mark_vol"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/settings_sensors">
