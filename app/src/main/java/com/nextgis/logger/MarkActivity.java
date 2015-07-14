@@ -305,7 +305,9 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
                 final EditText etID = (EditText) layout.findViewById(R.id.et_mark_id);
                 etID.setText(mMarksAdapter.getMarkItem(mMarksAdapter.getTotalCount() - 1).getID() + 1 + "");
                 final EditText etName = (EditText) layout.findViewById(R.id.et_mark_name);
+                etName.requestFocus();
                 final CheckBox cbSave = (CheckBox) layout.findViewById(R.id.ctv_save);
+                cbSave.setChecked(true);
                 newMarkDialog.setView(layout);
 
                 newMarkDialog.setPositiveButton(getString(R.string.btn_ok), new DialogInterface.OnClickListener() {
@@ -348,7 +350,9 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
                     }
                 });
 
-                newMarkDialog.create().show();
+                AlertDialog dialog = newMarkDialog.create();
+                dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+                dialog.show();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -487,7 +491,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
                 if (mIsActive && mLastConnection != isConnected)
                     Toast.makeText(MarkActivity.this, info, Toast.LENGTH_SHORT).show();
 
-                if (mBtRetry != null)
+                if (mBtRetry != null && mArduinoEngine.isLogEnabled())
                     mBtRetry.setVisible(!isConnected);
 
                 mLastConnection = isConnected;
