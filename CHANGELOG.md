@@ -1,5 +1,23 @@
 Changelog
 ***
+## version 1.5 (12.04.2015)
+* Added data from external sensors (Arduino now, see URL for more info)
+* Added button to add new mark
+* Bugfixing
+
+***
+## version 1.4.1 (12.04.2015)
+* Bugfixing
+
+***
+## version 1.4 (05.04.2015)
+* Added live data screen accessed at any screen by FAB
+* Added undo action to last added mark by FAB
+* Added volume buttons mark control (previous/next)
+* Changed some icons
+* Bugfixing
+
+***
 ## version 1.3 (01.03.2015)
 * Added GPS data (lat/lon/alt/accuracy/speed/bearing) to sensor log
 * Added default chooser action for presets

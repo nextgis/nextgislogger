@@ -43,18 +43,13 @@ import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
+import com.keenfin.sfcdialog.SimpleFileChooser;
 import com.nextgis.logger.UI.IntEditTextPreference;
 import com.nextgis.logger.engines.ArduinoEngine;
 import com.nextgis.logger.util.Constants;
 import com.nextgis.logger.util.FileUtil;
-import com.nextgis.sfcdialog.SimpleFileChooser;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.PrintWriter;
 
 public class PreferencesActivity extends PreferenceActivity {
 	public static final int minPeriodSec = 1;
