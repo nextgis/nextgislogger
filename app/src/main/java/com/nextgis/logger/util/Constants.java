@@ -59,6 +59,7 @@ public interface Constants {
     String PREF_SENSOR_MAG = "sensor_magnetic_state";
     String PREF_SENSOR_ORIENT = "sensor_orientation_state";
     String PREF_GPS = "gps";
+    String PREF_MIC = "sensor_mic";
     String PREF_USE_API17 = "use_api17";
     String PREF_CAT_PATH = "cat_path";
     String PREF_USE_VOL = "use_volume_buttons";

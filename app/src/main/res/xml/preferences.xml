@@ -94,6 +94,11 @@
             android:defaultValue="true"
             android:key="sensor_gyroscope_state"
             android:title="@string/sensor_gyroscope"/>
+
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="sensor_mic"
+            android:title="@string/mic"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/settings_external">

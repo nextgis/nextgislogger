@@ -95,6 +95,7 @@
     <string name="sensor_magnetic">Магнетометр</string>
     <string name="sensor_orientation">Ориентация</string>
     <string name="gps">GPS</string>
+    <string name="mic">Аудио (микрофон)</string>
 
     <string name="external_data">Включить внешние датчики</string>
     <string name="external_data_sum">Поддерживается только Arduino</string>
