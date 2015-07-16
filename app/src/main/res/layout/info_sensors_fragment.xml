@@ -404,5 +404,26 @@
 
             <include layout="@layout/divider"/>
         </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/ll_audio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:baselineAligned="false"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/tv_info_large"
+                android:text="Audio"/>
+
+            <TextView
+                android:id="@+id/tv_audio"
+                style="@style/tv_info_small"
+                android:layout_width="wrap_content"/>
+
+            <include layout="@layout/divider"/>
+        </LinearLayout>
     </LinearLayout>
 </ScrollView>

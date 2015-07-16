@@ -176,6 +176,7 @@
     <string name="info_meter">m</string>
     <string name="info_rads">rad/s</string>
     <string name="info_degree" translatable="false">°</string>
+    <string name="info_db">dB</string>
 
     <string name="info_neighbours">"Neighbours: "</string>
     <string name="info_active">"Active: "</string>

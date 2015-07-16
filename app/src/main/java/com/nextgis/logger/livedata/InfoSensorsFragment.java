@@ -35,6 +35,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.nextgis.logger.R;
+import com.nextgis.logger.engines.AudioEngine;
 import com.nextgis.logger.engines.BaseEngine;
 import com.nextgis.logger.engines.GPSEngine;
 import com.nextgis.logger.engines.SensorEngine;
@@ -42,11 +43,14 @@ import com.nextgis.logger.engines.SensorEngine;
 import java.text.DateFormat;
 import java.util.Date;
 
-public class InfoSensorsFragment extends Fragment implements BaseEngine.EngineListener {
+public class InfoSensorsFragment extends Fragment {
     private SensorEngine mSensorEngine;
     private GPSEngine mGPSEngine;
+    private static AudioEngine mAudioEngine;
+    private BaseEngine.EngineListener mSensorListener;
+    private BaseEngine.EngineListener mGPSListener;
 
-    private LinearLayout llGPS, llGPSInfo, llAccelerometer, llOrient, llGyro, llMagnetic;
+    private LinearLayout llGPS, llGPSInfo, llAccelerometer, llOrient, llGyro, llMagnetic, llAudio;
     private TextView tvAccelerometerTitle, tvOrientTitle, tvMagneticTitle, tvGyroTitle;
     private TextView tvGPSNoFix, tvGPSLat, tvGPSLon, tvGPSEle;
     private TextView tvGPSAcc, tvGPSSpeed, tvGPSSat, tvGPSTime;
@@ -54,23 +58,34 @@ public class InfoSensorsFragment extends Fragment implements BaseEngine.EngineLi
     private TextView tvOrientAzimuth, tvOrientPitch, tvOrientRoll;
     private TextView tvGyroX, tvGyroY, tvGyroZ;
     private TextView tvMagneticX, tvMagneticY, tvMagneticZ;
+    private TextView tvAudio;
 
     @SuppressWarnings("deprecation")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.info_sensors_fragment, container, false);
 
-        mSensorEngine = new SensorEngine(getActivity());
-        mSensorEngine.addListener(new BaseEngine.EngineListener() {
+        mSensorListener = new BaseEngine.EngineListener() {
             @Override
             public void onInfoChanged() {
                 if (isAdded())
                     fillSensorsTextViews();
             }
-        });
+        };
+        mSensorEngine = new SensorEngine(getActivity());
+        mSensorEngine.addListener(mSensorListener);
 
+        mGPSListener = new BaseEngine.EngineListener() {
+            @Override
+            public void onInfoChanged() {
+                if (isAdded())
+                    fillGPSTextViews();
+            }
+        };
         mGPSEngine = mSensorEngine.getGpsEngine();
-        mGPSEngine.addListener(this);
+        mGPSEngine.addListener(mGPSListener);
+
+        mAudioEngine = mSensorEngine.getAudioEngine();
 
         llGPS = (LinearLayout) rootView.findViewById(R.id.ll_gps);
         llGPSInfo = (LinearLayout) rootView.findViewById(R.id.ll_gps_info);
@@ -79,6 +94,7 @@ public class InfoSensorsFragment extends Fragment implements BaseEngine.EngineLi
         llOrient = (LinearLayout) rootView.findViewById(R.id.ll_orientation);
         llGyro = (LinearLayout) rootView.findViewById(R.id.ll_gyroscope);
         llMagnetic = (LinearLayout) rootView.findViewById(R.id.ll_magnetometer);
+        llAudio = (LinearLayout) rootView.findViewById(R.id.ll_audio);
 
         tvAccelerometerTitle = (TextView) rootView.findViewById(R.id.tv_accelerometer_title);
         tvOrientTitle = (TextView) rootView.findViewById(R.id.tv_orient_title);
@@ -104,11 +120,20 @@ public class InfoSensorsFragment extends Fragment implements BaseEngine.EngineLi
         tvMagneticX = (TextView) rootView.findViewById(R.id.tv_magnetic_x);
         tvMagneticY = (TextView) rootView.findViewById(R.id.tv_magnetic_y);
         tvMagneticZ = (TextView) rootView.findViewById(R.id.tv_magnetic_z);
+        tvAudio = (TextView) rootView.findViewById(R.id.tv_audio);
 
         fillSensorsTextViews();
         fillGPSTextViews();
 
         return rootView;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        mSensorEngine.removeListener(mSensorListener);
+        mGPSEngine.removeListener(mGPSListener);
     }
 
     @SuppressWarnings("deprecation")
@@ -125,6 +150,7 @@ public class InfoSensorsFragment extends Fragment implements BaseEngine.EngineLi
         tvMagneticX.setText(format(Sensor.TYPE_MAGNETIC_FIELD, mSensorEngine.getMagneticX()));
         tvMagneticY.setText(format(Sensor.TYPE_MAGNETIC_FIELD, mSensorEngine.getMagneticY()));
         tvMagneticZ.setText(format(Sensor.TYPE_MAGNETIC_FIELD, mSensorEngine.getMagneticZ()));
+        tvAudio.setText(format(-10, mAudioEngine.getDb())); // TODO enum
     }
 
     private void fillGPSTextViews() {
@@ -174,15 +200,12 @@ public class InfoSensorsFragment extends Fragment implements BaseEngine.EngineLi
             case Sensor.TYPE_MAGNETIC_FIELD:
                 formatted = String.format("%.2f %s", arg, getString(R.string.info_tesla));
                 break;
+            case -10:
+                formatted = String.format("%.0f %s", arg, getString(R.string.info_db));
+                break;
         }
 
         return Html.fromHtml(formatted);
-    }
-
-    @Override
-    public void onInfoChanged() {
-        if (isAdded())
-            fillGPSTextViews();
     }
 
     @Override
@@ -223,6 +246,11 @@ public class InfoSensorsFragment extends Fragment implements BaseEngine.EngineLi
             llMagnetic.setVisibility(View.GONE);
         else
             llMagnetic.setVisibility(View.VISIBLE);
+
+        if (!mAudioEngine.isAudioEnabled())
+            llAudio.setVisibility(View.GONE);
+        else
+            llAudio.setVisibility(View.VISIBLE);
 
         tvAccelerometerTitle.setText(mSensorEngine.getAccelerometerName());
         tvOrientTitle.setText(mSensorEngine.getOrientName());

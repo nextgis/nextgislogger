@@ -154,6 +154,7 @@
     <string name="info_kmh">км/ч</string>
     <string name="info_meter">м</string>
     <string name="info_rads">рад/с</string>
+    <string name="info_db">дБ</string>
 
     <string name="info_neighbours">"Соседних: "</string>
     <string name="info_active">"Активных: "</string>
