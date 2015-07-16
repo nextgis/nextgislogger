@@ -112,7 +112,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 
 		mGsmEngine = new CellEngine(this);
 		mSensorEngine = new SensorEngine(this);
-        mArduinoEngine = ((LoggerApplication) getApplication()).getArduinoEngine();
+        mArduinoEngine = LoggerApplication.getApplication().getArduinoEngine();
         mArduinoEngine.addConnectionListener(this);
 //		wifiEngine = new WiFiEngine(this);
 

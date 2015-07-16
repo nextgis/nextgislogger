@@ -33,7 +33,7 @@ public class AudioEngine extends BaseEngine {
     }
 
     public int getDb() {
-        return (int) mAudioMeter.getAmplitude();
+        return mAudioMeter.mAmplitude;
     }
 
     public boolean isRecording() {
@@ -75,6 +75,8 @@ public class AudioEngine extends BaseEngine {
 
         private int mLocks = 0;
 
+        private int mAmplitude;
+
         /////////////////////////////////////////////////////////////////
         // CONSTRUCTOR
 
@@ -111,8 +113,9 @@ public class AudioEngine extends BaseEngine {
                     @Override
                     public void run() {
                         while (isRecording()) {
-                            SystemClock.sleep(Constants.UPDATE_FREQUENCY);
+                            mAmplitude = (int) getAmplitude();
                             notifyListeners();
+                            SystemClock.sleep(Constants.UPDATE_FREQUENCY);
                         }
                     }
                 }).start();

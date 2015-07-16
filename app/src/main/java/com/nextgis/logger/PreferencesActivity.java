@@ -197,7 +197,7 @@ public class PreferencesActivity extends PreferenceActivity {
                 @Override
                 public boolean onPreferenceClick(final Preference preference) {
                     AlertDialog.Builder dialog = new AlertDialog.Builder(getActivity());
-                    final ArduinoEngine engine = ((LoggerApplication) getActivity().getApplication()).getArduinoEngine();
+                    final ArduinoEngine engine = LoggerApplication.getApplication().getArduinoEngine();
 
                     if (!engine.isBTEnabled()) {
                         dialog.setTitle(R.string.external_goto_settings);

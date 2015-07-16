@@ -112,7 +112,7 @@ public class GPSEngine extends BaseEngine implements LocationListener {
     }
 
     public boolean isGpsEnabled() {
-        return getPreferences().getBoolean(Constants.PREF_GPS, false);
+        return getPreferences().getBoolean(Constants.PREF_GPS, true);
     }
 
     @Override

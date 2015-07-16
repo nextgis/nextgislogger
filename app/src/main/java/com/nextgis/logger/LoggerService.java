@@ -83,7 +83,7 @@ public class LoggerService extends Service implements ArduinoEngine.ConnectionLi
 		mSensorEngine = new SensorEngine(this);
         mSensorEngine.onResume();
 
-        mArduinoEngine = ((LoggerApplication) getApplication()).getArduinoEngine();
+        mArduinoEngine = LoggerApplication.getApplication().getArduinoEngine();
         mArduinoEngine.addConnectionListener(this);
         mArduinoEngine.onResume();
 

@@ -65,7 +65,7 @@ public class InfoExternalsFragment extends Fragment implements View.OnClickListe
         mBtnSettings.setOnClickListener(this);
 
         mHandler = new Handler();
-        mArduinoEngine = ((LoggerApplication) getActivity().getApplication()).getArduinoEngine();
+        mArduinoEngine = LoggerApplication.getApplication().getArduinoEngine();
         mArduinoEngine.addConnectionListener(this);
 
         mTvTemperature = (TextView) rootView.findViewById(R.id.tv_temperature);

@@ -45,7 +45,7 @@ import java.util.Date;
 
 public class InfoSensorsFragment extends Fragment {
     private SensorEngine mSensorEngine;
-    private GPSEngine mGPSEngine;
+    private static GPSEngine mGPSEngine;
     private static AudioEngine mAudioEngine;
     private BaseEngine.EngineListener mSensorListener;
     private BaseEngine.EngineListener mGPSListener;
@@ -82,7 +82,7 @@ public class InfoSensorsFragment extends Fragment {
                     fillGPSTextViews();
             }
         };
-        mGPSEngine = mSensorEngine.getGpsEngine();
+        mGPSEngine = mSensorEngine.getGPSEngine();
         mGPSEngine.addListener(mGPSListener);
 
         mAudioEngine = mSensorEngine.getAudioEngine();

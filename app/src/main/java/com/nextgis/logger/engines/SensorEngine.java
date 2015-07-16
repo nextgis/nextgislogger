@@ -27,6 +27,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Handler;
+import android.os.Message;
 import android.widget.Toast;
 
 import com.nextgis.logger.LoggerApplication;
@@ -35,7 +36,7 @@ import com.nextgis.logger.util.Constants;
 
 import java.util.ArrayList;
 
-public class SensorEngine extends BaseEngine implements SensorEventListener, BaseEngine.EngineListener {
+public class SensorEngine extends BaseEngine implements SensorEventListener {
     private float[] mAccelerometer, mGyroscope, mMagnetic, mOrientation;
     private long mLastUpdateAccelerometer, mLastUpdateGyro, mLastUpdateMag, mLastUpdateOrient;
     private String mAccelerometerName, mMagneticName, mOrientationName, mGyroscopeName;
@@ -43,29 +44,43 @@ public class SensorEngine extends BaseEngine implements SensorEventListener, Bas
     private int mAccelerometerType;
 
     private final SensorManager mSensorManager;
-    private GPSEngine mGpsEngine;
+    private static GPSEngine mGPSEngine;
     private static AudioEngine mAudioEngine;
+    private EngineListener mAudioListener;
     private Handler mAudioHandler;
     private SharedPreferences mPreferences;
 
     public SensorEngine(Context context) {
 		super(context);
 		mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
-        mGpsEngine = new GPSEngine(context);
+        mGPSEngine = LoggerApplication.getApplication().getGPSEngine();
         mAudioEngine = LoggerApplication.getApplication().getAudioEngine();
-        mAudioHandler = new Handler();
 		mPreferences = getPreferences();
 
 		mAccelerometer = new float[3];
         mAccelerometer[0] = mAccelerometer[1] = mAccelerometer[2] = Float.NaN;
         mGyroscope = mMagnetic = mOrientation = mAccelerometer.clone();
+
+        mAudioHandler = new Handler(new Handler.Callback() {
+            @Override
+            public boolean handleMessage(Message msg) {
+                notifyListeners();
+                return true;
+            }
+        });
+        mAudioListener = new EngineListener() {
+            @Override
+            public void onInfoChanged() {
+                mAudioHandler.sendEmptyMessage(0);
+            }
+        };
 	}
 
 	public void onPause() {
 		mSensorManager.unregisterListener(this);
-        mGpsEngine.onPause();
+        mGPSEngine.onPause();
         mAudioEngine.onPause();
-        mAudioEngine.removeListener(this);
+        mAudioEngine.removeListener(mAudioListener);
 	}
 
 	@SuppressWarnings("deprecation")
@@ -143,9 +158,9 @@ public class SensorEngine extends BaseEngine implements SensorEventListener, Bas
 			Toast.makeText(mContext, info.toString(), Toast.LENGTH_LONG).show();
 		}
 
-        mGpsEngine.onResume();
+        mGPSEngine.onResume();
         mAudioEngine.onResume();
-        mAudioEngine.addListener(this);
+        mAudioEngine.addListener(mAudioListener);
 	}
 
 	@Override
@@ -275,15 +290,15 @@ public class SensorEngine extends BaseEngine implements SensorEventListener, Bas
 	public boolean isAnySensorEnabled() {
 		return isSensorEnabled(Sensor.TYPE_ACCELEROMETER) || isSensorEnabled(Sensor.TYPE_GYROSCOPE)
 				|| isSensorEnabled(Sensor.TYPE_ORIENTATION) || isSensorEnabled(Sensor.TYPE_MAGNETIC_FIELD)
-                || mGpsEngine.isGpsEnabled() || mAudioEngine.isAudioEnabled();
+                || mGPSEngine.isGpsEnabled() || mAudioEngine.isAudioEnabled();
 	}
 
 	public String getSensorType() {
 		return mIsLinearAcceleration ? "Linear" : "Raw";
 	}
 
-    public GPSEngine getGpsEngine() {
-        return mGpsEngine;
+    public GPSEngine getGPSEngine() {
+        return mGPSEngine;
     }
 
     public AudioEngine getAudioEngine() {
@@ -291,7 +306,7 @@ public class SensorEngine extends BaseEngine implements SensorEventListener, Bas
     }
 
 	public static String getItem(SensorEngine sensorEngine, String ID, String markName, String userName, long timeStamp) {
-        GPSEngine gpsEngine = sensorEngine.getGpsEngine();
+        GPSEngine gpsEngine = sensorEngine.getGPSEngine();
 
 		StringBuilder sb = new StringBuilder();
 
@@ -322,14 +337,4 @@ public class SensorEngine extends BaseEngine implements SensorEventListener, Bas
         sb.length();
 		return sb.toString();
 	}
-
-    @Override
-    public void onInfoChanged() {
-        mAudioHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                notifyListeners();
-            }
-        });
-    }
 }

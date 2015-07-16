@@ -42,7 +42,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class InfoCellFragment extends Fragment implements BaseEngine.EngineListener {
+public class InfoCellFragment extends Fragment {
     private static final String CELL_ID         = "id";
     private static final String CELL_ACTIVE     = "active";
     private static final String CELL_GEN        = "generation";
@@ -54,43 +54,58 @@ public class InfoCellFragment extends Fragment implements BaseEngine.EngineListe
     private static final String CELL_PSC        = "psc";
     private static final String CELL_POWER      = "power";
 
-    private CellEngine gsmEngine;
+    private CellEngine mGsmEngine;
+    private BaseEngine.EngineListener mCellListener;
 
-    private ListView lvNeighbours;
-    private TextView tvNeighbours, tvActive;
+    private ListView mLvNeighbours;
+    private TextView mTvNeighbours, mTvActive;
 
     @Override
     public void onPause() {
         super.onPause();
 
-        gsmEngine.onPause();
+        mGsmEngine.onPause();
     }
 
     @Override
     public void onResume() {
         super.onResume();
 
-        gsmEngine.onResume();
+        mGsmEngine.onResume();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.info_cell_fragment, container, false);
 
-        lvNeighbours = (ListView) rootView.findViewById(R.id.lv_neighbours);
-        tvNeighbours = (TextView) rootView.findViewById(R.id.tv_network_neighbours);
-        tvActive = (TextView) rootView.findViewById(R.id.tv_network_active);
+        mLvNeighbours = (ListView) rootView.findViewById(R.id.lv_neighbours);
+        mTvNeighbours = (TextView) rootView.findViewById(R.id.tv_network_neighbours);
+        mTvActive = (TextView) rootView.findViewById(R.id.tv_network_active);
 
-        gsmEngine = new CellEngine(getActivity());
-        gsmEngine.addListener(this);
+        mCellListener = new BaseEngine.EngineListener() {
+            @Override
+            public void onInfoChanged() {
+                if (isAdded())
+                    fillTextViews();
+            }
+        };
+        mGsmEngine = new CellEngine(getActivity());
+        mGsmEngine.addListener(mCellListener);
 
         fillTextViews();
 
         return rootView;
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        mGsmEngine.removeListener(mCellListener);
+    }
+
     private void fillTextViews() {
-        ArrayList<CellEngine.GSMInfo> gsmInfoArray = gsmEngine.getGSMInfoArray();
+        ArrayList<CellEngine.GSMInfo> gsmInfoArray = mGsmEngine.getGSMInfoArray();
         ArrayList<Map<String, Object>> neighboursData = new ArrayList<>();
         Map<String, Object> itemData;
         final String na = getString(R.string.info_na);
@@ -133,15 +148,9 @@ public class InfoCellFragment extends Fragment implements BaseEngine.EngineListe
                 R.id.tv_network_lac, R.id.tv_network_cid, R.id.tv_network_psc, R.id.tv_network_power};
         CellsAdapter saNeighbours = new CellsAdapter(getActivity(), neighboursData, R.layout.info_cell_neighbour_row, from, to);
 
-        lvNeighbours.setAdapter(saNeighbours);
-        tvNeighbours.setText(id - 1 + "");
-        tvActive.setText(gsmInfoArray.size() - id + 1 + "");
-    }
-
-    @Override
-    public void onInfoChanged() {
-        if (isAdded())
-            fillTextViews();
+        mLvNeighbours.setAdapter(saNeighbours);
+        mTvNeighbours.setText(id - 1 + "");
+        mTvActive.setText(gsmInfoArray.size() - id + 1 + "");
     }
 
     private class CellsAdapter extends SimpleAdapter {
@@ -190,8 +199,8 @@ public class InfoCellFragment extends Fragment implements BaseEngine.EngineListe
                 tvPSC = (TextView) v.findViewById(R.id.tv_network_psc);
                 tvPower = (TextView) v.findViewById(R.id.tv_network_power);
 
-                boolean sameOperatorName = item.get(CELL_MNC).equals(gsmEngine.getNetworkMNC() + "");
-                tvOperator.setText(sameOperatorName ? gsmEngine.getNetworkOperator() : "unknown");
+                boolean sameOperatorName = item.get(CELL_MNC).equals(mGsmEngine.getNetworkMNC() + "");
+                tvOperator.setText(sameOperatorName ? mGsmEngine.getNetworkOperator() : "unknown");
                 tvGen.setText((String) item.get(CELL_GEN));
                 tvType.setText((String) item.get(CELL_TYPE));
                 tvMCC.setText((String) item.get(CELL_MCC));

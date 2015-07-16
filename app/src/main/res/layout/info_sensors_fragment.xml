@@ -416,7 +416,7 @@
 
             <TextView
                 style="@style/tv_info_large"
-                android:text="Audio"/>
+                android:text="@string/mic"/>
 
             <TextView
                 android:id="@+id/tv_audio"

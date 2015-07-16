@@ -27,10 +27,12 @@ import android.app.Application;
 
 import com.nextgis.logger.engines.ArduinoEngine;
 import com.nextgis.logger.engines.AudioEngine;
+import com.nextgis.logger.engines.GPSEngine;
 
 public class LoggerApplication extends Application {
     private static ArduinoEngine mArduinoEngine;
     private static AudioEngine mAudioEngine;
+    private static GPSEngine mGPSEngine;
     private static LoggerApplication mApplication;
 
     @Override
@@ -40,6 +42,7 @@ public class LoggerApplication extends Application {
         mApplication = this;
         mArduinoEngine = new ArduinoEngine(this);
         mAudioEngine = new AudioEngine(this);
+        mGPSEngine = new GPSEngine(this);
     }
 
     public static LoggerApplication getApplication() {
@@ -52,5 +55,9 @@ public class LoggerApplication extends Application {
 
     public AudioEngine getAudioEngine() {
         return mAudioEngine;
+    }
+
+    public GPSEngine getGPSEngine() {
+        return mGPSEngine;
     }
 }
