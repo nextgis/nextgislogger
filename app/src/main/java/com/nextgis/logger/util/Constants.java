@@ -39,18 +39,16 @@ public interface Constants {
     String DATA_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "nextgis_logger";
     String TEMP_PATH = DATA_PATH + File.separator + ".temp";
 
-    String CSV_HEADER_CELL = "ID" + CSV_SEPARATOR + "Name" + CSV_SEPARATOR + "User" + CSV_SEPARATOR + "TimeStamp" + CSV_SEPARATOR + "NetworkGen"
-            + CSV_SEPARATOR + "NetworkType" + CSV_SEPARATOR + "Active" + CSV_SEPARATOR + "MCC" + CSV_SEPARATOR + "MNC" + CSV_SEPARATOR + "LAC"
-            + CSV_SEPARATOR + "CID" + CSV_SEPARATOR + "PSC" + CSV_SEPARATOR + "Power";
+    String CSV_HEADER_BASE = "ID" + CSV_SEPARATOR + "Name" + CSV_SEPARATOR + "User" + CSV_SEPARATOR + "TimeStamp" + CSV_SEPARATOR + "DateTime";
 
-    String CSV_HEADER_SENSOR = "ID" + CSV_SEPARATOR + "Name" + CSV_SEPARATOR + "User" + CSV_SEPARATOR + "TimeStamp" + CSV_SEPARATOR + "Type"
-            + CSV_SEPARATOR + "Accel_X" + CSV_SEPARATOR + "Accel_Y" + CSV_SEPARATOR + "Accel_Z" + CSV_SEPARATOR + "Azimuth" + CSV_SEPARATOR + "Pitch"
-            + CSV_SEPARATOR + "Roll" + CSV_SEPARATOR + "Magnetic_X" + CSV_SEPARATOR + "Magnetic_Y" + CSV_SEPARATOR + "Magnetic_Z" + CSV_SEPARATOR + "Gyro_X"
-            + CSV_SEPARATOR + "Gyro_Y" + CSV_SEPARATOR + "Gyro_Z" + CSV_SEPARATOR + "GPS_Lat" + CSV_SEPARATOR + "GPS_Lon" + CSV_SEPARATOR + "GPS_Alt"
-            + CSV_SEPARATOR + "GPS_Accuracy" + CSV_SEPARATOR + "GPS_Speed" + CSV_SEPARATOR + "GPS_Bearing";
+    String CSV_HEADER_CELL = CSV_HEADER_BASE + CSV_SEPARATOR + "NetworkGen" + CSV_SEPARATOR + "NetworkType" + CSV_SEPARATOR + "Active" + CSV_SEPARATOR
+            + "MCC" + CSV_SEPARATOR + "MNC" + CSV_SEPARATOR + "LAC" + CSV_SEPARATOR + "CID" + CSV_SEPARATOR + "PSC" + CSV_SEPARATOR + "Power";
 
-    String CSV_HEADER_EXTERNAL = "ID" + CSV_SEPARATOR + "Name" + CSV_SEPARATOR + "User" + CSV_SEPARATOR + "TimeStamp" + CSV_SEPARATOR + "Temperature"
-            + CSV_SEPARATOR + "Humidity" + CSV_SEPARATOR + "Noise" + CSV_SEPARATOR + "CO" + CSV_SEPARATOR + "C4H10" + CSV_SEPARATOR + "CH4";
+    String CSV_HEADER_SENSOR = CSV_HEADER_BASE + CSV_SEPARATOR + "Type" + CSV_SEPARATOR + "Accel_X" + CSV_SEPARATOR + "Accel_Y" + CSV_SEPARATOR + "Accel_Z"
+            + CSV_SEPARATOR + "Azimuth" + CSV_SEPARATOR + "Pitch" + CSV_SEPARATOR + "Roll" + CSV_SEPARATOR + "Magnetic_X" + CSV_SEPARATOR + "Magnetic_Y"
+            + CSV_SEPARATOR + "Magnetic_Z" + CSV_SEPARATOR + "Gyro_X" + CSV_SEPARATOR + "Gyro_Y" + CSV_SEPARATOR + "Gyro_Z" + CSV_SEPARATOR + "GPS_Lat"
+            + CSV_SEPARATOR + "GPS_Lon" + CSV_SEPARATOR + "GPS_Alt" + CSV_SEPARATOR + "GPS_Accuracy" + CSV_SEPARATOR + "GPS_Speed" + CSV_SEPARATOR
+            + "GPS_Bearing" + CSV_SEPARATOR + "Audio";
 
     String PREF_PERIOD_SEC = "period_sec";
     String PREF_SENSOR_STATE = "sensor_state";
@@ -71,6 +69,7 @@ public interface Constants {
     String PREF_KEEP_SCREEN = "keep_screen";
     String PREF_EXTERNAL = "external_data";
     String PREF_EXTERNAL_DEVICE = "external_device";
+    String PREF_EXTERNAL_HEADER = "external_header";
     String DEFAULT_USERNAME = "User1";
     String LOG_UID = "ServiceLog";
 

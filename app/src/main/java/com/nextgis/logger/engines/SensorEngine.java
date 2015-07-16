@@ -34,7 +34,9 @@ import com.nextgis.logger.LoggerApplication;
 import com.nextgis.logger.R;
 import com.nextgis.logger.util.Constants;
 
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class SensorEngine extends BaseEngine implements SensorEventListener {
     private float[] mAccelerometer, mGyroscope, mMagnetic, mOrientation;
@@ -307,6 +309,7 @@ public class SensorEngine extends BaseEngine implements SensorEventListener {
 
 	public static String getItem(SensorEngine sensorEngine, String ID, String markName, String userName, long timeStamp) {
         GPSEngine gpsEngine = sensorEngine.getGPSEngine();
+        AudioEngine audioEngine = sensorEngine.getAudioEngine();
 
 		StringBuilder sb = new StringBuilder();
 
@@ -314,6 +317,7 @@ public class SensorEngine extends BaseEngine implements SensorEventListener {
 		sb.append(markName).append(Constants.CSV_SEPARATOR);
 		sb.append(userName).append(Constants.CSV_SEPARATOR);
 		sb.append(timeStamp).append(Constants.CSV_SEPARATOR);
+		sb.append(DateFormat.getDateTimeInstance().format(new Date(timeStamp))).append(Constants.CSV_SEPARATOR);
 		sb.append(sensorEngine.getSensorType()).append(Constants.CSV_SEPARATOR);
 		sb.append(sensorEngine.getAccelerometerX()).append(Constants.CSV_SEPARATOR);
 		sb.append(sensorEngine.getAccelerometerY()).append(Constants.CSV_SEPARATOR);
@@ -332,7 +336,8 @@ public class SensorEngine extends BaseEngine implements SensorEventListener {
 		sb.append(gpsEngine.getAltitude()).append(Constants.CSV_SEPARATOR);
 		sb.append(gpsEngine.getAccuracy()).append(Constants.CSV_SEPARATOR);
 		sb.append(gpsEngine.getSpeed()).append(Constants.CSV_SEPARATOR);
-		sb.append(gpsEngine.getBearing());
+		sb.append(gpsEngine.getBearing()).append(Constants.CSV_SEPARATOR);
+		sb.append(audioEngine.getDb());
 
         sb.length();
 		return sb.toString();

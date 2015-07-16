@@ -40,9 +40,11 @@ import android.text.TextUtils;
 
 import com.nextgis.logger.util.Constants;
 
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 
 public class CellEngine extends BaseEngine {
@@ -300,6 +302,7 @@ public class CellEngine extends BaseEngine {
 		sb.append(markName).append(Constants.CSV_SEPARATOR);
 		sb.append(userName).append(Constants.CSV_SEPARATOR);
 		sb.append(gsmInfo.getTimeStamp()).append(Constants.CSV_SEPARATOR);
+		sb.append(DateFormat.getDateTimeInstance().format(new Date(gsmInfo.getTimeStamp()))).append(Constants.CSV_SEPARATOR);
 		sb.append(gsmInfo.networkGen()).append(Constants.CSV_SEPARATOR);
 		sb.append(gsmInfo.networkType()).append(Constants.CSV_SEPARATOR);
 		sb.append(active).append(Constants.CSV_SEPARATOR);

@@ -29,6 +29,7 @@ import android.os.Environment;
 import android.text.TextUtils;
 import android.widget.Toast;
 
+import com.nextgis.logger.LoggerApplication;
 import com.nextgis.logger.MainActivity;
 import com.nextgis.logger.R;
 
@@ -133,7 +134,7 @@ public final class FileUtil {
                     logPath = MainActivity.csvLogFilePathSensor;
                 break;
             case Constants.LOG_TYPE_EXTERNAL:
-                logHeader = Constants.CSV_HEADER_EXTERNAL;
+                logHeader = Constants.CSV_HEADER_BASE + LoggerApplication.getApplication().getArduinoEngine().getHeader();
 
                 if (onDemand)
                     logPath = MainActivity.csvMarkFilePathExternal;

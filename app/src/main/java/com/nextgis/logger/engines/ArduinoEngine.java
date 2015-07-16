@@ -42,8 +42,10 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -57,6 +59,8 @@ public class ArduinoEngine extends BaseEngine {
     private final static byte DELIMITER = 10;
     private final static char GET_HEADER = 'h';
     private final static char GET_DATA = 'd';
+    private final static String NO_DATA = "NaN";
+    private final static String DATA_UNDEFINED = "null";
 
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothDevice mDevice;
@@ -106,6 +110,7 @@ public class ArduinoEngine extends BaseEngine {
                 if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action) && device.getAddress().equals(mDeviceMAC)) {
                     mIsConnectionLost = true;
                     mLine = null;
+                    clearData();
 
                     for (ConnectionListener listener : mConnectionListeners)
                         listener.onConnectionLost();
@@ -123,6 +128,15 @@ public class ArduinoEngine extends BaseEngine {
         mFullNames = new HashMap<>();
         mUnits = new HashMap<>();
         mData = new String[]{};
+
+        mLine = getPreferences().getString(Constants.PREF_EXTERNAL_HEADER, "");
+        try {
+            loadHeader();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        mLine = null;
+        clearData();
     }
 
     public boolean removeListener(BaseEngine.EngineListener listener) {
@@ -168,7 +182,7 @@ public class ArduinoEngine extends BaseEngine {
                             openConnection();
 
                         if (mIsFirstConnect)
-                            getHeaders();
+                            getExternalHeader();
 
                         mOutputStream.write(GET_DATA);
                         mLine = readln();
@@ -178,6 +192,7 @@ public class ArduinoEngine extends BaseEngine {
                         SystemClock.sleep(Constants.UPDATE_FREQUENCY);
                     } catch (IOException e) {
                         mLine = null;
+                        clearData();
 
                         for (ConnectionListener listener : mConnectionListeners)
                             listener.onConnectionLost();
@@ -197,13 +212,25 @@ public class ArduinoEngine extends BaseEngine {
         mWorkerThread.start();
     }
 
-    private synchronized void getHeaders() throws JSONException, IOException {
-        JSONObject json = null;
+    private void clearData() {
+        for (int i = 0; i < mData.length; i++)
+            mData[i] = NO_DATA;
+    }
 
+    private synchronized void getExternalHeader() throws JSONException, IOException {
         mOutputStream.write(GET_HEADER);
         SystemClock.sleep(Constants.UPDATE_FREQUENCY);
         mLine = readln();
+        loadHeader();
+        getPreferences().edit().putString(Constants.PREF_EXTERNAL_HEADER, mLine).apply();
+        mIsFirstConnect = false;
 
+        for (ConnectionListener listener : mConnectionListeners)
+            listener.onConnected();
+    }
+
+    private synchronized void loadHeader() throws JSONException {
+        JSONObject json = null;
         try {
             json = new JSONObject(mLine);
         } catch (JSONException e) {
@@ -227,10 +254,6 @@ public class ArduinoEngine extends BaseEngine {
         }
 
         mData = new String[mShortNames.size()];
-        mIsFirstConnect = false;
-
-        for (ConnectionListener listener : mConnectionListeners)
-            listener.onConnected();
     }
 
     private synchronized String readln() throws IOException {
@@ -273,9 +296,11 @@ public class ArduinoEngine extends BaseEngine {
     }
 
     public String getValue(int position) {
-        String result = "null";
+        String result;
         if (position >= 0 && position < mData.length)
             result = mData[position];
+        else
+            result = DATA_UNDEFINED;
 
         return result;
     }
@@ -311,17 +336,27 @@ public class ArduinoEngine extends BaseEngine {
     }
 
     public String getHeader() {
-        String result = "";
+        String result;
 
-        for (Map.Entry<String, String> sensor : mShortNames.entrySet())
-            result += Constants.CSV_SEPARATOR + sensor.getValue();
+        if (mShortNames.size() > 0) {
+            result = "";
+            for (Map.Entry<String, String> sensor : mShortNames.entrySet())
+                result += Constants.CSV_SEPARATOR + sensor.getValue();
+        } else
+            result = Constants.CSV_SEPARATOR + DATA_UNDEFINED;
 
         return result;
     }
 
     public String getData() {
-        String result = "null"; // TODO 'NaN' foreach row
-        for (String sensor : mData) result += Constants.CSV_SEPARATOR + sensor;
+        String result;
+
+        if (mData.length == 0)
+            result = Constants.CSV_SEPARATOR + DATA_UNDEFINED;
+        else {
+            result = "";
+            for (String sensor : mData) result += Constants.CSV_SEPARATOR + sensor;
+        }
 
         return result;
     }
@@ -429,6 +464,7 @@ public class ArduinoEngine extends BaseEngine {
         sb.append(markName).append(Constants.CSV_SEPARATOR);
         sb.append(userName).append(Constants.CSV_SEPARATOR);
         sb.append(timeStamp).append(Constants.CSV_SEPARATOR);
+        sb.append(DateFormat.getDateTimeInstance().format(new Date(timeStamp)));
         sb.append(getData());
 
         sb.length();
