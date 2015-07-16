@@ -13,7 +13,8 @@ android {
     buildTypes {
         release {
             minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-logger.txt')
+            proguardFile getDefaultProguardFile('proguard-android.txt')
+            proguardFile 'proguard-logger.txt'
         }
     }
 }

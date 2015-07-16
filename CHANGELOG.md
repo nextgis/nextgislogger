@@ -1,8 +1,11 @@
 Changelog
 ***
-## version 1.5 (12.04.2015)
-* Added data from external sensors (Arduino now, see URL for more info)
+## version 1.5 (17.04.2015)
+* Added data from external sensors (Supports only [Arduino](https://github.com/nextgis/nextgislogger/wiki/External-sensors-(Arduino)) now)
+* Added audio data to sensors
 * Added button to add new mark
+* Added human-readable datetime column to log files
+* UI changes
 * Bugfixing
 
 ***
