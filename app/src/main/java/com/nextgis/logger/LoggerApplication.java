@@ -26,17 +26,31 @@ package com.nextgis.logger;
 import android.app.Application;
 
 import com.nextgis.logger.engines.ArduinoEngine;
+import com.nextgis.logger.engines.AudioEngine;
 
 public class LoggerApplication extends Application {
     private static ArduinoEngine mArduinoEngine;
+    private static AudioEngine mAudioEngine;
+    private static LoggerApplication mApplication;
+
     @Override
     public void onCreate() {
         super.onCreate();
 
+        mApplication = this;
         mArduinoEngine = new ArduinoEngine(this);
+        mAudioEngine = new AudioEngine(this);
+    }
+
+    public static LoggerApplication getApplication() {
+        return mApplication;
     }
 
     public ArduinoEngine getArduinoEngine() {
         return mArduinoEngine;
+    }
+
+    public AudioEngine getAudioEngine() {
+        return mAudioEngine;
     }
 }
