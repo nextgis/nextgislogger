@@ -47,8 +47,8 @@ public class InfoExternalsFragment extends Fragment implements View.OnClickListe
 
     private ArduinoEngine mArduinoEngine;
     private BaseEngine.EngineListener mArduinoListener;
-    private TextView mTvTemperature, mTvHumidity, mTvNoise, mTvCO, mTvC4H10, mTvCH4, mTvInfo;
-    private LinearLayout mLlError;
+    private TextView mTvInfo;
+    private LinearLayout mLlError, mLlData;
     private ScrollView mSvData;
     private Button mBtnSettings;
     private ProgressBar mPbConnecting;
@@ -59,6 +59,7 @@ public class InfoExternalsFragment extends Fragment implements View.OnClickListe
         View rootView = inflater.inflate(R.layout.info_external_fragment, container, false);
         mLlError = (LinearLayout) rootView.findViewById(R.id.ll_error);
         mSvData = (ScrollView) rootView.findViewById(R.id.sv_data);
+        mLlData = (LinearLayout) rootView.findViewById(R.id.ll_data);
         mTvInfo = (TextView) rootView.findViewById(R.id.tv_info);
         mBtnSettings = (Button) rootView.findViewById(R.id.btn_settings);
         mPbConnecting = (ProgressBar) rootView.findViewById(R.id.pb_connecting);
@@ -68,25 +69,21 @@ public class InfoExternalsFragment extends Fragment implements View.OnClickListe
         mArduinoEngine = LoggerApplication.getApplication().getArduinoEngine();
         mArduinoEngine.addConnectionListener(this);
 
-        mTvTemperature = (TextView) rootView.findViewById(R.id.tv_temperature);
-        mTvHumidity = (TextView) rootView.findViewById(R.id.tv_humidity);
-        mTvNoise = (TextView) rootView.findViewById(R.id.tv_noise);
-        mTvCO = (TextView) rootView.findViewById(R.id.tv_CO);
-        mTvC4H10 = (TextView) rootView.findViewById(R.id.tv_C4H10);
-        mTvCH4 = (TextView) rootView.findViewById(R.id.tv_CH4);
-        fillTextViews();
-
         return rootView;
     }
 
+    private void createTextViews() {
+        for (int i = 0; i < mArduinoEngine.getSensorsCount(); i++) {
+            View item = View.inflate(getActivity(), R.layout.info_external_row, null);
+            ((TextView) item.findViewById(R.id.tv_title)).setText(mArduinoEngine.getFullName(i));
+            mLlData.addView(item);
+        }
+    }
+
     private void fillTextViews() {
-        // TODO proper fields
-        mTvTemperature.setText(mArduinoEngine.getTemperature() + "C");
-        mTvHumidity.setText(mArduinoEngine.getHumidity() + "%");
-        mTvNoise.setText(mArduinoEngine.getNoise() + "");
-        mTvCO.setText(mArduinoEngine.getCO() + "");
-        mTvC4H10.setText(mArduinoEngine.getC4H10() + "");
-        mTvCH4.setText(mArduinoEngine.getCH4() + "");
+        if (mLlData.getChildCount() > 0)
+            for (int i = 0; i < mArduinoEngine.getSensorsCount(); i++)
+                ((TextView) mLlData.getChildAt(i).findViewById(R.id.tv_data)).setText(mArduinoEngine.getValueWithUnit(i));
     }
 
     @Override
@@ -210,6 +207,8 @@ public class InfoExternalsFragment extends Fragment implements View.OnClickListe
             case CONNECTED:
                 mLlError.setVisibility(View.GONE);
                 mSvData.setVisibility(View.VISIBLE);
+                createTextViews();
+                fillTextViews();
                 break;
         }
     }

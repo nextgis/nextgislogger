@@ -30,23 +30,33 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
 
 import com.nextgis.logger.util.Constants;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.UUID;
 
 // http://stackoverflow.com/q/10327506
 public class ArduinoEngine extends BaseEngine {
     private final static byte DELIMITER = 10;
+    private final static char GET_HEADER = 'h';
+    private final static char GET_DATA = 'd';
 
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothDevice mDevice;
@@ -57,13 +67,15 @@ public class ArduinoEngine extends BaseEngine {
     private byte[] mBuffer;
     private int mBufferPosition;
 
-    private volatile boolean mIsWorking, mIsConnectionLost;
-    private String mData, mDeviceName, mDeviceMAC;
+    private volatile boolean mIsWorking, mIsConnectionLost, mIsFirstConnect;
+    private String mLine, mDeviceName, mDeviceMAC;
     private Thread mWorkerThread;
     private List<ConnectionListener> mConnectionListeners;
 
-    private volatile int mTemperature, mHumidity, mNoise;
-    private volatile double mCO, mCH4, mC4H10;
+    private volatile Map<String, String> mShortNames;
+    private volatile Map<String, String> mFullNames;
+    private volatile Map<String, String> mUnits;
+    private volatile String[] mData;
 
     public boolean isLogEnabled() {
         return PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean(Constants.PREF_EXTERNAL, false);
@@ -71,7 +83,9 @@ public class ArduinoEngine extends BaseEngine {
 
     public interface ConnectionListener {
         void onTimeoutOrFailure();
+
         void onConnected();
+
         void onConnectionLost();
     }
 
@@ -91,7 +105,7 @@ public class ArduinoEngine extends BaseEngine {
 
                 if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action) && device.getAddress().equals(mDeviceMAC)) {
                     mIsConnectionLost = true;
-                    mData = null;
+                    mLine = null;
 
                     for (ConnectionListener listener : mConnectionListeners)
                         listener.onConnectionLost();
@@ -104,6 +118,11 @@ public class ArduinoEngine extends BaseEngine {
 
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECTED);
         mContext.registerReceiver(mReceiver, filter);
+
+        mShortNames = new TreeMap<>();
+        mFullNames = new HashMap<>();
+        mUnits = new HashMap<>();
+        mData = new String[]{};
     }
 
     public boolean removeListener(BaseEngine.EngineListener listener) {
@@ -148,29 +167,17 @@ public class ArduinoEngine extends BaseEngine {
                         if (!isDeviceAvailable() || !isConnected())
                             openConnection();
 
-                        int bytesAvailable = mInputStream.available();
-                        if (bytesAvailable > 0) {
-                            byte[] packetBytes = new byte[bytesAvailable];
-                            int readLength = mInputStream.read(packetBytes);
+                        if (mIsFirstConnect)
+                            getHeaders();
 
-                            for (int i = 0; i < readLength; i++) {
-                                byte b = packetBytes[i];
-
-                                if (b == DELIMITER) {
-                                    byte[] encodedBytes = new byte[mBufferPosition];
-                                    System.arraycopy(mBuffer, 0, encodedBytes, 0, encodedBytes.length);
-                                    mData = new String(encodedBytes, "US-ASCII");
-                                    parseData();
-                                    mBufferPosition = 0;
-                                } else {
-                                    mBuffer[mBufferPosition++] = b;
-                                }
-                            }
-
+                        mOutputStream.write(GET_DATA);
+                        mLine = readln();
+                        if (parseData())
                             notifyListeners();
-                        }
+
+                        SystemClock.sleep(Constants.UPDATE_FREQUENCY);
                     } catch (IOException e) {
-                        mData = null;
+                        mLine = null;
 
                         for (ConnectionListener listener : mConnectionListeners)
                             listener.onConnectionLost();
@@ -178,6 +185,8 @@ public class ArduinoEngine extends BaseEngine {
                         if (!hasListeners())
                             mIsWorking = false;
                     } catch (NullPointerException ignored) {
+                    } catch (JSONException e) {
+                        e.printStackTrace(); // TODO handle
                     }
                 }
 
@@ -188,17 +197,101 @@ public class ArduinoEngine extends BaseEngine {
         mWorkerThread.start();
     }
 
-    private void parseData() {
-        String[] fields = mData.split(";");
+    private synchronized void getHeaders() throws JSONException, IOException {
+        JSONObject json = null;
 
-        if (!TextUtils.isEmpty(mData) && fields.length == 6) {
-            mTemperature = Integer.parseInt(fields[0]);
-            mHumidity = Integer.parseInt(fields[1]);
-            mNoise = Integer.parseInt((fields[2]));
-            mCO = Double.parseDouble(fields[3]);
-            mC4H10 = Double.parseDouble(fields[4]);
-            mCH4 = Double.parseDouble(fields[5]);
+        mOutputStream.write(GET_HEADER);
+        SystemClock.sleep(Constants.UPDATE_FREQUENCY);
+        mLine = readln();
+
+        try {
+            json = new JSONObject(mLine);
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
+
+        if (json == null)
+            return;
+
+        mShortNames.clear();
+        mFullNames.clear();
+        mUnits.clear();
+
+        Iterator<String> sensors = json.keys();
+        while (sensors.hasNext()) {
+            String key = sensors.next();
+            JSONObject sensor = json.getJSONObject(key);
+            mShortNames.put(key, sensor.getString("short"));
+            mFullNames.put(key, sensor.getString("full"));
+            mUnits.put(key, sensor.getString("unit"));
+        }
+
+        mData = new String[mShortNames.size()];
+        mIsFirstConnect = false;
+
+        for (ConnectionListener listener : mConnectionListeners)
+            listener.onConnected();
+    }
+
+    private synchronized String readln() throws IOException {
+        String line = null;
+        int bytesAvailable = mInputStream.available();
+
+        if (bytesAvailable > 0) {
+            byte[] packetBytes = new byte[bytesAvailable];
+            int readLength = mInputStream.read(packetBytes);
+
+            for (int i = 0; i < readLength; i++) {
+                byte b = packetBytes[i];
+
+                if (b == DELIMITER) {
+                    byte[] encodedBytes = new byte[mBufferPosition];
+                    System.arraycopy(mBuffer, 0, encodedBytes, 0, encodedBytes.length);
+                    line = new String(encodedBytes, "UTF-8");
+                    mBufferPosition = 0;
+                } else {
+                    mBuffer[mBufferPosition++] = b;
+                }
+            }
+        }
+
+        return line;
+    }
+
+    private synchronized boolean parseData() {
+        String[] fields = mLine.split(";");
+        boolean isCorrect = !TextUtils.isEmpty(mLine) && fields.length == mShortNames.size();
+
+        if (isCorrect)
+            System.arraycopy(fields, 0, mData, 0, fields.length);
+
+        return isCorrect;
+    }
+
+    public int getSensorsCount() {
+        return mData.length;
+    }
+
+    public String getValue(int position) {
+        String result = "null";
+        if (position >= 0 && position < mData.length)
+            result = mData[position];
+
+        return result;
+    }
+
+    public String getValueWithUnit(int position) {
+        String unit = getUnit(position);
+        unit = TextUtils.isEmpty(unit) ? "" : " " + unit;
+        return getValue(position) + unit;
+    }
+
+    public String getFullName(int position) {
+        return mFullNames.get(position + "");
+    }
+
+    public String getUnit(int position) {
+        return mUnits.get(position + "");
     }
 
     private void openConnection() {
@@ -213,37 +306,24 @@ public class ArduinoEngine extends BaseEngine {
             return;
         }
 
+        mIsFirstConnect = true;
         mIsConnectionLost = false;
-        for (ConnectionListener listener : mConnectionListeners)
-            listener.onConnected();
+    }
+
+    public String getHeader() {
+        String result = "";
+
+        for (Map.Entry<String, String> sensor : mShortNames.entrySet())
+            result += Constants.CSV_SEPARATOR + sensor.getValue();
+
+        return result;
     }
 
     public String getData() {
-        return mData;
-    }
+        String result = "null"; // TODO 'NaN' foreach row
+        for (String sensor : mData) result += Constants.CSV_SEPARATOR + sensor;
 
-    public int getTemperature() {
-        return mTemperature;
-    }
-
-    public int getHumidity() {
-        return mHumidity;
-    }
-
-    public int getNoise() {
-        return mNoise;
-    }
-
-    public double getCO() {
-        return mCO;
-    }
-
-    public double getC4H10() {
-        return mC4H10;
-    }
-
-    public double getCH4() {
-        return mCH4;
+        return result;
     }
 
     private void findBT() throws IOException {
@@ -309,7 +389,7 @@ public class ArduinoEngine extends BaseEngine {
         mInputStream = null;
         mSocket = null;
         mDevice = null;
-        mData = null;
+        mLine = null;
     }
 
     public String getDeviceName() {

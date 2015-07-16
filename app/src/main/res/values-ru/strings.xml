@@ -108,12 +108,6 @@
     <string name="external_connecting">Подключение к %s…</string>
     <string name="external_connected">Подключено к %s</string>
     <string name="external_retry">Повторить</string>
-    <string name="external_dht_temp">Температура</string>
-    <string name="external_dht_humidity">Влажноть</string>
-    <string name="external_noise">Шум</string>
-    <string name="external_CO">Угарный газ (CO)</string>
-    <string name="external_C4H10">Изобутан (C4H10)</string>
-    <string name="external_CH4">Метан (CH4)</string>
 
     <string name="cat_file_error">Неверная структура файла категорий</string>
     <string name="cat_file_empty">Файл категорий пустой</string>
