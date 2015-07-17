@@ -35,8 +35,7 @@ void loop() {
 
       // send it to Bluetooth
       bt.print(t, 0); bt.print(';');
-      bt.print(h, 0); bt.print(';');
-      bt.println(mq4, 0);
+      bt.println(h, 0);
     }
   }
 

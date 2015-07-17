@@ -7,6 +7,8 @@ See [About](https://github.com/nextgis/nextgislogger/wiki/About) and [Data struc
 
 Changelog now is [here](https://github.com/nextgis/nextgislogger/blob/master/CHANGELOG.md).
 
+Check [how to connect Arduino and Logger](https://github.com/nextgis/nextgislogger/wiki/External-sensors-(Arduino)) also.
+
 Manual:
 * [Ru](http://gis-lab.info/qa/nextgis-logger.html)
 * [En](https://translate.google.com/translate?sl=ru&tl=en&js=y&prev=_t&hl=en&ie=UTF-8&u=http%3A%2F%2Fgis-lab.info%2Fqa%2Fnextgis-logger.html&edit-text=)
