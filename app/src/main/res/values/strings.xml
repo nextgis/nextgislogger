@@ -6,7 +6,7 @@
   ~ Author:  Nikita Kirin
   ~ Author:  Stanislav Petriakov, becomeglory@gmail.com
   ~ ******************************************************************************
-  ~ Copyright © 2014-2015 NextGIS
+  ~ Copyright © 2014-2016 NextGIS
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -145,6 +145,9 @@
     <string name="info_lac" translatable="false">"LAC: "</string>
     <string name="info_cid" translatable="false">"CID: "</string>
     <string name="info_psc" translatable="false">"PSC: "</string>
+    <string name="info_tac" translatable="false">"TAC: "</string>
+    <string name="info_pci" translatable="false">"PCI: "</string>
+    <string name="info_ci" translatable="false">"CI: "</string>
     <string name="info_power" translatable="false">"Power: "</string>
 
     <string name="info_lat">"Latitude: "</string>

@@ -4,7 +4,7 @@
  * Purpose: Productive data logger for Android
  * Author:  Stanislav Petriakov, becomeglory@gmail.com
  * *****************************************************************************
- * Copyright © 2015 NextGIS
+ * Copyright © 2015-2016 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@ import android.widget.TextView;
 import com.nextgis.logger.R;
 import com.nextgis.logger.engines.BaseEngine;
 import com.nextgis.logger.engines.CellEngine;
+import com.nextgis.logger.util.Constants;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -116,9 +117,9 @@ public class InfoCellFragment extends Fragment {
         String gen, type, mnc, mcc, lac, cid, psc, power;
         for (CellEngine.GSMInfo gsmItem : gsmInfoArray) {
             gen = gsmItem.networkGen();
-            gen = gen.equals("unknown") ? na : gen;
+            gen = gen.equals(Constants.UNKNOWN) ? na : gen;
             type = gsmItem.networkType();
-            type = type.equals("unknown") ? na : type;
+            type = type.equals(Constants.UNKNOWN) ? na : type;
             mcc = gsmItem.getMcc() == -1 ? na : gsmItem.getMcc() + "";
             mnc = gsmItem.getMnc() == -1 ? na : gsmItem.getMnc() + "";
             lac = gsmItem.getLac() == -1 ? na : gsmItem.getLac() + "";
@@ -200,7 +201,7 @@ public class InfoCellFragment extends Fragment {
                 tvPower = (TextView) v.findViewById(R.id.tv_network_power);
 
                 boolean sameOperatorName = item.get(CELL_MNC).equals(mGsmEngine.getNetworkMNC() + "");
-                tvOperator.setText(sameOperatorName ? mGsmEngine.getNetworkOperator() : "unknown");
+                tvOperator.setText(sameOperatorName ? mGsmEngine.getNetworkOperator() : Constants.UNKNOWN);
                 tvGen.setText((String) item.get(CELL_GEN));
                 tvType.setText((String) item.get(CELL_TYPE));
                 tvMCC.setText((String) item.get(CELL_MCC));
@@ -210,10 +211,25 @@ public class InfoCellFragment extends Fragment {
                 tvPSC.setText((String) item.get(CELL_PSC));
                 tvPower.setText((String) item.get(CELL_POWER));
 
-                if ((item.get(CELL_GEN)).equals("2G"))
-                    v.findViewById(R.id.ll_psc).setVisibility(View.GONE);
-                else
-                    v.findViewById(R.id.ll_psc).setVisibility(View.VISIBLE);
+                switch (item.get(CELL_GEN).toString()) {
+                    case Constants.GEN_2G:
+                        v.findViewById(R.id.ll_psc).setVisibility(View.GONE);
+                        ((TextView) v.findViewById(R.id.tv_network_lac_title)).setText(R.string.info_lac);
+                        ((TextView) v.findViewById(R.id.tv_network_cid_title)).setText(R.string.info_cid);
+                        break;
+                    case Constants.GEN_4G:
+                        v.findViewById(R.id.ll_psc).setVisibility(View.VISIBLE);
+                        ((TextView) v.findViewById(R.id.tv_network_lac_title)).setText(R.string.info_tac);
+                        ((TextView) v.findViewById(R.id.tv_network_cid_title)).setText(R.string.info_pci);
+                        ((TextView) v.findViewById(R.id.tv_network_psc_title)).setText(R.string.info_ci);
+                        break;
+                    default:
+                        v.findViewById(R.id.ll_psc).setVisibility(View.VISIBLE);
+                        ((TextView) v.findViewById(R.id.tv_network_lac_title)).setText(R.string.info_lac);
+                        ((TextView) v.findViewById(R.id.tv_network_cid_title)).setText(R.string.info_cid);
+                        ((TextView) v.findViewById(R.id.tv_network_psc_title)).setText(R.string.info_psc);
+                        break;
+                }
 
                 result = v;
             }
@@ -221,14 +237,33 @@ public class InfoCellFragment extends Fragment {
             TextView psc = (TextView) result.findViewById(R.id.tv_network_psc);
             TextView psc_title = (TextView) result.findViewById(R.id.tv_network_psc_title);
 
-            if (psc != null && psc_title != null) {
-                if ((item.get(CELL_GEN)).equals("2G")) {
-                    psc.setVisibility(View.INVISIBLE);
-                    psc_title.setVisibility(View.INVISIBLE);
-                } else {
-                    psc.setVisibility(View.VISIBLE);
-                    psc_title.setVisibility(View.VISIBLE);
-                }
+            switch (item.get(CELL_GEN).toString()) {
+                case Constants.GEN_2G:
+                    if (psc != null && psc_title != null) {
+                        psc.setVisibility(View.INVISIBLE);
+                        psc_title.setVisibility(View.INVISIBLE);
+                        ((TextView) result.findViewById(R.id.tv_network_lac_title)).setText(R.string.info_lac);
+                        ((TextView) result.findViewById(R.id.tv_network_cid_title)).setText(R.string.info_cid);
+                    }
+                    break;
+                case Constants.GEN_4G:
+                    if (psc != null && psc_title != null) {
+                        psc.setVisibility(View.VISIBLE);
+                        psc_title.setText(R.string.info_ci);
+                        psc_title.setVisibility(View.VISIBLE);
+                        ((TextView) result.findViewById(R.id.tv_network_lac_title)).setText(R.string.info_tac);
+                        ((TextView) result.findViewById(R.id.tv_network_cid_title)).setText(R.string.info_pci);
+                    }
+                    break;
+                default:
+                    if (psc != null && psc_title != null) {
+                        psc.setVisibility(View.VISIBLE);
+                        psc_title.setText(R.string.info_psc);
+                        psc_title.setVisibility(View.VISIBLE);
+                        ((TextView) result.findViewById(R.id.tv_network_lac_title)).setText(R.string.info_lac);
+                        ((TextView) result.findViewById(R.id.tv_network_cid_title)).setText(R.string.info_cid);
+                    }
+                    break;
             }
 
             return result;

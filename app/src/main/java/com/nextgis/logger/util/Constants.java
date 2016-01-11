@@ -4,7 +4,7 @@
  * Purpose: Productive data logger for Android
  * Author:  Stanislav Petriakov, becomeglory@gmail.com
  * *****************************************************************************
- * Copyright © 2014-2015 NextGIS
+ * Copyright © 2014-2016 NextGIS
  * <p/>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * ***************************************************************************
  */
+
 package com.nextgis.logger.util;
 
 import android.os.Environment;
@@ -72,6 +73,11 @@ public interface Constants {
     String PREF_EXTERNAL_HEADER = "external_header";
     String DEFAULT_USERNAME = "User1";
     String LOG_UID = "ServiceLog";
+
+    String GEN_2G = "2G";
+    String GEN_3G = "3G";
+    String GEN_4G = "4G";
+    String UNKNOWN = "unknown";
 
     String BROADCAST_ACTION = "com.nextgis.gsm_logger.MainActivity";
 

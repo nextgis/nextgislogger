@@ -5,7 +5,7 @@
   ~ Purpose: Productive data logger for Android
   ~ Author:  Stanislav Petriakov, becomeglory@gmail.com
   ~ ******************************************************************************
-  ~ Copyright © 2015 NextGIS
+  ~ Copyright © 2015-2016 NextGIS
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -99,6 +99,7 @@
             android:orientation="horizontal">
 
             <TextView
+                android:id="@+id/tv_network_lac_title"
                 style="@style/tv_info_medium"
                 android:text="@string/info_lac"/>
 
@@ -113,6 +114,7 @@
             android:orientation="horizontal">
 
             <TextView
+                android:id="@+id/tv_network_cid_title"
                 style="@style/tv_info_medium"
                 android:text="@string/info_cid"/>
 
@@ -128,6 +130,7 @@
             android:orientation="horizontal">
 
             <TextView
+                android:id="@+id/tv_network_psc_title"
                 style="@style/tv_info_medium"
                 android:text="@string/info_psc"/>
 

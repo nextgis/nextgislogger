@@ -4,7 +4,7 @@
  * Author:  Nikita Kirin
  * Author:  Stanislav Petriakov, becomeglory@gmail.com
  ******************************************************************************
- * Copyright © 2014-2015 NextGIS
+ * Copyright © 2014-2016 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,15 +19,18 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *****************************************************************************/
+
 package com.nextgis.logger.engines;
 
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.telephony.CellIdentityGsm;
+import android.telephony.CellIdentityLte;
 import android.telephony.CellIdentityWcdma;
 import android.telephony.CellInfo;
 import android.telephony.CellInfoGsm;
+import android.telephony.CellInfoLte;
 import android.telephony.CellInfoWcdma;
 import android.telephony.CellLocation;
 import android.telephony.NeighboringCellInfo;
@@ -40,6 +43,7 @@ import android.text.TextUtils;
 
 import com.nextgis.logger.util.Constants;
 
+import java.lang.reflect.Method;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -48,11 +52,14 @@ import java.util.Date;
 import java.util.List;
 
 public class CellEngine extends BaseEngine {
+	private final static String LTE_SIGNAL_STRENGTH = "getLteSignalStrength";
+
     private final static int LOW_BOUND = 0;
     private final static int MAX_MCC_MNC = 999;
     private final static int MAX_2G_LAC_CID = 65535;
     private final static int MAX_3G_CID = 268435455;
     private static final int MAX_PSC = 511;
+    private static final int MAX_PCI = 503;
 
 	public final static int SIGNAL_STRENGTH_NONE = 0;
 
@@ -84,40 +91,44 @@ public class CellEngine extends BaseEngine {
         mSignalStrength = signalStrength;
     }
 
+	// http://stackoverflow.com/a/31696744/2088273
+	private int getSignalStrengthLTE(SignalStrength signalStrength)
+	{
+		try {
+			Method[] methods = android.telephony.SignalStrength.class.getMethods();
+
+			for (Method mthd : methods)
+				if (mthd.getName().equals(LTE_SIGNAL_STRENGTH))
+					return (Integer) mthd.invoke(signalStrength);
+		} catch (Exception ignored) { }
+
+		return 0;
+	}
+
 	public int signalStrengthAsuToDbm(int asu, int networkType) {
 		switch (networkType) {
-		// 2G -- GSM network
-		case TelephonyManager.NETWORK_TYPE_GPRS: // API 1+
-		case TelephonyManager.NETWORK_TYPE_EDGE: // API 1+
-			// getRssi() returns ASU for GSM
-			if (0 <= asu && asu <= 31) {
-				return 2 * asu - 113;
-			} else if (asu == 99) {
-				return 0;
-			}
-			break;
+			// 2G -- GSM network
+			case TelephonyManager.NETWORK_TYPE_GPRS: // API 1+
+			case TelephonyManager.NETWORK_TYPE_EDGE: // API 1+
+				// getRssi() returns ASU for GSM
+				if (0 <= asu && asu <= 31)
+					return 2 * asu - 113;
+			//	3G -- 3GSM network
+			case TelephonyManager.NETWORK_TYPE_UMTS: // API 1+
+				// getRssi() returns RSCP for UMTS
+				if (-5 <= asu && asu <= 91)
+					return asu - 116;
+			case TelephonyManager.NETWORK_TYPE_HSPA: // API 5+
+			case TelephonyManager.NETWORK_TYPE_HSDPA: // API 5+
+			case TelephonyManager.NETWORK_TYPE_HSUPA: // API 5+
+			case TelephonyManager.NETWORK_TYPE_HSPAP: // API 5+
+				return asu;
 
-		//	3G -- 3GSM network
-		case TelephonyManager.NETWORK_TYPE_UMTS: // API 1+
-			// getRssi() returns RSCP for UMTS
-			if (-5 <= asu && asu <= 91) {
-				return asu - 116;
-			} else if (asu == 255) {
-				return 0;
-			}
-			break;
-		case TelephonyManager.NETWORK_TYPE_HSPA: // API 5+
-		case TelephonyManager.NETWORK_TYPE_HSDPA: // API 5+
-		case TelephonyManager.NETWORK_TYPE_HSUPA: // API 5+
-		case TelephonyManager.NETWORK_TYPE_HSPAP: // API 5+
-			return asu;
-
-			// 4G -- LTE network
-			//            case TelephonyManager.NETWORK_TYPE_LTE : // API 11+
-			//                if (0 <= asu && asu <= 97) {
-			//                    return asu - 141;
-			//                }
-			//                break;
+			//	4G -- LTE network
+			case TelephonyManager.NETWORK_TYPE_LTE : // API 11+
+				// getRssi() returns RSRP for LTE
+				if (0 <= asu && asu <= 97)
+					return asu - 141;
 		}
 
 		return 0;
@@ -157,8 +168,17 @@ public class CellEngine extends BaseEngine {
 						CellIdentityWcdma wcdmaIdentity = wcdma.getCellIdentity();
 
                         isRegistered |= wcdma.isRegistered();
-						gsmInfoArray.add(new GSMInfo(timeStamp, wcdma.isRegistered(), nwType, wcdmaIdentity.getMcc(), wcdmaIdentity.getMnc(), wcdmaIdentity
-								.getLac(), wcdmaIdentity.getCid(), wcdmaIdentity.getPsc(), wcdma.getCellSignalStrength().getDbm()));
+						gsmInfoArray.add(new GSMInfo(timeStamp, wcdma.isRegistered(), nwType, wcdmaIdentity.getMcc(), wcdmaIdentity.getMnc(),
+								wcdmaIdentity.getLac(), wcdmaIdentity.getCid(), wcdmaIdentity.getPsc(), wcdma.getCellSignalStrength().getDbm()));
+
+						// 4G - LTE cell towers
+					} else if (cell.getClass() == CellInfoLte.class) {
+						CellInfoLte lte = (CellInfoLte) cell;
+						CellIdentityLte lteIdentity = lte.getCellIdentity();
+
+                        isRegistered |= lte.isRegistered();
+						gsmInfoArray.add(new GSMInfo(timeStamp, lte.isRegistered(), nwType, lteIdentity.getMcc(), lteIdentity.getMnc(), lteIdentity.getTac(),
+								lteIdentity.getPci(), lteIdentity.getCi(), lte.getCellSignalStrength().getDbm()));
 					}
 				}
 		}
@@ -190,8 +210,8 @@ public class CellEngine extends BaseEngine {
 
 				if (gsmCellLocation != null) {
                     isRegistered = true;
-					gsmInfoArray.add(new GSMInfo(timeStamp, true, mTelephonyManager.getNetworkType(), mcc, mnc, gsmCellLocation.getLac(), gsmCellLocation
-							.getCid(), gsmCellLocation.getPsc(), mSignalStrength));
+					gsmInfoArray.add(new GSMInfo(timeStamp, true, mTelephonyManager.getNetworkType(), mcc, mnc, gsmCellLocation.getLac(),
+							gsmCellLocation.getCid(), gsmCellLocation.getPsc(), mSignalStrength));
 				}
 			}
 
@@ -231,20 +251,20 @@ public class CellEngine extends BaseEngine {
 		switch (type) {
 		case TelephonyManager.NETWORK_TYPE_EDGE:
 		case TelephonyManager.NETWORK_TYPE_GPRS:
-			gen = "2G";
+			gen = Constants.GEN_2G;
 			break;
 		case TelephonyManager.NETWORK_TYPE_UMTS:
 		case TelephonyManager.NETWORK_TYPE_HSPA:
 		case TelephonyManager.NETWORK_TYPE_HSDPA:
 		case TelephonyManager.NETWORK_TYPE_HSUPA:
 		case TelephonyManager.NETWORK_TYPE_HSPAP:
-			gen = "3G";
+			gen = Constants.GEN_3G;
 			break;
 		case TelephonyManager.NETWORK_TYPE_LTE:
-			gen = "4G";
+			gen = Constants.GEN_4G;
 			break;
 		default:
-			gen = "unknown";
+			gen = Constants.UNKNOWN;
 			break;
 		}
 
@@ -285,10 +305,9 @@ public class CellEngine extends BaseEngine {
 		case TelephonyManager.NETWORK_TYPE_LTE:
 			network = "LTE";
 			break;
-		//		case TelephonyManager.NETWORK_TYPE_UNKNOWN:
-		//			break;
+		case TelephonyManager.NETWORK_TYPE_UNKNOWN:
 		default:
-			network = "unknown";
+			network = Constants.UNKNOWN;
 			break;
 		}
 
@@ -352,7 +371,12 @@ public class CellEngine extends BaseEngine {
         @Override
         public void onSignalStrengthsChanged(SignalStrength signal) {
             super.onSignalStrengthsChanged(signal);
-            setSignalStrength(signal.isGsm() ? signalStrengthAsuToDbm(signal.getGsmSignalStrength(), TelephonyManager.NETWORK_TYPE_GPRS) : SIGNAL_STRENGTH_NONE);
+
+			int signalStrength = signal.getGsmSignalStrength();
+			if (mTelephonyManager.getNetworkType() == TelephonyManager.NETWORK_TYPE_LTE && 0 <= signalStrength && signalStrength <= 97)
+				signalStrength = getSignalStrengthLTE(signal);
+
+            setSignalStrength(signalStrengthAsuToDbm(signalStrength, mTelephonyManager.getNetworkType()));
             notifyListeners();
         }
 
@@ -416,10 +440,10 @@ public class CellEngine extends BaseEngine {
             switch (networkType) {
                 case TelephonyManager.NETWORK_TYPE_EDGE:
                 case TelephonyManager.NETWORK_TYPE_GPRS:
-                    if (lac <= LOW_BOUND || lac >= MAX_2G_LAC_CID)
+                    if (lac < LOW_BOUND || lac > MAX_2G_LAC_CID)
                         this.lac = -1;
 
-                    if (cid <= LOW_BOUND || cid >= MAX_2G_LAC_CID)
+                    if (cid < LOW_BOUND || cid > MAX_2G_LAC_CID)
                         this.cid = -1;
                     break;
                 case TelephonyManager.NETWORK_TYPE_UMTS:
@@ -428,18 +452,19 @@ public class CellEngine extends BaseEngine {
                 case TelephonyManager.NETWORK_TYPE_HSUPA:
                 case TelephonyManager.NETWORK_TYPE_HSPAP:
 				default:
-					if (lac <= LOW_BOUND || lac >= MAX_2G_LAC_CID) {
+					if (lac < LOW_BOUND || lac > MAX_2G_LAC_CID)
 							this.lac = -1;
-					}
 
-					if (cid <= LOW_BOUND || cid >= MAX_3G_CID) {
+					if (cid < LOW_BOUND || cid > MAX_3G_CID)
 							this.cid = -1;
-					}
 
-					if (psc <= LOW_BOUND || psc >= MAX_PSC) {
+					if (psc < LOW_BOUND || psc > MAX_PSC)
 							this.psc = -1;
-					}
                     break;
+				case TelephonyManager.NETWORK_TYPE_LTE:
+					if (cid < LOW_BOUND || cid > MAX_PCI)
+						this.cid = -1;
+					break;
             }
 		}
 
