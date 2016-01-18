@@ -241,6 +241,10 @@ public class CellEngine extends BaseEngine {
         return TextUtils.isEmpty(operator) ? -1 : Integer.parseInt(operator.substring(3));
     }
 
+	public boolean isRoaming() {
+		return mTelephonyManager.isNetworkRoaming();
+	}
+
     //	public static boolean isGSMNetwork(int network) {
 	//		return network == TelephonyManager.NETWORK_TYPE_EDGE || network == TelephonyManager.NETWORK_TYPE_GPRS;
 	//	}

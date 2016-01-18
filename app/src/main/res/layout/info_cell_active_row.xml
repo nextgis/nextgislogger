@@ -45,7 +45,7 @@
             android:id="@+id/tv_network_gen"
             style="@style/tv_info_large"
             android:singleLine="true"
-            android:textSize="40sp"/>
+            android:textSize="32sp"/>
 
         <TextView
             android:id="@+id/tv_network_type"
@@ -56,6 +56,14 @@
             android:id="@+id/tv_network_operator"
             style="@style/tv_info_medium"
             android:layout_marginTop="16dp"/>
+
+        <TextView
+            android:id="@+id/tv_network_roaming"
+            style="@style/tv_info"
+            android:text="@string/info_roaming"
+            android:textAppearance="@android:style/TextAppearance.Small"
+            android:textColor="@color/roaming"
+            android:visibility="gone"/>
     </LinearLayout>
 
     <LinearLayout

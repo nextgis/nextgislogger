@@ -6,7 +6,7 @@
   ~ Author:  Nikita Kirin
   ~ Author:  Stanislav Petriakov, becomeglory@gmail.com
   ~ ******************************************************************************
-  ~ Copyright © 2014-2015 NextGIS
+  ~ Copyright © 2014-2016 NextGIS
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -135,6 +135,7 @@
     <string name="info_title_sensors">Сенсоры</string>
     <string name="info_title_external">Внешние</string>
 
+    <string name="info_roaming">роуминг</string>
     <string name="info_lat">"Широта: "</string>
     <string name="info_lon">"Долгота: "</string>
     <string name="info_ele">"Высота: "</string>

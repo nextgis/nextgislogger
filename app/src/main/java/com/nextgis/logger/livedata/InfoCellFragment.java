@@ -189,6 +189,9 @@ public class InfoCellFragment extends Fragment {
                 result = super.getView(position, null, parent);
             else {
                 View v = mInflater.inflate(R.layout.info_cell_active_row, parent, false);
+                TextView tvRoaming = (TextView) v.findViewById(R.id.tv_network_roaming);
+                if (mGsmEngine.isRoaming())
+                    tvRoaming.setVisibility(View.VISIBLE);
 
                 tvGen = (TextView) v.findViewById(R.id.tv_network_gen);
                 tvType = (TextView) v.findViewById(R.id.tv_network_type);
