@@ -6,7 +6,7 @@
   ~ Author:  Nikita Kirin
   ~ Author:  Stanislav Petriakov, becomeglory@gmail.com
   ~ ******************************************************************************
-  ~ Copyright © 2014 NextGIS
+  ~ Copyright © 2014-2016 NextGIS
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -23,244 +23,155 @@
   ~ ******************************************************************************
   -->
 
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             android:layout_width="fill_parent"
-             android:layout_height="fill_parent"
-             android:layout_margin="10sp"
-             android:orientation="vertical">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:layout_margin="10dp"
+              android:orientation="vertical">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="100dp">
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="100dp">
+        <View
+            style="@style/horizontal_divider"
+            android:layout_alignParentTop="true"/>
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dip"
-                android:layout_alignParentTop="true"
-                android:layout_marginLeft="4dip"
-                android:layout_marginRight="4dip"
-                android:background="?android:attr/dividerVertical"/>
+        <TextView
+            android:id="@+id/tv_sessions"
+            style="@style/tv_header"
+            android:text="@string/title_activity_sessions"/>
 
-            <TextView
-                android:id="@+id/tv_sessions"
-                style="@style/tv_header"
-                android:text="@string/title_activity_sessions"/>
+        <View
+            style="@style/horizontal_divider"
+            android:layout_below="@id/tv_sessions"/>
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dip"
-                android:layout_below="@id/tv_sessions"
-                android:layout_marginLeft="4dip"
-                android:layout_marginRight="4dip"
-                android:background="?android:attr/dividerVertical"/>
+        <View
+            android:id="@+id/v_vertical_line"
+            style="@style/vertical_divider"
+            android:layout_below="@id/tv_sessions"/>
 
-            <View
-                android:id="@+id/v_vertical_line"
-                android:layout_width="1dip"
-                android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:layout_below="@id/tv_sessions"
-                android:layout_centerHorizontal="true"
-                android:layout_marginBottom="4dip"
-                android:layout_marginTop="4dip"
-                android:background="?android:attr/dividerVertical"/>
+        <Button
+            android:id="@+id/btn_session"
+            style="@style/btn_main"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_below="@id/tv_sessions"
+            android:layout_toLeftOf="@id/v_vertical_line"
+            android:layout_toStartOf="@id/v_vertical_line"/>
 
-            <Button
-                android:id="@+id/btn_session"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:layout_alignParentLeft="true"
-                android:layout_below="@id/tv_sessions"
-                android:layout_toLeftOf="@id/v_vertical_line"
-                android:background="?android:attr/selectableItemBackground"/>
+        <Button
+            android:id="@+id/btn_sessions"
+            style="@style/btn_main"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_below="@id/tv_sessions"
+            android:layout_toEndOf="@id/v_vertical_line"
+            android:layout_toRightOf="@id/v_vertical_line"
+            android:text="@string/btn_sessions_manage"/>
 
-            <Button
-                android:id="@+id/btn_sessions"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:layout_alignParentRight="true"
-                android:layout_below="@id/tv_sessions"
-                android:layout_toRightOf="@id/v_vertical_line"
-                android:background="?android:attr/selectableItemBackground"
-                android:text="@string/btn_sessions_manage"/>
+    </RelativeLayout>
 
-        </RelativeLayout>
+    <RelativeLayout
+        android:id="@+id/rl_modes"
+        android:layout_width="match_parent"
+        android:layout_height="100dp">
 
-        <RelativeLayout
-            android:id="@+id/rl_modes"
-            android:layout_width="match_parent"
-            android:layout_height="100dp">
+        <View
+            style="@style/horizontal_divider"
+            android:layout_alignParentTop="true"/>
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dip"
-                android:layout_alignParentTop="true"
-                android:layout_marginLeft="4dip"
-                android:layout_marginRight="4dip"
-                android:background="?android:attr/dividerVertical"/>
+        <TextView
+            android:id="@+id/tv_modes"
+            style="@style/tv_header"
+            android:text="@string/tv_modes"/>
 
-            <TextView
-                android:id="@+id/tv_modes"
-                style="@style/tv_header"
-                android:text="@string/tv_modes"/>
+        <View
+            style="@style/horizontal_divider"
+            android:layout_below="@id/tv_modes"/>
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dip"
-                android:layout_below="@id/tv_modes"
-                android:layout_marginLeft="4dip"
-                android:layout_marginRight="4dip"
-                android:background="?android:attr/dividerVertical"/>
+        <View
+            android:id="@+id/v_vertical_line2"
+            style="@style/vertical_divider"
+            android:layout_below="@id/tv_modes"/>
 
-            <View
-                android:id="@+id/v_vertical_line2"
-                android:layout_width="1dip"
-                android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:layout_below="@id/tv_modes"
-                android:layout_centerHorizontal="true"
-                android:layout_marginBottom="4dip"
-                android:layout_marginTop="4dip"
-                android:background="?android:attr/dividerVertical"/>
+        <Button
+            android:id="@+id/btn_service_onoff"
+            style="@style/btn_main"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_below="@id/tv_modes"
+            android:layout_toLeftOf="@id/v_vertical_line2"
+            android:layout_toStartOf="@id/v_vertical_line2"/>
 
-            <Button
-                android:id="@+id/btn_service_onoff"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:layout_alignParentLeft="true"
-                android:layout_below="@id/tv_modes"
-                android:layout_toLeftOf="@id/v_vertical_line2"
-                android:background="?android:attr/selectableItemBackground"/>
+        <Button
+            android:id="@+id/btn_mark"
+            style="@style/btn_main"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_below="@id/tv_modes"
+            android:layout_toEndOf="@id/v_vertical_line2"
+            android:layout_toRightOf="@id/v_vertical_line2"
+            android:text="@string/btn_save_mark"/>
+    </RelativeLayout>
 
-            <Button
-                android:id="@+id/btn_mark"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:layout_alignParentRight="true"
-                android:layout_below="@id/tv_modes"
-                android:layout_toRightOf="@id/v_vertical_line2"
-                android:background="?android:attr/selectableItemBackground"
-                android:text="@string/btn_save_mark"/>
+    <LinearLayout style="@style/ll_session_info">
 
-        </RelativeLayout>
+        <TextView
+            android:id="@+id/tv_current_session"
+            style="@style/tv_session_info"
+            android:text="@string/session_name"/>
 
-        <LinearLayout
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginTop="10sp"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@+id/tv_current_session"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="left"
-                android:layout_marginRight="10sp"
-                android:text="@string/session_name"/>
-
-            <TextView
-                android:id="@+id/tv_current_session_name"
-                android:layout_width="0dip"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginTop="5sp"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@+id/tv_logger_started"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="left"
-                android:layout_marginRight="10sp"
-                android:text="@string/logger_started"/>
-
-            <TextView
-                android:id="@+id/tv_logger_started_time"
-                android:layout_width="0dip"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginTop="5sp"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@+id/tv_logger_finished"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="left"
-                android:layout_marginRight="10sp"
-                android:text="@string/logger_finished"/>
-
-            <TextView
-                android:id="@+id/tv_logger_finished_time"
-                android:layout_width="0dip"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginTop="5sp"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@+id/tv_records_collected"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="left"
-                android:layout_marginRight="10sp"
-                android:text="@string/records_collected"/>
-
-            <TextView
-                android:id="@+id/tv_records_collected_count"
-                android:layout_width="0dip"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginTop="5sp"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@+id/tv_marks_collected"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="left"
-                android:layout_marginRight="10sp"
-                android:text="@string/marks_collected"/>
-
-            <TextView
-                android:id="@+id/tv_marks_collected_count"
-                android:layout_width="0dip"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"/>
-        </LinearLayout>
+        <TextView
+            android:id="@+id/tv_current_session_name"
+            style="@style/tv_session_value"/>
     </LinearLayout>
-</FrameLayout>
+
+    <LinearLayout style="@style/ll_session_info">
+
+        <TextView
+            android:id="@+id/tv_logger_started"
+            style="@style/tv_session_info"
+            android:text="@string/logger_started"/>
+
+        <TextView
+            android:id="@+id/tv_logger_started_time"
+            style="@style/tv_session_value"/>
+    </LinearLayout>
+
+    <LinearLayout style="@style/ll_session_info">
+
+        <TextView
+            android:id="@+id/tv_logger_finished"
+            style="@style/tv_session_info"
+            android:text="@string/logger_finished"/>
+
+        <TextView
+            android:id="@+id/tv_logger_finished_time"
+            style="@style/tv_session_value"/>
+    </LinearLayout>
+
+    <LinearLayout style="@style/ll_session_info">
+
+        <TextView
+            android:id="@+id/tv_records_collected"
+            style="@style/tv_session_info"
+            android:text="@string/records_collected"/>
+
+        <TextView
+            android:id="@+id/tv_records_collected_count"
+            style="@style/tv_session_value"/>
+    </LinearLayout>
+
+    <LinearLayout style="@style/ll_session_info">
+
+        <TextView
+            android:id="@+id/tv_marks_collected"
+            style="@style/tv_session_info"
+            android:text="@string/marks_collected"/>
+
+        <TextView
+            android:id="@+id/tv_marks_collected_count"
+            style="@style/tv_session_value"/>
+    </LinearLayout>
+</LinearLayout>
