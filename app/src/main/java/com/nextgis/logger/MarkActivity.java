@@ -23,7 +23,6 @@ package com.nextgis.logger;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.SharedPreferences;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
@@ -92,7 +91,6 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 	private ArduinoEngine mArduinoEngine;
 //	private WiFiEngine wifiEngine;
 
-	private SharedPreferences mPreferences;
     static MarksHandler marksHandler;
     private static int mSavedMarkPosition;
 
@@ -100,7 +98,6 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-        mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         mIsVolumeControlEnabled = mPreferences.getBoolean(Constants.PREF_USE_VOL, true);
 
         if(mPreferences.getBoolean(Constants.PREF_KEEP_SCREEN, true))

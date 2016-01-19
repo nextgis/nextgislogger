@@ -33,7 +33,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -91,8 +90,6 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 
 	private ServiceConnection servConn = null;
 
-	private SharedPreferences prefs;
-
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -115,8 +112,7 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 		markButton.setText(getString(R.string.btn_save_mark));
 		markButton.setOnClickListener(this);
 
-		prefs = PreferenceManager.getDefaultSharedPreferences(this);
-		String session = prefs.getString(Constants.PREF_SESSION_NAME, "");
+		String session = mPreferences.getString(Constants.PREF_SESSION_NAME, "");
 
 		setDataDirPath(session);
 		setInterfaceState(0, session.equals("") ? INTERFACE_STATE.SESSION_NONE : INTERFACE_STATE.SESSION_STARTED);
@@ -136,7 +132,7 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 		recordsCollectedCount = (TextView) findViewById(R.id.tv_records_collected_count);
 		marksCollectedCount = (TextView) findViewById(R.id.tv_marks_collected_count);
 
-		recordsCount = prefs.getInt(Constants.PREF_RECORDS_COUNT, 0);
+		recordsCount = mPreferences.getInt(Constants.PREF_RECORDS_COUNT, 0);
 
 		if (!isServiceRunning) {
 			if (timeStarted > 0) {
@@ -191,7 +187,7 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
                     updateFileForMTP(csvLogFilePathExternal);
 					recordsCount += intent.getIntExtra(Constants.PARAM_RECORDS_COUNT, 0);
 					loggerFinishedTime.setText(millisToDate(time, "dd.MM.yyyy hh:mm:ss"));
-					prefs.edit().putInt(Constants.PREF_RECORDS_COUNT, recordsCount).apply();
+					mPreferences.edit().putInt(Constants.PREF_RECORDS_COUNT, recordsCount).apply();
 					break;
 				}
 			}
@@ -205,7 +201,7 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 	protected void onResume() {
 		super.onResume();
 
-		int marksCount = prefs.getInt(Constants.PREF_MARKS_COUNT, 0);
+		int marksCount = mPreferences.getInt(Constants.PREF_MARKS_COUNT, 0);
 
 		if (marksCount > 0) {
             marksCollectedCount.setText(marksCount + "");
@@ -241,15 +237,13 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 	public void onClick(View view) {
 		switch (view.getId()) {
 		case R.id.btn_session:
-			final SharedPreferences pref = prefs;
-
-			if (pref.getString(Constants.PREF_SESSION_NAME, "").equals("")) {
+			if (isSessionClosed()) {
 				AlertDialog.Builder alert = new AlertDialog.Builder(this);
 				alert.setTitle(getString(R.string.session_name));
 
 				final EditText input = new EditText(this);
 				String defaultName = millisToDate(Calendar.getInstance().getTimeInMillis(), "yyyy-MM-dd--HH-mm-ss");
-                String userName = pref.getString(Constants.PREF_USER_NAME, Constants.DEFAULT_USERNAME);
+                String userName = mPreferences.getString(Constants.PREF_USER_NAME, Constants.DEFAULT_USERNAME);
 				defaultName += userName.equals("") ? "" : "--" + userName;
 				input.setText(defaultName); // default session name
 				input.setSelection(input.getText().length()); // move cursor at the end
@@ -260,7 +254,7 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 						String value = input.getText().toString();
 
 						if (isCorrectName(value)) { // open session
-							pref.edit().putString(Constants.PREF_SESSION_NAME, value).apply();
+							mPreferences.edit().putString(Constants.PREF_SESSION_NAME, value).apply();
 							setInterfaceState(0, INTERFACE_STATE.SESSION_STARTED);
 							setDataDirPath(value);
 							sessionButton.setText(R.string.btn_session_close);
@@ -290,7 +284,9 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 //				dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE); // show keyboard
 				dialog.show();
 			} else { // close session
-				prefs.edit().putString(Constants.PREF_SESSION_NAME, "").putInt(Constants.PREF_MARKS_COUNT, 0).putInt(Constants.PREF_RECORDS_COUNT, 0)
+				mPreferences.edit().putString(Constants.PREF_SESSION_NAME, "")
+						.putInt(Constants.PREF_MARKS_COUNT, 0)
+						.putInt(Constants.PREF_RECORDS_COUNT, 0)
                         .putInt(Constants.PREF_MARK_POS,Integer.MIN_VALUE).apply();
 				recordsCount = 0;
 				setInterfaceState(0, INTERFACE_STATE.SESSION_NONE);

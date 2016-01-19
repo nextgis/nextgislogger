@@ -23,7 +23,6 @@ package com.nextgis.logger;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.util.SparseBooleanArray;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -173,7 +172,7 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
 
             for (File file : baseDir.listFiles())
                 if (file.isDirectory() && !file.isHidden())
-                    if (file.getName().equals(PreferenceManager.getDefaultSharedPreferences(this).getString(Constants.PREF_SESSION_NAME, "")))  // TODO should we block this session?
+                    if (file.getName().equals(mPreferences.getString(Constants.PREF_SESSION_NAME, "")))  // TODO should we block this session?
                         sessions.add(file.getName() + " *" + getString(R.string.scl_current_session) + "*");    // it's current opened session
                     else
                         sessions.add(file.getName());

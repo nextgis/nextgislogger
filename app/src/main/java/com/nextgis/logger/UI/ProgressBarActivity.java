@@ -27,9 +27,11 @@ import android.app.ActionBar;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -45,14 +47,17 @@ import com.nextgis.logger.livedata.InfoActivity;
 import com.nextgis.logger.LoggerService;
 import com.nextgis.logger.PreferencesActivity;
 import com.nextgis.logger.R;
+import com.nextgis.logger.util.Constants;
 
 public class ProgressBarActivity extends FragmentActivity implements View.OnClickListener {
+    protected SharedPreferences mPreferences;
     protected FloatingActionButton mFAB;
     protected boolean mHasFAB = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         if (getActionBar() != null)
             getActionBar().setDisplayHomeAsUpEnabled(true);
@@ -101,7 +106,7 @@ public class ProgressBarActivity extends FragmentActivity implements View.OnClic
         MenuItem settings = menu.findItem(R.id.action_settings);
 
         if (settings != null)
-            settings.setEnabled(!isLoggerServiceRunning(this));
+            settings.setEnabled(isSessionClosed());
 
         return true;
     }
@@ -199,5 +204,9 @@ public class ProgressBarActivity extends FragmentActivity implements View.OnClic
         int g = Color.green(color);
 
         return Color.rgb((int) (r * percent), (int) (g * percent), (int) (b * percent));
+    }
+
+    protected boolean isSessionClosed() {
+        return mPreferences.getString(Constants.PREF_SESSION_NAME, "").equals("");
     }
 }

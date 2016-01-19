@@ -23,9 +23,7 @@
 
 package com.nextgis.logger.livedata;
 
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
@@ -33,14 +31,13 @@ import android.support.v4.view.ViewPager;
 import android.view.Menu;
 import android.view.WindowManager;
 
-import com.nextgis.logger.util.Constants;
 import com.nextgis.logger.R;
 import com.nextgis.logger.UI.ProgressBarActivity;
+import com.nextgis.logger.util.Constants;
 
 public class InfoActivity extends ProgressBarActivity {
     private static final String PREF_LAST_VISITED = "last_tab";
 
-    private SharedPreferences mPreferences;
     ItemPagerAdapter itemAdapter;
     ViewPager vpScreens;
 
@@ -49,8 +46,6 @@ public class InfoActivity extends ProgressBarActivity {
         super.onCreate(savedInstanceState);
         mHasFAB = false;
         setContentView(R.layout.info_activity);
-
-        mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         itemAdapter = new ItemPagerAdapter(getSupportFragmentManager());
         vpScreens = (ViewPager) findViewById(R.id.vp_tabs);
