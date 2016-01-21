@@ -87,7 +87,8 @@
     
     <string name="ext_media_unmounted_msg">Нет доступа к внешней памяти</string>
     <string name="fs_error_msg">Ошибка файловой системы</string>
-    
+
+    <string name="sensor_disabled">Нет включенных сенсоров</string>
     <string name="sensor_error">"Сенсоры не найдены: "</string>
     <string name="sensor_accelerometer">Акселерометр</string>
     <string name="sensor_linear">Линейный акселерометр</string>

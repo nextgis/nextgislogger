@@ -4,7 +4,7 @@
  * Purpose: Productive data logger for Android
  * Author:  Stanislav Petriakov, becomeglory@gmail.com
  * *****************************************************************************
- * Copyright © 2015 NextGIS
+ * Copyright © 2015-2016 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 
 package com.nextgis.logger.livedata;
 
+import android.content.Intent;
 import android.hardware.Sensor;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -32,8 +33,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
+import com.nextgis.logger.PreferencesActivity;
 import com.nextgis.logger.R;
 import com.nextgis.logger.engines.AudioEngine;
 import com.nextgis.logger.engines.BaseEngine;
@@ -43,14 +46,15 @@ import com.nextgis.logger.engines.SensorEngine;
 import java.text.DateFormat;
 import java.util.Date;
 
-public class InfoSensorsFragment extends Fragment {
+public class InfoSensorsFragment extends Fragment implements View.OnClickListener {
     private SensorEngine mSensorEngine;
     private static GPSEngine mGPSEngine;
     private static AudioEngine mAudioEngine;
     private BaseEngine.EngineListener mSensorListener;
     private BaseEngine.EngineListener mGPSListener;
 
-    private LinearLayout llGPS, llGPSInfo, llAccelerometer, llOrient, llGyro, llMagnetic, llAudio;
+    private ScrollView svData;
+    private LinearLayout llGPS, llGPSInfo, llAccelerometer, llOrient, llGyro, llMagnetic, llAudio, llError;
     private TextView tvAccelerometerTitle, tvOrientTitle, tvMagneticTitle, tvGyroTitle;
     private TextView tvGPSNoFix, tvGPSLat, tvGPSLon, tvGPSEle;
     private TextView tvGPSAcc, tvGPSSpeed, tvGPSSat, tvGPSTime;
@@ -95,6 +99,9 @@ public class InfoSensorsFragment extends Fragment {
         llGyro = (LinearLayout) rootView.findViewById(R.id.ll_gyroscope);
         llMagnetic = (LinearLayout) rootView.findViewById(R.id.ll_magnetometer);
         llAudio = (LinearLayout) rootView.findViewById(R.id.ll_audio);
+        llError = (LinearLayout) rootView.findViewById(R.id.ll_error);
+        svData = (ScrollView) rootView.findViewById(R.id.sv_data);
+        rootView.findViewById(R.id.btn_settings).setOnClickListener(this);
 
         tvAccelerometerTitle = (TextView) rootView.findViewById(R.id.tv_accelerometer_title);
         tvOrientTitle = (TextView) rootView.findViewById(R.id.tv_orient_title);
@@ -134,6 +141,51 @@ public class InfoSensorsFragment extends Fragment {
 
         mSensorEngine.removeListener(mSensorListener);
         mGPSEngine.removeListener(mGPSListener);
+    }
+
+    private void setInterface() {
+        if (mSensorEngine.isAnySensorEnabled()) {
+            llError.setVisibility(View.GONE);
+            svData.setVisibility(View.VISIBLE);
+
+            if (!mGPSEngine.isGpsEnabled())
+                llGPS.setVisibility(View.GONE);
+            else
+                llGPS.setVisibility(View.VISIBLE);
+
+            if (!mSensorEngine.isSensorEnabled(Sensor.TYPE_ACCELEROMETER))
+                llAccelerometer.setVisibility(View.GONE);
+            else
+                llAccelerometer.setVisibility(View.VISIBLE);
+
+            if (!mSensorEngine.isSensorEnabled(Sensor.TYPE_ORIENTATION))
+                llOrient.setVisibility(View.GONE);
+            else
+                llOrient.setVisibility(View.VISIBLE);
+
+            if (!mSensorEngine.isSensorEnabled(Sensor.TYPE_GYROSCOPE))
+                llGyro.setVisibility(View.GONE);
+            else
+                llGyro.setVisibility(View.VISIBLE);
+
+            if (!mSensorEngine.isSensorEnabled(Sensor.TYPE_MAGNETIC_FIELD))
+                llMagnetic.setVisibility(View.GONE);
+            else
+                llMagnetic.setVisibility(View.VISIBLE);
+
+            if (!mAudioEngine.isAudioEnabled())
+                llAudio.setVisibility(View.GONE);
+            else
+                llAudio.setVisibility(View.VISIBLE);
+
+            tvAccelerometerTitle.setText(mSensorEngine.getAccelerometerName());
+            tvOrientTitle.setText(mSensorEngine.getOrientName());
+            tvGyroTitle.setText(mSensorEngine.getGyroName());
+            tvMagneticTitle.setText(mSensorEngine.getMagneticName());
+        } else {
+            llError.setVisibility(View.VISIBLE);
+            svData.setVisibility(View.GONE);
+        }
     }
 
     @SuppressWarnings("deprecation")
@@ -219,42 +271,14 @@ public class InfoSensorsFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-
         mSensorEngine.onResume();
 
-        if (!mGPSEngine.isGpsEnabled())
-            llGPS.setVisibility(View.GONE);
-        else
-            llGPS.setVisibility(View.VISIBLE);
+        setInterface();
+    }
 
-        if (!mSensorEngine.isSensorEnabled(Sensor.TYPE_ACCELEROMETER))
-            llAccelerometer.setVisibility(View.GONE);
-        else
-            llAccelerometer.setVisibility(View.VISIBLE);
-
-        if (!mSensorEngine.isSensorEnabled(Sensor.TYPE_ORIENTATION))
-            llOrient.setVisibility(View.GONE);
-        else
-            llOrient.setVisibility(View.VISIBLE);
-
-        if (!mSensorEngine.isSensorEnabled(Sensor.TYPE_GYROSCOPE))
-            llGyro.setVisibility(View.GONE);
-        else
-            llGyro.setVisibility(View.VISIBLE);
-
-        if (!mSensorEngine.isSensorEnabled(Sensor.TYPE_MAGNETIC_FIELD))
-            llMagnetic.setVisibility(View.GONE);
-        else
-            llMagnetic.setVisibility(View.VISIBLE);
-
-        if (!mAudioEngine.isAudioEnabled())
-            llAudio.setVisibility(View.GONE);
-        else
-            llAudio.setVisibility(View.VISIBLE);
-
-        tvAccelerometerTitle.setText(mSensorEngine.getAccelerometerName());
-        tvOrientTitle.setText(mSensorEngine.getOrientName());
-        tvGyroTitle.setText(mSensorEngine.getGyroName());
-        tvMagneticTitle.setText(mSensorEngine.getMagneticName());
+    @Override
+    public void onClick(View v) {
+        Intent preferencesActivity = new Intent(getActivity(), PreferencesActivity.class);
+        startActivity(preferencesActivity);
     }
 }

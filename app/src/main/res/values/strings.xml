@@ -92,6 +92,7 @@
     <string name="ext_media_unmounted_msg">External Media is NOT MOUNTED</string>
     <string name="fs_error_msg">File system ERROR.</string>
 
+    <string name="sensor_disabled">No active sensors.</string>
     <string name="sensor_error">"No sensors found: "</string>
     <string name="sensor_accelerometer">Accelerometer</string>
     <string name="sensor_linear">Linear accelerometer</string>
