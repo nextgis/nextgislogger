@@ -137,16 +137,17 @@
     <string name="info_title_external">Внешние</string>
 
     <string name="info_roaming">роуминг</string>
-    <string name="info_lat">"Широта: "</string>
-    <string name="info_lon">"Долгота: "</string>
-    <string name="info_ele">"Высота: "</string>
-    <string name="info_acc">"Точность: "</string>
-    <string name="info_speed">"Скорость: "</string>
-    <string name="info_sat">"Спутники: "</string>
-    <string name="info_time">"Локальное время: "</string>
-    <string name="info_no_fix">Нет данных о последнем местоположении</string>
+    <string name="info_lat">Широта</string>
+    <string name="info_lon">Долгота</string>
+    <string name="info_ele">Высота</string>
+    <string name="info_acc">Точность</string>
+    <string name="info_speed">Скорость</string>
+    <string name="info_bearing">Направление</string>
+    <string name="info_sat">Спутники</string>
+    <string name="info_time">Локальное время</string>
 
-    <string name="info_ms2">м/с&lt;sup&gt;&lt;small&gt;2&lt;/small&gt;&lt;/sup&gt;</string>
+    <string name="info_dbm">дБм</string>
+    <string name="info_ms2">м/с²</string>
     <string name="info_kmh">км/ч</string>
     <string name="info_meter">м</string>
     <string name="info_rads">рад/с</string>

@@ -1,3 +1,26 @@
+/*
+ * *****************************************************************************
+ * Project: NextGIS Logger
+ * Purpose: Productive data logger for Android
+ * Author:  Stanislav Petriakov, becomeglory@gmail.com
+ * *****************************************************************************
+ * Copyright © 2015-2016 NextGIS
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * *****************************************************************************
+ */
+
 package com.nextgis.logger.engines;
 
 import android.content.Context;
@@ -7,33 +30,62 @@ import android.media.MediaRecorder.AudioSource;
 import android.os.Process;
 import android.os.SystemClock;
 
+import com.nextgis.logger.R;
 import com.nextgis.logger.util.Constants;
+
+import java.util.Collections;
+import java.util.List;
 
 public class AudioEngine extends BaseEngine {
     private AudioMeter mAudioMeter;
+    private InfoItem mAudioItem;
 
     public AudioEngine(Context context) {
         super(context);
         mAudioMeter = new AudioMeter();
+        loadHeader();
     }
 
     @Override
-    public void onPause() {
-        mAudioMeter.stopRecording();
+    public boolean onPause() {
+        if (super.onPause()) {
+            mAudioMeter.stopRecording();
+            return true;
+        }
+
+        return false;
     }
 
     @Override
-    public void onResume() {
-        if (isAudioEnabled())
+    public boolean onResume() {
+        if (super.onResume() && isEngineEnabled()) {
             mAudioMeter.startRecording();
+            return true;
+        }
+
+        return false;
     }
 
-    public boolean isAudioEnabled() {
+    @Override
+    protected void loadHeader() {
+        mAudioItem = new InfoItem(mContext.getString(R.string.mic));
+        mAudioItem.addColumn(Constants.HEADER_AUDIO, null, mContext.getString(R.string.info_db));
+        mItems.add(mAudioItem);
+    }
+
+    @Override
+    public String getHeader() {
+        return Constants.CSV_SEPARATOR + Constants.HEADER_AUDIO;
+    }
+
+    @Override
+    public List<String> getDataAsStringList(String preamble) {
+        return Collections.singletonList(Constants.CSV_SEPARATOR + mAudioItem.getColumn(Constants.HEADER_AUDIO).getValue());
+    }
+
+    @Override
+    public boolean isEngineEnabled() {
         return getPreferences().getBoolean(Constants.PREF_MIC, true);
-    }
-
-    public int getDb() {
-        return mAudioMeter.mAmplitude;
     }
 
     public boolean isRecording() {
@@ -75,8 +127,6 @@ public class AudioEngine extends BaseEngine {
 
         private int mLocks = 0;
 
-        private int mAmplitude;
-
         /////////////////////////////////////////////////////////////////
         // CONSTRUCTOR
 
@@ -113,8 +163,8 @@ public class AudioEngine extends BaseEngine {
                     @Override
                     public void run() {
                         while (isRecording()) {
-                            mAmplitude = (int) getAmplitude();
-                            notifyListeners();
+                            mAudioItem.setValue(Constants.HEADER_AUDIO, (int) getAmplitude() + "");
+                            notifyListeners(mAudioItem.getTitle());
                             SystemClock.sleep(Constants.UPDATE_FREQUENCY);
                         }
                     }

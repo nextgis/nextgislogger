@@ -33,9 +33,11 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
+import com.nextgis.logger.LoggerApplication;
 import com.nextgis.logger.R;
 import com.nextgis.logger.engines.BaseEngine;
 import com.nextgis.logger.engines.CellEngine;
+import com.nextgis.logger.engines.InfoItem;
 import com.nextgis.logger.util.Constants;
 
 import java.util.ArrayList;
@@ -85,12 +87,12 @@ public class InfoCellFragment extends Fragment {
 
         mCellListener = new BaseEngine.EngineListener() {
             @Override
-            public void onInfoChanged() {
+            public void onInfoChanged(String source) {
                 if (isAdded())
                     fillTextViews();
             }
         };
-        mGsmEngine = new CellEngine(getActivity());
+        mGsmEngine = LoggerApplication.getApplication().getCellEngine();
         mGsmEngine.addListener(mCellListener);
 
         fillTextViews();
@@ -106,33 +108,34 @@ public class InfoCellFragment extends Fragment {
     }
 
     private void fillTextViews() {
-        ArrayList<CellEngine.GSMInfo> gsmInfoArray = mGsmEngine.getGSMInfoArray();
+        ArrayList<InfoItem> infoItemGSMArray = mGsmEngine.getData();
         ArrayList<Map<String, Object>> neighboursData = new ArrayList<>();
         Map<String, Object> itemData;
         final String na = getString(R.string.info_na);
 
-        CellEngine.sortByActive(gsmInfoArray);
+        CellEngine.sortByActive(infoItemGSMArray);
 
         int id = 1;
         String gen, type, mnc, mcc, lac, cid, psc, power;
-        for (CellEngine.GSMInfo gsmItem : gsmInfoArray) {
-            gen = gsmItem.networkGen();
-            gen = gen.equals(Constants.UNKNOWN) ? na : gen;
-            type = gsmItem.networkType();
-            type = type.equals(Constants.UNKNOWN) ? na : type;
-            mcc = gsmItem.getMcc() == -1 ? na : gsmItem.getMcc() + "";
-            mnc = gsmItem.getMnc() == -1 ? na : gsmItem.getMnc() + "";
-            lac = gsmItem.getLac() == -1 ? na : gsmItem.getLac() + "";
-            cid = gsmItem.getCid() == -1 ? na : gsmItem.getCid() + "";
-            psc = gsmItem.getPsc() == -1 ? na : gsmItem.getPsc() + "";
-            power = "" + gsmItem.getRssi() + " dBm";
+        for (InfoItem gsmItem : infoItemGSMArray) {
+            String data = (String) gsmItem.getColumn(Constants.HEADER_GEN).getValue();
+            gen = data.equals(Constants.UNKNOWN) ? na : data;
+            data = (String) gsmItem.getColumn(Constants.HEADER_TYPE).getValue();
+            type = data.equals(Constants.UNKNOWN) ? na : data;
+            mcc = replaceNegativeValue(gsmItem, Constants.HEADER_MCC, na);
+            mnc = replaceNegativeValue(gsmItem, Constants.HEADER_MNC, na);
+            lac = replaceNegativeValue(gsmItem, Constants.HEADER_LAC, na);
+            cid = replaceNegativeValue(gsmItem, Constants.HEADER_CID, na);
+            psc = replaceNegativeValue(gsmItem, Constants.HEADER_PSC, na);
+            power = gsmItem.getColumn(Constants.HEADER_POWER).getValueWithUnit();
 
             itemData = new HashMap<>();
 
-            if (!gsmItem.isActive())
+            boolean isActive = gsmItem.getColumn(Constants.HEADER_ACTIVE).getValue().equals("1");
+            if (!isActive)
                 itemData.put(CELL_ID, String.format("%s)", id++));
 
-            itemData.put(CELL_ACTIVE, gsmItem.isActive());
+            itemData.put(CELL_ACTIVE, isActive);
             itemData.put(CELL_GEN, gen);
             itemData.put(CELL_TYPE, type);
             itemData.put(CELL_MCC, mcc);
@@ -151,7 +154,12 @@ public class InfoCellFragment extends Fragment {
 
         mLvNeighbours.setAdapter(saNeighbours);
         mTvNeighbours.setText(id - 1 + "");
-        mTvActive.setText(gsmInfoArray.size() - id + 1 + "");
+        mTvActive.setText(infoItemGSMArray.size() - id + 1 + "");
+    }
+
+    private String replaceNegativeValue(InfoItem item, String column, String placeholder) {
+        String data = (String) item.getColumn(column).getValue();
+        return data.equals("-1") ? placeholder : data;
     }
 
     private class CellsAdapter extends SimpleAdapter {

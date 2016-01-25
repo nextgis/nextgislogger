@@ -152,24 +152,25 @@
     <string name="info_power" translatable="false">"Power: "</string>
     <string name="info_roaming">roaming</string>
 
-    <string name="info_lat">"Latitude: "</string>
-    <string name="info_lon">"Longitude: "</string>
-    <string name="info_ele">"Altitude: "</string>
-    <string name="info_acc">"Accuracy: "</string>
-    <string name="info_speed">"Speed: "</string>
-    <string name="info_sat">"Satellites: "</string>
-    <string name="info_time">"Fix time: "</string>
-    <string name="info_no_fix">No last known fix</string>
+    <string name="info_lat">Latitude</string>
+    <string name="info_lon">Longitude</string>
+    <string name="info_ele">Altitude</string>
+    <string name="info_acc">Accuracy</string>
+    <string name="info_speed">Speed</string>
+    <string name="info_bearing">Bearing</string>
+    <string name="info_sat">Satellites</string>
+    <string name="info_time">Fix time</string>
 
-    <string name="info_x" translatable="false">"X: "</string>
-    <string name="info_y" translatable="false">"Y: "</string>
-    <string name="info_z" translatable="false">"Z: "</string>
+    <string name="info_x" translatable="false">X</string>
+    <string name="info_y" translatable="false">Y</string>
+    <string name="info_z" translatable="false">Z</string>
 
-    <string name="info_azimuth" translatable="false">"Azimuth: "</string>
-    <string name="info_pitch" translatable="false">"Pitch: "</string>
-    <string name="info_roll" translatable="false">"Roll: "</string>
+    <string name="info_azimuth" translatable="false">Azimuth</string>
+    <string name="info_pitch" translatable="false">Pitch</string>
+    <string name="info_roll" translatable="false">Roll</string>
 
-    <string name="info_ms2">m/s&lt;sup&gt;&lt;small&gt;2&lt;/small&gt;&lt;/sup&gt;</string>
+    <string name="info_dbm">dBm</string>
+    <string name="info_ms2">m/s²</string>
     <string name="info_kmh">km/h</string>
     <string name="info_tesla" translatable="false">µT</string>
     <string name="info_meter">m</string>

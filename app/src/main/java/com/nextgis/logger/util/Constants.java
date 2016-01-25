@@ -40,16 +40,46 @@ public interface Constants {
     String DATA_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "nextgis_logger";
     String TEMP_PATH = DATA_PATH + File.separator + ".temp";
 
-    String CSV_HEADER_BASE = "ID" + CSV_SEPARATOR + "Name" + CSV_SEPARATOR + "User" + CSV_SEPARATOR + "TimeStamp" + CSV_SEPARATOR + "DateTime";
+    String CSV_HEADER_PREAMBLE = "ID" + CSV_SEPARATOR + "Name" + CSV_SEPARATOR + "User" + CSV_SEPARATOR + "TimeStamp" + CSV_SEPARATOR + "DateTime";
 
-    String CSV_HEADER_CELL = CSV_HEADER_BASE + CSV_SEPARATOR + "NetworkGen" + CSV_SEPARATOR + "NetworkType" + CSV_SEPARATOR + "Active" + CSV_SEPARATOR
+    String CSV_HEADER_CELL = CSV_SEPARATOR + "NetworkGen" + CSV_SEPARATOR + "NetworkType" + CSV_SEPARATOR + "Active" + CSV_SEPARATOR
             + "MCC" + CSV_SEPARATOR + "MNC" + CSV_SEPARATOR + "LAC" + CSV_SEPARATOR + "CID" + CSV_SEPARATOR + "PSC" + CSV_SEPARATOR + "Power";
 
-    String CSV_HEADER_SENSOR = CSV_HEADER_BASE + CSV_SEPARATOR + "Type" + CSV_SEPARATOR + "Accel_X" + CSV_SEPARATOR + "Accel_Y" + CSV_SEPARATOR + "Accel_Z"
-            + CSV_SEPARATOR + "Azimuth" + CSV_SEPARATOR + "Pitch" + CSV_SEPARATOR + "Roll" + CSV_SEPARATOR + "Magnetic_X" + CSV_SEPARATOR + "Magnetic_Y"
-            + CSV_SEPARATOR + "Magnetic_Z" + CSV_SEPARATOR + "Gyro_X" + CSV_SEPARATOR + "Gyro_Y" + CSV_SEPARATOR + "Gyro_Z" + CSV_SEPARATOR + "GPS_Lat"
-            + CSV_SEPARATOR + "GPS_Lon" + CSV_SEPARATOR + "GPS_Alt" + CSV_SEPARATOR + "GPS_Accuracy" + CSV_SEPARATOR + "GPS_Speed" + CSV_SEPARATOR
-            + "GPS_Bearing" + CSV_SEPARATOR + "Audio";
+    String HEADER_GEN = "NetworkGen";
+    String HEADER_TYPE = "NetworkType";
+    String HEADER_ACTIVE = "Active";
+    String HEADER_MCC = "MCC";
+    String HEADER_MNC = "MNC";
+    String HEADER_LAC = "LAC";
+    String HEADER_CID = "CID";
+    String HEADER_PSC = "PSC";
+    String HEADER_POWER = "Power";
+
+    String HEADER_ACC_X = "Accel_X";
+    String HEADER_ACC_Y = "Accel_Y";
+    String HEADER_ACC_Z = "Accel_Z";
+    String HEADER_LINEAR_X = "Linear_X";
+    String HEADER_LINEAR_Y = "Linear_Y";
+    String HEADER_LINEAR_Z = "Linear_Z";
+    String HEADER_AZIMUTH = "Azimuth";
+    String HEADER_PITCH = "Pitch";
+    String HEADER_ROLL = "Roll";
+    String HEADER_MAGNETIC_X = "Magnetic_X";
+    String HEADER_MAGNETIC_Y = "Magnetic_Y";
+    String HEADER_MAGNETIC_Z = "Magnetic_Z";
+    String HEADER_GYRO_X = "Gyro_X";
+    String HEADER_GYRO_Y = "Gyro_Y";
+    String HEADER_GYRO_Z = "Gyro_Z";
+
+    String HEADER_GPS_LAT = "GPS_Lat";
+    String HEADER_GPS_LON = "GPS_Lon";
+    String HEADER_GPS_ALT = "GPS_Alt";
+    String HEADER_GPS_ACC = "GPS_Accuracy";
+    String HEADER_GPS_SP = "GPS_Speed";
+    String HEADER_GPS_BE = "GPS_Bearing";
+    String HEADER_GPS_SAT = "GPS_Satellites";
+    String HEADER_GPS_TIME = "GPS_FixTime";
+    String HEADER_AUDIO = "Audio";
 
     String PREF_PERIOD_SEC = "period_sec";
     String PREF_SENSOR_STATE = "sensor_state";
@@ -78,6 +108,7 @@ public interface Constants {
     String GEN_3G = "3G";
     String GEN_4G = "4G";
     String UNKNOWN = "unknown";
+    String NO_DATA = "NaN";
 
     String BROADCAST_ACTION = "com.nextgis.gsm_logger.MainActivity";
 
@@ -90,13 +121,8 @@ public interface Constants {
     int STATUS_FINISHED = 102;
     int STATUS_ERROR = 103;
 
-    float NaN = Float.NaN;
     int UNDEFINED = -1;
-    int UPDATE_FREQUENCY = 100; // in ms
+    int UPDATE_FREQUENCY = 250; // in ms
     long  MIN_GPS_TIME = 0;
     float MIN_GPS_DISTANCE = 0f;
-
-    short LOG_TYPE_NETWORK = 0;
-    short LOG_TYPE_SENSORS = 1;
-    short LOG_TYPE_EXTERNAL = 2;
 }

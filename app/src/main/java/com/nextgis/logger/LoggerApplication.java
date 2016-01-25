@@ -4,7 +4,7 @@
  * Purpose: Productive data logger for Android
  * Author:  Stanislav Petriakov, becomeglory@gmail.com
  * *****************************************************************************
- * Copyright © 2015 NextGIS
+ * Copyright © 2015-2016 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,13 +26,13 @@ package com.nextgis.logger;
 import android.app.Application;
 
 import com.nextgis.logger.engines.ArduinoEngine;
-import com.nextgis.logger.engines.AudioEngine;
-import com.nextgis.logger.engines.GPSEngine;
+import com.nextgis.logger.engines.CellEngine;
+import com.nextgis.logger.engines.SensorEngine;
 
 public class LoggerApplication extends Application {
     private static ArduinoEngine mArduinoEngine;
-    private static AudioEngine mAudioEngine;
-    private static GPSEngine mGPSEngine;
+    private static SensorEngine mSensorEngine;
+    private static CellEngine mCellEngine;
     private static LoggerApplication mApplication;
 
     @Override
@@ -41,8 +41,8 @@ public class LoggerApplication extends Application {
 
         mApplication = this;
         mArduinoEngine = new ArduinoEngine(this);
-        mAudioEngine = new AudioEngine(this);
-        mGPSEngine = new GPSEngine(this);
+        mSensorEngine = new SensorEngine(this);
+        mCellEngine = new CellEngine(this);
     }
 
     public static LoggerApplication getApplication() {
@@ -53,11 +53,11 @@ public class LoggerApplication extends Application {
         return mArduinoEngine;
     }
 
-    public AudioEngine getAudioEngine() {
-        return mAudioEngine;
+    public SensorEngine getSensorEngine() {
+        return mSensorEngine;
     }
 
-    public GPSEngine getGPSEngine() {
-        return mGPSEngine;
+    public CellEngine getCellEngine() {
+        return mCellEngine;
     }
 }

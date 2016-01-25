@@ -25,6 +25,7 @@ package com.nextgis.logger.engines;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
+import android.os.SystemClock;
 import android.telephony.CellIdentityGsm;
 import android.telephony.CellIdentityLte;
 import android.telephony.CellIdentityWcdma;
@@ -41,14 +42,13 @@ import android.telephony.TelephonyManager;
 import android.telephony.gsm.GsmCellLocation;
 import android.text.TextUtils;
 
+import com.nextgis.logger.R;
 import com.nextgis.logger.util.Constants;
 
 import java.lang.reflect.Method;
-import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 
 public class CellEngine extends BaseEngine {
@@ -66,6 +66,7 @@ public class CellEngine extends BaseEngine {
 	private final TelephonyManager mTelephonyManager;
 	private GSMPhoneStateListener mSignalListener;
 	private int mSignalStrength = SIGNAL_STRENGTH_NONE;
+    private boolean mIsConcurrent;
 
 	public CellEngine(Context context) {
 		super(context);
@@ -73,19 +74,40 @@ public class CellEngine extends BaseEngine {
 		mSignalListener = new GSMPhoneStateListener();
 	}
 
-	public void onResume() {
-        int listen = PhoneStateListener.LISTEN_SIGNAL_STRENGTHS;
+    @Override
+	public boolean onResume() {
+        if (super.onResume()) {
+            int listen = PhoneStateListener.LISTEN_SIGNAL_STRENGTHS | PhoneStateListener.LISTEN_CELL_LOCATION
+                    | PhoneStateListener.LISTEN_DATA_CONNECTION_STATE | PhoneStateListener.LISTEN_SERVICE_STATE;
 
-        if (getListenersCount() > 0) {
-            listen |= PhoneStateListener.LISTEN_CELL_LOCATION | PhoneStateListener.LISTEN_DATA_CONNECTION_STATE | PhoneStateListener.LISTEN_SERVICE_STATE;
+            mTelephonyManager.listen(mSignalListener, listen);
         }
 
-        mTelephonyManager.listen(mSignalListener, listen);
+        return false;
     }
 
-	public void onPause() {
-		mTelephonyManager.listen(mSignalListener, PhoneStateListener.LISTEN_NONE);
+    @Override
+    public boolean isEngineEnabled() {
+        return true;
+    }
+
+    @Override
+	protected void loadHeader() {
+
 	}
+
+	@Override
+	public String getHeader() {
+		return Constants.CSV_HEADER_CELL;
+	}
+
+    @Override
+	public boolean onPause() {
+        if (super.onPause())
+		    mTelephonyManager.listen(mSignalListener, PhoneStateListener.LISTEN_NONE);
+
+        return false;
+    }
 
     public void setSignalStrength(int signalStrength) {
         mSignalStrength = signalStrength;
@@ -113,17 +135,21 @@ public class CellEngine extends BaseEngine {
 				// getRssi() returns ASU for GSM
 				if (0 <= asu && asu <= 31)
 					return 2 * asu - 113;
+                break;
 			//	3G -- 3GSM network
 			case TelephonyManager.NETWORK_TYPE_UMTS: // API 1+
-				// getRssi() returns RSCP for UMTS
-				if (-5 <= asu && asu <= 91)
-					return asu - 116;
 			case TelephonyManager.NETWORK_TYPE_HSPA: // API 5+
 			case TelephonyManager.NETWORK_TYPE_HSDPA: // API 5+
 			case TelephonyManager.NETWORK_TYPE_HSUPA: // API 5+
 			case TelephonyManager.NETWORK_TYPE_HSPAP: // API 5+
-				return asu;
-
+                // on some devices getRssi() returns RSCP for UMTS
+                // on others ASU
+                if (-5 <= asu && asu <= 91) {
+                    return asu - 116;
+                } else if (asu < -5) {
+                    return asu;
+                }
+                break;
 			//	4G -- LTE network
 			case TelephonyManager.NETWORK_TYPE_LTE : // API 11+
 				// getRssi() returns RSRP for LTE
@@ -134,18 +160,37 @@ public class CellEngine extends BaseEngine {
 		return 0;
 	}
 
+	@Override
+	public List<String> getDataAsStringList(String preamble) {
+        mIsConcurrent = true;
+        ArrayList<String> result = new ArrayList<>();
+
+        for (InfoItem item : mItems) {
+            String line = preamble;
+
+            for (InfoColumn column : item.getColumns())
+                line += Constants.CSV_SEPARATOR + column.getValue();
+
+            result.add(line);
+        }
+
+        mIsConcurrent = false;
+		return result;
+	}
+
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
-	public ArrayList<GSMInfo> getGSMInfoArray() {
+	private synchronized void updateItems() {
+		if (mTelephonyManager.getSimState() == TelephonyManager.SIM_STATE_UNKNOWN)
+			return;
+
+        ArrayList<InfoItemGSM> temp = new ArrayList<>();
+
 		int osVersion = android.os.Build.VERSION.SDK_INT;
 		int api17 = android.os.Build.VERSION_CODES.JELLY_BEAN_MR1;
 		int api18 = android.os.Build.VERSION_CODES.JELLY_BEAN_MR2;
 
-		ArrayList<GSMInfo> gsmInfoArray = new ArrayList<>();
-
-		long timeStamp = System.currentTimeMillis();
 		boolean useAPI17 = getPreferences().getBoolean(Constants.PREF_USE_API17, false); // WCDMA uses API 18+, now min is 18
-        boolean isRegistered = false;
-
+		boolean isRegistered = false;
 		// #2 using API 17 to get all cell towers around, including one which phone registered to
 		if (osVersion >= api17 && useAPI17) {
 			List<CellInfo> allCells = mTelephonyManager.getAllCellInfo();
@@ -158,8 +203,8 @@ public class CellEngine extends BaseEngine {
 						CellInfoGsm gsm = (CellInfoGsm) cell;
 						CellIdentityGsm gsmIdentity = gsm.getCellIdentity();
 
-                        isRegistered |= gsm.isRegistered();
-						gsmInfoArray.add(new GSMInfo(timeStamp, gsm.isRegistered(), nwType, gsmIdentity.getMcc(), gsmIdentity.getMnc(), gsmIdentity.getLac(),
+						isRegistered |= gsm.isRegistered();
+						temp.add(new InfoItemGSM(gsm.isRegistered(), nwType, gsmIdentity.getMcc(), gsmIdentity.getMnc(), gsmIdentity.getLac(),
 								gsmIdentity.getCid(), Constants.UNDEFINED, gsm.getCellSignalStrength().getDbm()));
 
 						// 3G - WCDMA cell towers, its API 18+
@@ -167,8 +212,8 @@ public class CellEngine extends BaseEngine {
 						CellInfoWcdma wcdma = (CellInfoWcdma) cell;
 						CellIdentityWcdma wcdmaIdentity = wcdma.getCellIdentity();
 
-                        isRegistered |= wcdma.isRegistered();
-						gsmInfoArray.add(new GSMInfo(timeStamp, wcdma.isRegistered(), nwType, wcdmaIdentity.getMcc(), wcdmaIdentity.getMnc(),
+						isRegistered |= wcdma.isRegistered();
+						temp.add(new InfoItemGSM(wcdma.isRegistered(), nwType, wcdmaIdentity.getMcc(), wcdmaIdentity.getMnc(),
 								wcdmaIdentity.getLac(), wcdmaIdentity.getCid(), wcdmaIdentity.getPsc(), wcdma.getCellSignalStrength().getDbm()));
 
 						// 4G - LTE cell towers
@@ -176,14 +221,14 @@ public class CellEngine extends BaseEngine {
 						CellInfoLte lte = (CellInfoLte) cell;
 						CellIdentityLte lteIdentity = lte.getCellIdentity();
 
-                        isRegistered |= lte.isRegistered();
-						gsmInfoArray.add(new GSMInfo(timeStamp, lte.isRegistered(), nwType, lteIdentity.getMcc(), lteIdentity.getMnc(), lteIdentity.getTac(),
+						isRegistered |= lte.isRegistered();
+						temp.add(new InfoItemGSM(lte.isRegistered(), nwType, lteIdentity.getMcc(), lteIdentity.getMnc(), lteIdentity.getTac(),
 								lteIdentity.getPci(), lteIdentity.getCi(), lte.getCellSignalStrength().getDbm()));
 					}
 				}
 		}
 
-		if (gsmInfoArray.size() == 0) { // in case API 17/18 didn't return anything
+		if (temp.size() == 0) { // in case API 17/18 didn't return anything
 			// #1 using default way to obtain cell towers info
 			int mcc = Constants.UNDEFINED;
 			int mnc = Constants.UNDEFINED;
@@ -209,8 +254,8 @@ public class CellEngine extends BaseEngine {
 				}
 
 				if (gsmCellLocation != null) {
-                    isRegistered = true;
-					gsmInfoArray.add(new GSMInfo(timeStamp, true, mTelephonyManager.getNetworkType(), mcc, mnc, gsmCellLocation.getLac(),
+					isRegistered = true;
+					temp.add(new InfoItemGSM(true, mTelephonyManager.getNetworkType(), mcc, mnc, gsmCellLocation.getLac(),
 							gsmCellLocation.getCid(), gsmCellLocation.getPsc(), mSignalStrength));
 				}
 			}
@@ -219,17 +264,21 @@ public class CellEngine extends BaseEngine {
 			for (NeighboringCellInfo neighbor : neighbors) {
 				int nbNetworkType = neighbor.getNetworkType();
 
-				gsmInfoArray.add(new GSMInfo(timeStamp, false, nbNetworkType, Constants.UNDEFINED, Constants.UNDEFINED, neighbor.getLac(), neighbor.getCid(), neighbor.getPsc(),
-						signalStrengthAsuToDbm(neighbor.getRssi(), nbNetworkType)));
+				temp.add(new InfoItemGSM(false, nbNetworkType, Constants.UNDEFINED, Constants.UNDEFINED, neighbor.getLac(), neighbor.getCid(),
+                        neighbor.getPsc(), signalStrengthAsuToDbm(neighbor.getRssi(), nbNetworkType)));
 			}
 		}
 
-		if (gsmInfoArray.size() == 0 || !isRegistered) { // add default record if there is no items in array /-1
-			gsmInfoArray.add(new GSMInfo(timeStamp));
+		if (temp.size() == 0 || !isRegistered) { // add default record if there is no items in array /-1
+			temp.add(new InfoItemGSM());
 		}
 
-		return gsmInfoArray;
-	}
+        while (mIsConcurrent)
+            SystemClock.sleep(100);
+
+        mItems.clear();
+        mItems.addAll(temp);
+    }
 
     public String getNetworkOperator() {
         return mTelephonyManager.getNetworkOperatorName();
@@ -318,40 +367,17 @@ public class CellEngine extends BaseEngine {
 		return network;
 	}
 
-	public static String getItem(GSMInfo gsmInfo, String active, String ID, String markName, String userName) {
-		StringBuilder sb = new StringBuilder();
-
-		sb.append(ID).append(Constants.CSV_SEPARATOR);
-		sb.append(markName).append(Constants.CSV_SEPARATOR);
-		sb.append(userName).append(Constants.CSV_SEPARATOR);
-		sb.append(gsmInfo.getTimeStamp()).append(Constants.CSV_SEPARATOR);
-		sb.append(DateFormat.getDateTimeInstance().format(new Date(gsmInfo.getTimeStamp()))).append(Constants.CSV_SEPARATOR);
-		sb.append(gsmInfo.networkGen()).append(Constants.CSV_SEPARATOR);
-		sb.append(gsmInfo.networkType()).append(Constants.CSV_SEPARATOR);
-		sb.append(active).append(Constants.CSV_SEPARATOR);
-
-		sb.append(gsmInfo.getMcc()).append(Constants.CSV_SEPARATOR);
-		sb.append(gsmInfo.getMnc()).append(Constants.CSV_SEPARATOR);
-		sb.append(gsmInfo.getLac()).append(Constants.CSV_SEPARATOR);
-		sb.append(gsmInfo.getCid()).append(Constants.CSV_SEPARATOR);
-		sb.append(gsmInfo.getPsc()).append(Constants.CSV_SEPARATOR);
-		sb.append(gsmInfo.getRssi());
-
-        sb.length();
-		return sb.toString();
-	}
-
     /**
      * Sorts list by cells. Active cells arranged first.
      *
      * @param array    A List of GSMInfo to sort
      */
-    public static void sortByActive(List<CellEngine.GSMInfo> array) {
-        Collections.sort(array, new Comparator<GSMInfo>() {
+    public static void sortByActive(List<InfoItem> array) {
+        Collections.sort(array, new Comparator<InfoItem>() {
             @Override
-            public int compare(CellEngine.GSMInfo lhs, CellEngine.GSMInfo rhs) {
-                boolean b1 = lhs.isActive();
-                boolean b2 = rhs.isActive();
+            public int compare(InfoItem lhs, InfoItem rhs) {
+                boolean b1 = lhs.getColumn(Constants.HEADER_ACTIVE).getValue().equals("1");
+                boolean b2 = rhs.getColumn(Constants.HEADER_ACTIVE).getValue().equals("1");
 
                 if (b1 && !b2) {
                     return -1;
@@ -367,11 +393,6 @@ public class CellEngine extends BaseEngine {
     }
 
     private class GSMPhoneStateListener extends PhoneStateListener {
-
-        /*
-         * Get the Signal strength from the provider, each time there is an
-         * update
-         */
         @Override
         public void onSignalStrengthsChanged(SignalStrength signal) {
             super.onSignalStrengthsChanged(signal);
@@ -381,74 +402,82 @@ public class CellEngine extends BaseEngine {
 				signalStrength = getSignalStrengthLTE(signal);
 
             setSignalStrength(signalStrengthAsuToDbm(signalStrength, mTelephonyManager.getNetworkType()));
+            updateItems();
             notifyListeners();
         }
 
         @Override
         public void onCellLocationChanged(CellLocation location) {
             super.onCellLocationChanged(location);
+            updateItems();
             notifyListeners();
         }
 
         @Override
         public void onDataConnectionStateChanged(int state, int networkType) {
             super.onDataConnectionStateChanged(state, networkType);
+            updateItems();
             notifyListeners();
         }
 
         @Override
         public void onServiceStateChanged(ServiceState serviceState) {
             super.onServiceStateChanged(serviceState);
+            updateItems();
+            notifyListeners();
+        }
+
+        @Override
+        public void onCellInfoChanged(List<CellInfo> cellInfo) {
+            super.onCellInfoChanged(cellInfo);
+            updateItems();
             notifyListeners();
         }
     }
 
-    public class GSMInfo {
-		private long timeStamp;
-		private boolean active;
-		private int mcc;
-		private int mnc;
-		private int lac;
-		private int cid;
-		private int psc;
-		private int networkType;
-		private int rssi;
+	private void notifyListeners() {
+		notifyListeners("CELL");
+	}
 
-		public GSMInfo(long timeStamp) {
-			this.timeStamp = timeStamp;
-			this.active = true;
-			this.networkType = TelephonyManager.NETWORK_TYPE_UNKNOWN;
-			this.mcc = Constants.UNDEFINED;
-			this.mnc = Constants.UNDEFINED;
-			this.lac = Constants.UNDEFINED;
-			this.cid = Constants.UNDEFINED;
-			this.psc = Constants.UNDEFINED;
-			this.rssi = SIGNAL_STRENGTH_NONE;
+    public class InfoItemGSM extends InfoItem {
+		public InfoItemGSM() {
+			super("Cell Info");
+            addColumn(Constants.HEADER_GEN, null, null);
+            addColumn(Constants.HEADER_TYPE, null, null);
+            setValue(Constants.HEADER_GEN, getNetworkGen(TelephonyManager.NETWORK_TYPE_UNKNOWN));
+            setValue(Constants.HEADER_TYPE, getNetworkType(TelephonyManager.NETWORK_TYPE_UNKNOWN));
+
+            addColumn(Constants.HEADER_ACTIVE, null, null, 1);
+            addColumn(Constants.HEADER_MCC, null, null, Constants.UNDEFINED);
+            addColumn(Constants.HEADER_MNC, null, null, Constants.UNDEFINED);
+            addColumn(Constants.HEADER_LAC, null, null, Constants.UNDEFINED);
+            addColumn(Constants.HEADER_CID, null, null, Constants.UNDEFINED);
+            addColumn(Constants.HEADER_PSC, null, null, Constants.UNDEFINED);
+            addColumn(Constants.HEADER_POWER, null, mContext.getString(R.string.info_dbm), SIGNAL_STRENGTH_NONE);
 		}
 
-		public GSMInfo(long timeStamp, boolean active, int networkType, int mcc, int mnc, int lac, int cid, int psc, int rssi) {
-            this.timeStamp = timeStamp;
-            this.active = active;
-            this.networkType = networkType;
-            this.lac = lac;
-            this.cid = cid;
-            this.psc = psc;
-            this.rssi = rssi;
+		public InfoItemGSM(boolean active, int networkType, int mcc, int mnc, int lac, int cid, int psc, int power) {
+            this();
+            setValue(Constants.HEADER_ACTIVE, active ? 1 : 0);
+            setValue(Constants.HEADER_GEN, getNetworkGen(networkType));
+            setValue(Constants.HEADER_TYPE, getNetworkType(networkType));
+//            infoItemGSMArray.get(0).getMcc() + "-" + infoItemGSMArray.get(0).getMnc() + "-"
+//                    + infoItemGSMArray.get(0).getLac() + "-" + infoItemGSMArray.get(0).getCid();
 
             boolean outOfBounds = mcc <= LOW_BOUND || mcc >= MAX_MCC_MNC;
-            this.mcc = outOfBounds ? Constants.UNDEFINED : mcc;
+            setValue(Constants.HEADER_MCC, outOfBounds ? Constants.UNDEFINED : mcc);
 
             outOfBounds = mnc <= LOW_BOUND || mnc >= MAX_MCC_MNC;
-            this.mnc = outOfBounds ? Constants.UNDEFINED : mnc;
+            setValue(Constants.HEADER_MNC, outOfBounds ? Constants.UNDEFINED : mnc);
 
             switch (networkType) {
                 case TelephonyManager.NETWORK_TYPE_EDGE:
                 case TelephonyManager.NETWORK_TYPE_GPRS:
                     if (lac < LOW_BOUND || lac > MAX_2G_LAC_CID)
-                        this.lac = -1;
+                        lac = -1;
 
                     if (cid < LOW_BOUND || cid > MAX_2G_LAC_CID)
-                        this.cid = -1;
+                        cid = -1;
                     break;
                 case TelephonyManager.NETWORK_TYPE_UMTS:
                 case TelephonyManager.NETWORK_TYPE_HSPA:
@@ -457,59 +486,33 @@ public class CellEngine extends BaseEngine {
                 case TelephonyManager.NETWORK_TYPE_HSPAP:
 				default:
 					if (lac < LOW_BOUND || lac > MAX_2G_LAC_CID)
-							this.lac = -1;
+                        lac = -1;
 
 					if (cid < LOW_BOUND || cid > MAX_3G_CID)
-							this.cid = -1;
+                        cid = -1;
 
 					if (psc < LOW_BOUND || psc > MAX_PSC)
-							this.psc = -1;
+                        psc = -1;
                     break;
 				case TelephonyManager.NETWORK_TYPE_LTE:
 					if (cid < LOW_BOUND || cid > MAX_PCI)
-						this.cid = -1;
+						cid = -1;
 					break;
             }
+
+            setValue(Constants.HEADER_LAC, lac);
+            setValue(Constants.HEADER_CID, cid);
+            setValue(Constants.HEADER_PSC, psc);
+            setValue(Constants.HEADER_POWER, power);
 		}
 
-		public long getTimeStamp() {
-			return timeStamp;
-		}
+        private void setValue(String key, int value) {
+            setValue(key, value + "");
+        }
 
-		public boolean isActive() {
-			return active;
-		}
-
-		public String networkType() {
-			return getNetworkType(networkType);
-		}
-
-		public String networkGen() {
-			return getNetworkGen(networkType);
-		}
-
-		public int getMcc() {
-			return mcc;
-		}
-
-		public int getMnc() {
-			return mnc;
-		}
-
-		public int getLac() {
-			return lac;
-		}
-
-		public int getCid() {
-			return cid;
-		}
-
-		public int getPsc() {
-			return psc;
-		}
-
-		public int getRssi() {
-			return rssi;
-		}
+        private void addColumn(String shortName, String fullName, String unit, int data) {
+            addColumn(shortName, fullName, unit);
+            setValue(shortName, data);
+        }
 	}
 }

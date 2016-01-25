@@ -5,7 +5,7 @@
  * Author:  Nikita Kirin
  * Author:  Stanislav Petriakov, becomeglory@gmail.com
  * *****************************************************************************
- * Copyright © 2014-2015 NextGIS
+ * Copyright © 2014-2016 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -287,7 +287,7 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 				mPreferences.edit().putString(Constants.PREF_SESSION_NAME, "")
 						.putInt(Constants.PREF_MARKS_COUNT, 0)
 						.putInt(Constants.PREF_RECORDS_COUNT, 0)
-                        .putInt(Constants.PREF_MARK_POS,Integer.MIN_VALUE).apply();
+                        .putInt(Constants.PREF_MARK_POS, Integer.MIN_VALUE).apply();
 				recordsCount = 0;
 				setInterfaceState(0, INTERFACE_STATE.SESSION_NONE);
 				setDataDirPath("");
@@ -399,8 +399,11 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 	private void setInterfaceState(int resId, INTERFACE_STATE state) {
 		switch (state) {
 		case ERROR:
-			serviceOnOffButton.setText(getString(R.string.btn_service_start));
+            setActionBarProgress(false);
+            sessionButton.setEnabled(true);
+            serviceOnOffButton.setText(getString(R.string.btn_service_start));
             Toast.makeText(this, resId, Toast.LENGTH_LONG).show();
+            break;
 		case SESSION_NONE:
 			serviceOnOffButton.setEnabled(false);
 			markButton.setEnabled(false);
@@ -418,7 +421,7 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 
 	/**
 	 * Return date in specified format.
-	 * 
+	 *
 	 * @param milliSeconds
 	 *            Date in milliseconds
 	 * @param dateFormat

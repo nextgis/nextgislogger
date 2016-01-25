@@ -24,11 +24,10 @@
 package com.nextgis.logger.livedata;
 
 import android.content.Intent;
-import android.hardware.Sensor;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.text.Html;
-import android.text.Spanned;
+import android.support.v7.widget.GridLayout;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,234 +35,147 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import com.nextgis.logger.LoggerApplication;
 import com.nextgis.logger.PreferencesActivity;
 import com.nextgis.logger.R;
-import com.nextgis.logger.engines.AudioEngine;
 import com.nextgis.logger.engines.BaseEngine;
-import com.nextgis.logger.engines.GPSEngine;
+import com.nextgis.logger.engines.InfoColumn;
+import com.nextgis.logger.engines.InfoItem;
 import com.nextgis.logger.engines.SensorEngine;
 
 import java.text.DateFormat;
 import java.util.Date;
 
 public class InfoSensorsFragment extends Fragment implements View.OnClickListener {
-    private SensorEngine mSensorEngine;
-    private static GPSEngine mGPSEngine;
-    private static AudioEngine mAudioEngine;
+    private static SensorEngine mSensorEngine;
     private BaseEngine.EngineListener mSensorListener;
-    private BaseEngine.EngineListener mGPSListener;
 
     private ScrollView svData;
-    private LinearLayout llGPS, llGPSInfo, llAccelerometer, llOrient, llGyro, llMagnetic, llAudio, llError;
-    private TextView tvAccelerometerTitle, tvOrientTitle, tvMagneticTitle, tvGyroTitle;
-    private TextView tvGPSNoFix, tvGPSLat, tvGPSLon, tvGPSEle;
-    private TextView tvGPSAcc, tvGPSSpeed, tvGPSSat, tvGPSTime;
-    private TextView tvAccelerometerX, tvAccelerometerY, tvAccelerometerZ;
-    private TextView tvOrientAzimuth, tvOrientPitch, tvOrientRoll;
-    private TextView tvGyroX, tvGyroY, tvGyroZ;
-    private TextView tvMagneticX, tvMagneticY, tvMagneticZ;
-    private TextView tvAudio;
+    private LinearLayout llError, llData;
 
     @SuppressWarnings("deprecation")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.info_sensors_fragment, container, false);
 
+        mSensorEngine = LoggerApplication.getApplication().getSensorEngine();
         mSensorListener = new BaseEngine.EngineListener() {
             @Override
-            public void onInfoChanged() {
+            public void onInfoChanged(String source) {
                 if (isAdded())
-                    fillSensorsTextViews();
+                    fillSensorsTextViews(source);
             }
         };
-        mSensorEngine = new SensorEngine(getActivity());
-        mSensorEngine.addListener(mSensorListener);
 
-        mGPSListener = new BaseEngine.EngineListener() {
-            @Override
-            public void onInfoChanged() {
-                if (isAdded())
-                    fillGPSTextViews();
-            }
-        };
-        mGPSEngine = mSensorEngine.getGPSEngine();
-        mGPSEngine.addListener(mGPSListener);
-
-        mAudioEngine = mSensorEngine.getAudioEngine();
-
-        llGPS = (LinearLayout) rootView.findViewById(R.id.ll_gps);
-        llGPSInfo = (LinearLayout) rootView.findViewById(R.id.ll_gps_info);
-        tvGPSNoFix = (TextView) rootView.findViewById(R.id.tv_gps_no_fix);
-        llAccelerometer = (LinearLayout) rootView.findViewById(R.id.ll_accelerometer);
-        llOrient = (LinearLayout) rootView.findViewById(R.id.ll_orientation);
-        llGyro = (LinearLayout) rootView.findViewById(R.id.ll_gyroscope);
-        llMagnetic = (LinearLayout) rootView.findViewById(R.id.ll_magnetometer);
-        llAudio = (LinearLayout) rootView.findViewById(R.id.ll_audio);
         llError = (LinearLayout) rootView.findViewById(R.id.ll_error);
+        llData = (LinearLayout) rootView.findViewById(R.id.ll_data);
         svData = (ScrollView) rootView.findViewById(R.id.sv_data);
         rootView.findViewById(R.id.btn_settings).setOnClickListener(this);
-
-        tvAccelerometerTitle = (TextView) rootView.findViewById(R.id.tv_accelerometer_title);
-        tvOrientTitle = (TextView) rootView.findViewById(R.id.tv_orient_title);
-        tvGyroTitle = (TextView) rootView.findViewById(R.id.tv_gyroscope_title);
-        tvMagneticTitle = (TextView) rootView.findViewById(R.id.tv_magnetometer_title);
-
-        tvGPSLat = (TextView) rootView.findViewById(R.id.tv_gps_lat);
-        tvGPSLon = (TextView) rootView.findViewById(R.id.tv_gps_lon);
-        tvGPSEle = (TextView) rootView.findViewById(R.id.tv_gps_ele);
-        tvGPSAcc = (TextView) rootView.findViewById(R.id.tv_gps_acc);
-        tvGPSSpeed = (TextView) rootView.findViewById(R.id.tv_gps_speed);
-        tvGPSSat = (TextView) rootView.findViewById(R.id.tv_gps_sat);
-        tvGPSTime = (TextView) rootView.findViewById(R.id.tv_gps_time);
-        tvAccelerometerX = (TextView) rootView.findViewById(R.id.tv_accelerometer_x);
-        tvAccelerometerY = (TextView) rootView.findViewById(R.id.tv_accelerometer_y);
-        tvAccelerometerZ = (TextView) rootView.findViewById(R.id.tv_accelerometer_z);
-        tvOrientAzimuth = (TextView) rootView.findViewById(R.id.tv_orient_azimuth);
-        tvOrientPitch = (TextView) rootView.findViewById(R.id.tv_orient_pitch);
-        tvOrientRoll = (TextView) rootView.findViewById(R.id.tv_orient_roll);
-        tvGyroX = (TextView) rootView.findViewById(R.id.tv_gyroscope_x);
-        tvGyroY = (TextView) rootView.findViewById(R.id.tv_gyroscope_y);
-        tvGyroZ = (TextView) rootView.findViewById(R.id.tv_gyroscope_z);
-        tvMagneticX = (TextView) rootView.findViewById(R.id.tv_magnetic_x);
-        tvMagneticY = (TextView) rootView.findViewById(R.id.tv_magnetic_y);
-        tvMagneticZ = (TextView) rootView.findViewById(R.id.tv_magnetic_z);
-        tvAudio = (TextView) rootView.findViewById(R.id.tv_audio);
-
-        fillSensorsTextViews();
-        fillGPSTextViews();
 
         return rootView;
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-
-        mSensorEngine.removeListener(mSensorListener);
-        mGPSEngine.removeListener(mGPSListener);
-    }
-
     private void setInterface() {
-        if (mSensorEngine.isAnySensorEnabled()) {
+        if (mSensorEngine.isEngineEnabled()) {
             llError.setVisibility(View.GONE);
             svData.setVisibility(View.VISIBLE);
-
-            if (!mGPSEngine.isGpsEnabled())
-                llGPS.setVisibility(View.GONE);
-            else
-                llGPS.setVisibility(View.VISIBLE);
-
-            if (!mSensorEngine.isSensorEnabled(Sensor.TYPE_ACCELEROMETER))
-                llAccelerometer.setVisibility(View.GONE);
-            else
-                llAccelerometer.setVisibility(View.VISIBLE);
-
-            if (!mSensorEngine.isSensorEnabled(Sensor.TYPE_ORIENTATION))
-                llOrient.setVisibility(View.GONE);
-            else
-                llOrient.setVisibility(View.VISIBLE);
-
-            if (!mSensorEngine.isSensorEnabled(Sensor.TYPE_GYROSCOPE))
-                llGyro.setVisibility(View.GONE);
-            else
-                llGyro.setVisibility(View.VISIBLE);
-
-            if (!mSensorEngine.isSensorEnabled(Sensor.TYPE_MAGNETIC_FIELD))
-                llMagnetic.setVisibility(View.GONE);
-            else
-                llMagnetic.setVisibility(View.VISIBLE);
-
-            if (!mAudioEngine.isAudioEnabled())
-                llAudio.setVisibility(View.GONE);
-            else
-                llAudio.setVisibility(View.VISIBLE);
-
-            tvAccelerometerTitle.setText(mSensorEngine.getAccelerometerName());
-            tvOrientTitle.setText(mSensorEngine.getOrientName());
-            tvGyroTitle.setText(mSensorEngine.getGyroName());
-            tvMagneticTitle.setText(mSensorEngine.getMagneticName());
         } else {
             llError.setVisibility(View.VISIBLE);
             svData.setVisibility(View.GONE);
         }
     }
 
-    @SuppressWarnings("deprecation")
-    private void fillSensorsTextViews() {
-        tvAccelerometerX.setText(format(Sensor.TYPE_ACCELEROMETER, mSensorEngine.getAccelerometerX()));
-        tvAccelerometerY.setText(format(Sensor.TYPE_ACCELEROMETER, mSensorEngine.getAccelerometerY()));
-        tvAccelerometerZ.setText(format(Sensor.TYPE_ACCELEROMETER, mSensorEngine.getAccelerometerZ()));
-        tvOrientAzimuth.setText(format(Sensor.TYPE_ORIENTATION, mSensorEngine.getAzimuth()));
-        tvOrientPitch.setText(format(Sensor.TYPE_ORIENTATION, mSensorEngine.getPitch()));
-        tvOrientRoll.setText(format(Sensor.TYPE_ORIENTATION, mSensorEngine.getRoll()));
-        tvGyroX.setText(format(Sensor.TYPE_GYROSCOPE, mSensorEngine.getGyroscopeX()));
-        tvGyroY.setText(format(Sensor.TYPE_GYROSCOPE, mSensorEngine.getGyroscopeY()));
-        tvGyroZ.setText(format(Sensor.TYPE_GYROSCOPE, mSensorEngine.getGyroscopeZ()));
-        tvMagneticX.setText(format(Sensor.TYPE_MAGNETIC_FIELD, mSensorEngine.getMagneticX()));
-        tvMagneticY.setText(format(Sensor.TYPE_MAGNETIC_FIELD, mSensorEngine.getMagneticY()));
-        tvMagneticZ.setText(format(Sensor.TYPE_MAGNETIC_FIELD, mSensorEngine.getMagneticZ()));
-        tvAudio.setText(format(-10, mAudioEngine.getDb())); // TODO enum
-    }
+    private void createTextViews() {
+        llData.removeAllViews();
 
-    private void fillGPSTextViews() {
-        if (!mGPSEngine.hasLocation()) {
-            llGPSInfo.setVisibility(View.GONE);
-            tvGPSNoFix.setVisibility(View.VISIBLE);
-        } else {
-            llGPSInfo.setVisibility(View.VISIBLE);
-            tvGPSNoFix.setVisibility(View.GONE);
-            tvGPSLat.setText(format(-4, mGPSEngine.getLatitude()));
-            tvGPSLon.setText(format(-4, mGPSEngine.getLongitude()));
-            tvGPSEle.setText(format(-2, mGPSEngine.getAltitude()));
-            tvGPSAcc.setText(format(-2, mGPSEngine.getAccuracy()));
-            tvGPSSpeed.setText(format(-3, mGPSEngine.getSpeed()));
-            tvGPSSat.setText("" + mGPSEngine.getSatellites());
-            tvGPSTime.setText(format(-5, mGPSEngine.getTime()));
+        for (InfoItem item : mSensorEngine.getData()) {
+            LinearLayout itemLayout = (LinearLayout) View.inflate(getActivity(), R.layout.info_item, null);
+
+            if (!TextUtils.isEmpty(item.getTitle())) {
+                ((TextView) itemLayout.findViewById(R.id.tv_title)).setText(item.getTitle());
+                itemLayout.findViewById(R.id.tv_title).setVisibility(View.VISIBLE);
+            }
+
+            if (!TextUtils.isEmpty(item.getDescription())) {
+                ((TextView) itemLayout.findViewById(R.id.tv_description)).setText(item.getDescription());
+                itemLayout.findViewById(R.id.tv_description).setVisibility(View.VISIBLE);
+            }
+
+            GridLayout parent = (GridLayout) itemLayout.findViewById(R.id.gl_values);
+            GridLayout.LayoutParams lp;
+            int total = item.size();
+
+            for (int i = 0; i < total; i++) {
+                TextView data = (TextView) View.inflate(getActivity(), R.layout.item_value, null);
+                int row = (int) Math.floor(i / 3f);
+                int tail = total - row * 3 - 3;
+                int size = 1;
+                if (tail < 0)
+                    size = Math.abs(tail) * 3;
+
+                lp = new GridLayout.LayoutParams(GridLayout.spec(row, GridLayout.FILL, 1f), GridLayout.spec(i % 3 * 2, size, GridLayout.FILL, 1f));
+                data.setLayoutParams(lp);
+                InfoColumn column = item.getColumns().get(i);
+                setValue(data, column);
+                parent.addView(data);
+            }
+
+            llData.addView(itemLayout);
         }
     }
 
-    @SuppressWarnings("deprecation")
-    private Spanned format(int type, double arg) {
-        String formatted = "" + arg;
+    private void fillSensorsTextViews(String source) {
+        for (int i = 0; i < llData.getChildCount(); i++) {
+            InfoItem item = mSensorEngine.getData().get(i);
 
-        switch (type) {
-            case -2:
-                formatted = String.format("%.2f %s", arg, getString(R.string.info_meter));
-                break;
-            case -3:
-                formatted = String.format("%.2f %s", arg * 3600 / 1000, getString(R.string.info_kmh));
-                break;
-            case -4:
-                formatted = String.format("%.6f", arg);
-                break;
-            case -5:
-                DateFormat simpleDateFormat = DateFormat.getDateTimeInstance();
-                formatted = String.format("%s", simpleDateFormat.format(new Date((long) arg)));
-                break;
-            case Sensor.TYPE_ACCELEROMETER:
-                formatted = String.format("%.2f ", arg) + getString(R.string.info_ms2);
-                break;
-            case Sensor.TYPE_GYROSCOPE:
-                formatted = String.format("%.2f %s", arg, getString(R.string.info_rads));
-                break;
-            case Sensor.TYPE_ORIENTATION:
-                formatted = String.format("%.2f %s", arg, getString(R.string.info_degree));
-                break;
-            case Sensor.TYPE_MAGNETIC_FIELD:
-                formatted = String.format("%.2f %s", arg, getString(R.string.info_tesla));
-                break;
-            case -10:
-                formatted = String.format("%.0f %s", arg, getString(R.string.info_db));
-                break;
+            if (!item.getTitle().equals(source))
+                continue;
+
+            LinearLayout layout = (LinearLayout) llData.getChildAt(i);
+            GridLayout values = (GridLayout) layout.findViewById(R.id.gl_values);
+
+            for (int j = 0; j < item.size(); j++) {
+                TextView data = (TextView) values.getChildAt(j);
+                InfoColumn column = item.getColumns().get(j);
+                setValue(data, column);
+            }
+        }
+    }
+
+    private void setValue(TextView textView, InfoColumn column) {
+        String fullName = column.getFullName();
+        boolean isTimeOrSpeed = !TextUtils.isEmpty(fullName) &&
+                (fullName.equals(getString(R.string.info_speed)) || fullName.equals(getString(R.string.info_time)));
+        String value = "";
+
+        if (!TextUtils.isEmpty(column.getFullName()))
+            value += column.getFullName() + ":\r\n";
+
+        if (isTimeOrSpeed)
+            value += format(column.getValue(), column.getUnit());
+        else
+            value += column.getValueWithUnit();
+
+        textView.setText(value);
+    }
+
+    private String format(Object value, String unit) {
+        String formatted = "" + value;
+
+        if (value instanceof Float)
+            formatted = String.format("%.2f %s", (float) value * 3600 / 1000, unit);
+        else if (value instanceof Long) {
+            DateFormat simpleDateFormat = DateFormat.getTimeInstance();
+            formatted = String.format("%s", simpleDateFormat.format(new Date((long) value)));
         }
 
-        return Html.fromHtml(formatted);
+        return formatted;
     }
 
     @Override
     public void onPause() {
         super.onPause();
-
+        mSensorEngine.removeListener(mSensorListener);
         mSensorEngine.onPause();
     }
 
@@ -272,7 +184,8 @@ public class InfoSensorsFragment extends Fragment implements View.OnClickListene
     public void onResume() {
         super.onResume();
         mSensorEngine.onResume();
-
+        createTextViews();
+        mSensorEngine.addListener(mSensorListener);
         setInterface();
     }
 

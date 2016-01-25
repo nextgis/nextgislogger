@@ -3,7 +3,7 @@
  * Purpose: Productive data logger for Android
  * Author:  Stanislav Petriakov, becomeglory@gmail.com
  ******************************************************************************
- * Copyright © 2014-2015 NextGIS
+ * Copyright © 2014-2016 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,6 +54,7 @@ import android.widget.Toast;
 
 import com.nextgis.logger.UI.ProgressBarActivity;
 import com.nextgis.logger.engines.ArduinoEngine;
+import com.nextgis.logger.engines.BaseEngine;
 import com.nextgis.logger.engines.CellEngine;
 import com.nextgis.logger.engines.SensorEngine;
 import com.nextgis.logger.util.Constants;
@@ -86,9 +87,9 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
     private ListView mLvCategories;
 	private MarkArrayAdapter mMarksAdapter;
 
-	private CellEngine mGsmEngine;
-	private SensorEngine mSensorEngine;
-	private ArduinoEngine mArduinoEngine;
+	private static CellEngine mGsmEngine;
+	private static SensorEngine mSensorEngine;
+	private static ArduinoEngine mArduinoEngine;
 //	private WiFiEngine wifiEngine;
 
     static MarksHandler marksHandler;
@@ -107,8 +108,8 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 
         mFAB.setOnClickListener(this);
 
-		mGsmEngine = new CellEngine(this);
-		mSensorEngine = new SensorEngine(this);
+		mGsmEngine = LoggerApplication.getApplication().getCellEngine();
+		mSensorEngine = LoggerApplication.getApplication().getSensorEngine();
         mArduinoEngine = LoggerApplication.getApplication().getArduinoEngine();
         mArduinoEngine.addConnectionListener(this);
 //		wifiEngine = new WiFiEngine(this);
@@ -200,10 +201,10 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 
 		mGsmEngine.onResume();
 
-        if (mSensorEngine.isAnySensorEnabled())
+        if (mSensorEngine.isEngineEnabled())
 		    mSensorEngine.onResume();
 
-        if (mArduinoEngine.isLogEnabled())
+        if (mArduinoEngine.isEngineEnabled())
             mArduinoEngine.onResume();
 //		wifiEngine.onResume();
 	}
@@ -282,7 +283,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        mBtRetry.setVisible(mArduinoEngine.isLogEnabled() && !(mArduinoEngine.isConnected() && mArduinoEngine.isDeviceAvailable()));
+        mBtRetry.setVisible(mArduinoEngine.isEngineEnabled() && !(mArduinoEngine.isConnected() && mArduinoEngine.isDeviceAvailable()));
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -404,38 +405,27 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 
         FileUtil.checkOrCreateDirectory(MainActivity.dataDirPath);
 
-        final Bundle data = new Bundle();
-
-        data.putInt(Constants.PREF_MARK_POS, mMarksAdapter.getMarkPosition(mark));
         String markName = mark.getCAT();
         String ID = mark.getID() + "";
-
-        String info = String.format(getString(R.string.mark_saved), markName);
-
-        ArrayList<CellEngine.GSMInfo> gsmInfoArray = mGsmEngine.getGSMInfoArray();
-        ArrayList<String> items = new ArrayList<>();
         String userName = mPreferences.getString(Constants.PREF_USER_NAME, Constants.DEFAULT_USERNAME);
+        String preamble = BaseEngine.getPreamble(ID, markName, userName, System.currentTimeMillis());
 
-        for (CellEngine.GSMInfo gsmInfo : gsmInfoArray) {
-            String active = gsmInfo.isActive() ? "1" : gsmInfoArray.get(0).getMcc() + "-" + gsmInfoArray.get(0).getMnc() + "-"
-                    + gsmInfoArray.get(0).getLac() + "-" + gsmInfoArray.get(0).getCid();
-
-            items.add(CellEngine.getItem(gsmInfo, active, ID, markName, userName));
-        }
-
-        data.putStringArrayList(BUNDLE_CELL, items);
-        info += " (" + ++marksCount + ")";
+        final Bundle data = new Bundle();
+        data.putInt(Constants.PREF_MARK_POS, mMarksAdapter.getMarkPosition(mark));
+        data.putStringArrayList(BUNDLE_CELL, new ArrayList<>(mGsmEngine.getDataAsStringList(preamble)));
 
         // checking sensors state
-        if (mSensorEngine.isAnySensorEnabled())
-            data.putString(BUNDLE_SENSOR, SensorEngine.getItem(mSensorEngine, ID, markName, userName, gsmInfoArray.get(0).getTimeStamp()));
+        if (mSensorEngine.isEngineEnabled())
+            data.putStringArrayList(BUNDLE_SENSOR, new ArrayList<>(mSensorEngine.getDataAsStringList(preamble)));
 
         // checking external state
-        if (mArduinoEngine.isLogEnabled())
-            data.putString(BUNDLE_EXTERNAL, mArduinoEngine.getItem(ID, markName, userName, gsmInfoArray.get(0).getTimeStamp()));
+        if (mArduinoEngine.isEngineEnabled())
+            data.putStringArrayList(BUNDLE_EXTERNAL, new ArrayList<>(mArduinoEngine.getDataAsStringList(preamble)));
 
         Vibrator vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         vibe.vibrate(100);
+        String info = String.format(getString(R.string.mark_saved), markName);
+        info += " (" + ++marksCount + ")";
         Toast.makeText(this, info, Toast.LENGTH_SHORT).show();
         mIsHot = true;
 
@@ -488,7 +478,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
                 if (mIsActive && mLastConnection != isConnected)
                     Toast.makeText(MarkActivity.this, info, Toast.LENGTH_SHORT).show();
 
-                if (mBtRetry != null && mArduinoEngine.isLogEnabled())
+                if (mBtRetry != null && mArduinoEngine.isEngineEnabled())
                     mBtRetry.setVisible(!isConnected);
 
                 mLastConnection = isConnected;
@@ -616,16 +606,15 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
                 case MARK_SAVE:
                     if (Math.abs(System.currentTimeMillis() - mUndoTimeStamp) >= DELAY) {
                         try {
-                            for (String item : msg.getData().getStringArrayList(BUNDLE_CELL))
-                                FileUtil.saveItemToLog(Constants.LOG_TYPE_NETWORK, true, item);
+                            mGsmEngine.saveToLog(msg.getData().getStringArrayList(BUNDLE_CELL), true);
 
-                            String item = msg.getData().getString(BUNDLE_SENSOR);
-                            if (!TextUtils.isEmpty(item))
-                                FileUtil.saveItemToLog(Constants.LOG_TYPE_SENSORS, true, item);
+                            ArrayList<String> items = msg.getData().getStringArrayList(BUNDLE_SENSOR);
+                            if (items != null)
+                                mSensorEngine.saveToLog(items, true);
 
-                            item = msg.getData().getString(BUNDLE_EXTERNAL);
-                            if (!TextUtils.isEmpty(item))
-                                FileUtil.saveItemToLog(Constants.LOG_TYPE_EXTERNAL, true, item);
+                            items = msg.getData().getStringArrayList(BUNDLE_EXTERNAL);
+                            if (items != null)
+                                mArduinoEngine.saveToLog(items, true);
 
                             mSavedMarkPosition = msg.getData().getInt(Constants.PREF_MARK_POS);
                             PreferenceManager.getDefaultSharedPreferences(mParent).edit().putInt(Constants.PREF_MARK_POS, mSavedMarkPosition).apply();

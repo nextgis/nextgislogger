@@ -4,7 +4,7 @@
  * Purpose: Productive data logger for Android
  * Author:  Stanislav Petriakov, becomeglory@gmail.com
  * *****************************************************************************
- * Copyright © 2015 NextGIS
+ * Copyright © 2015-2016 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,16 +42,11 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.UUID;
 
 // http://stackoverflow.com/q/10327506
@@ -59,8 +54,6 @@ public class ArduinoEngine extends BaseEngine {
     private final static byte DELIMITER = 10;
     private final static char GET_HEADER = 'h';
     private final static char GET_DATA = 'd';
-    private final static String NO_DATA = "NaN";
-    private final static String DATA_UNDEFINED = "null";
 
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothDevice mDevice;
@@ -76,13 +69,9 @@ public class ArduinoEngine extends BaseEngine {
     private Thread mWorkerThread;
     private List<ConnectionListener> mConnectionListeners;
 
-    private volatile Map<String, String> mShortNames;
-    private volatile Map<String, String> mFullNames;
-    private volatile Map<String, String> mUnits;
-    private volatile String[] mData;
-
-    public boolean isLogEnabled() {
-        return PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean(Constants.PREF_EXTERNAL, false);
+    @Override
+    public boolean isEngineEnabled() {
+        return getPreferences().getBoolean(Constants.PREF_EXTERNAL, false);
     }
 
     public interface ConnectionListener {
@@ -124,17 +113,8 @@ public class ArduinoEngine extends BaseEngine {
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECTED);
         mContext.registerReceiver(mReceiver, filter);
 
-        mShortNames = new TreeMap<>();
-        mFullNames = new HashMap<>();
-        mUnits = new HashMap<>();
-        mData = new String[]{};
-
         mLine = getPreferences().getString(Constants.PREF_EXTERNAL_HEADER, "");
-        try {
-            loadHeader();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+        loadHeader();
         mLine = null;
         clearData();
     }
@@ -160,16 +140,19 @@ public class ArduinoEngine extends BaseEngine {
         return mConnectionListeners.size() > 0 || getListenersCount() > 0;
     }
 
-    public void onPause() {
+    @Override
+    public boolean onPause() {
         if (hasListeners())
-            return;
+            return false;
 
         closeConnection();
+        return false;
     }
 
-    public void onResume() {
+    @Override
+    public boolean onResume() {
         if (hasListeners() && (mWorkerThread != null && mWorkerThread.isAlive()))
-            return;
+            return false;
 
         mIsWorking = true;
         mBufferPosition = 0;
@@ -187,7 +170,7 @@ public class ArduinoEngine extends BaseEngine {
                         mOutputStream.write(GET_DATA);
                         mLine = readln();
                         if (parseData())
-                            notifyListeners();
+                            notifyListeners("EXTERNAL");
 
                         SystemClock.sleep(Constants.UPDATE_FREQUENCY);
                     } catch (IOException e) {
@@ -199,10 +182,7 @@ public class ArduinoEngine extends BaseEngine {
 
                         if (!hasListeners())
                             mIsWorking = false;
-                    } catch (NullPointerException ignored) {
-                    } catch (JSONException e) {
-                        e.printStackTrace(); // TODO handle
-                    }
+                    } catch (NullPointerException ignored) { }
                 }
 
                 closeConnection();
@@ -210,14 +190,15 @@ public class ArduinoEngine extends BaseEngine {
         });
 
         mWorkerThread.start();
+        return false;
     }
 
     private void clearData() {
-        for (int i = 0; i < mData.length; i++)
-            mData[i] = NO_DATA;
+        for (InfoItem item : mItems)
+            item.getColumns().get(0).setValue(Constants.NO_DATA);
     }
 
-    private synchronized void getExternalHeader() throws JSONException, IOException {
+    private synchronized void getExternalHeader() throws IOException {
         mOutputStream.write(GET_HEADER);
         SystemClock.sleep(Constants.UPDATE_FREQUENCY);
         mLine = readln();
@@ -229,31 +210,23 @@ public class ArduinoEngine extends BaseEngine {
             listener.onConnected();
     }
 
-    private synchronized void loadHeader() throws JSONException {
-        JSONObject json = null;
+    @Override
+    protected synchronized void loadHeader() {
         try {
-            json = new JSONObject(mLine);
+            JSONObject json = new JSONObject(mLine);
+            mItems.clear();
+
+            Iterator<String> sensors = json.keys();
+            while (sensors.hasNext()) {
+                String key = sensors.next();
+                JSONObject sensor = json.getJSONObject(key);
+                InfoItem item = new InfoItem(sensor.getString("full"));
+                item.addColumn(sensor.getString("short"), null, sensor.getString("unit"));
+                mItems.add(item);
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
-        if (json == null)
-            return;
-
-        mShortNames.clear();
-        mFullNames.clear();
-        mUnits.clear();
-
-        Iterator<String> sensors = json.keys();
-        while (sensors.hasNext()) {
-            String key = sensors.next();
-            JSONObject sensor = json.getJSONObject(key);
-            mShortNames.put(key, sensor.getString("short"));
-            mFullNames.put(key, sensor.getString("full"));
-            mUnits.put(key, sensor.getString("unit"));
-        }
-
-        mData = new String[mShortNames.size()];
     }
 
     private synchronized String readln() throws IOException {
@@ -283,40 +256,17 @@ public class ArduinoEngine extends BaseEngine {
 
     private synchronized boolean parseData() {
         String[] fields = mLine.split(";");
-        boolean isCorrect = !TextUtils.isEmpty(mLine) && fields.length == mShortNames.size();
+        boolean isCorrect = !TextUtils.isEmpty(mLine) && fields.length == mItems.size();
 
         if (isCorrect)
-            System.arraycopy(fields, 0, mData, 0, fields.length);
+            for (int i = 0; i < fields.length; i++)
+                mItems.get(i).getColumns().get(0).setValue(fields[i]);
 
         return isCorrect;
     }
 
     public int getSensorsCount() {
-        return mData.length;
-    }
-
-    public String getValue(int position) {
-        String result;
-        if (position >= 0 && position < mData.length)
-            result = mData[position];
-        else
-            result = DATA_UNDEFINED;
-
-        return result;
-    }
-
-    public String getValueWithUnit(int position) {
-        String unit = getUnit(position);
-        unit = TextUtils.isEmpty(unit) ? "" : " " + unit;
-        return getValue(position) + unit;
-    }
-
-    public String getFullName(int position) {
-        return mFullNames.get(position + "");
-    }
-
-    public String getUnit(int position) {
-        return mUnits.get(position + "");
+        return mItems.size();
     }
 
     private void openConnection() {
@@ -333,32 +283,6 @@ public class ArduinoEngine extends BaseEngine {
 
         mIsFirstConnect = true;
         mIsConnectionLost = false;
-    }
-
-    public String getHeader() {
-        String result;
-
-        if (mShortNames.size() > 0) {
-            result = "";
-            for (Map.Entry<String, String> sensor : mShortNames.entrySet())
-                result += Constants.CSV_SEPARATOR + sensor.getValue();
-        } else
-            result = Constants.CSV_SEPARATOR + DATA_UNDEFINED;
-
-        return result;
-    }
-
-    public String getData() {
-        String result;
-
-        if (mData.length == 0)
-            result = Constants.CSV_SEPARATOR + DATA_UNDEFINED;
-        else {
-            result = "";
-            for (String sensor : mData) result += Constants.CSV_SEPARATOR + sensor;
-        }
-
-        return result;
     }
 
     private void findBT() throws IOException {
@@ -455,19 +379,5 @@ public class ArduinoEngine extends BaseEngine {
             return nameWithMAC.substring(0, i - 1);
         else
             return null;
-    }
-
-    public String getItem(String ID, String markName, String userName, long timeStamp) {
-        StringBuilder sb = new StringBuilder();
-
-        sb.append(ID).append(Constants.CSV_SEPARATOR);
-        sb.append(markName).append(Constants.CSV_SEPARATOR);
-        sb.append(userName).append(Constants.CSV_SEPARATOR);
-        sb.append(timeStamp).append(Constants.CSV_SEPARATOR);
-        sb.append(DateFormat.getDateTimeInstance().format(new Date(timeStamp)));
-        sb.append(getData());
-
-        sb.length();
-        return sb.toString();
     }
 }

@@ -4,7 +4,7 @@
  * Purpose: Productive data logger for Android
  * Author:  Stanislav Petriakov, becomeglory@gmail.com
  * *****************************************************************************
- * Copyright © 2015 NextGIS
+ * Copyright © 2015-2016 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -75,7 +75,7 @@ public class InfoExternalsFragment extends Fragment implements View.OnClickListe
     private void createTextViews() {
         for (int i = 0; i < mArduinoEngine.getSensorsCount(); i++) {
             View item = View.inflate(getActivity(), R.layout.info_external_row, null);
-            ((TextView) item.findViewById(R.id.tv_title)).setText(mArduinoEngine.getFullName(i));
+            ((TextView) item.findViewById(R.id.tv_title)).setText(mArduinoEngine.getData().get(i).getTitle());
             mLlData.addView(item);
         }
     }
@@ -83,14 +83,14 @@ public class InfoExternalsFragment extends Fragment implements View.OnClickListe
     private void fillTextViews() {
         if (mLlData.getChildCount() > 0)
             for (int i = 0; i < mArduinoEngine.getSensorsCount(); i++)
-                ((TextView) mLlData.getChildAt(i).findViewById(R.id.tv_data)).setText(mArduinoEngine.getValueWithUnit(i));
+                ((TextView) mLlData.getChildAt(i).findViewById(R.id.tv_data)).setText(mArduinoEngine.getData().get(i).getColumns().get(0).getValueWithUnit());
     }
 
     @Override
     public void onResume() {
         super.onResume();
 
-        if (mArduinoEngine.isLogEnabled()) {
+        if (mArduinoEngine.isEngineEnabled()) {
             if (mArduinoEngine.isBTEnabled())
                 connect();
             else
@@ -132,7 +132,7 @@ public class InfoExternalsFragment extends Fragment implements View.OnClickListe
     private void initializeArduino() {
         mArduinoListener = new BaseEngine.EngineListener() {
             @Override
-            public void onInfoChanged() {
+            public void onInfoChanged(String source) {
                 mHandler.post(new Runnable() {
                     @Override
                     public void run() {
@@ -226,7 +226,7 @@ public class InfoExternalsFragment extends Fragment implements View.OnClickListe
             case R.id.btn_settings:
                 Intent preferencesActivity = new Intent();
 
-                if (!mArduinoEngine.isLogEnabled())
+                if (!mArduinoEngine.isEngineEnabled())
                     preferencesActivity.setClass(getActivity(), PreferencesActivity.class);
                 else if (!mArduinoEngine.isBTEnabled())
                     preferencesActivity.setAction(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS);

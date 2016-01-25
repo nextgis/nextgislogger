@@ -4,7 +4,7 @@
  * Purpose: Productive data logger for Android
  * Author:  Stanislav Petriakov, becomeglory@gmail.com
  * *****************************************************************************
- * Copyright © 2015 NextGIS
+ * Copyright © 2015-2016 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,8 +29,6 @@ import android.os.Environment;
 import android.text.TextUtils;
 import android.widget.Toast;
 
-import com.nextgis.logger.LoggerApplication;
-import com.nextgis.logger.MainActivity;
 import com.nextgis.logger.R;
 
 import java.io.BufferedReader;
@@ -109,50 +107,23 @@ public final class FileUtil {
     /**
      * Save item to log.
      *
-     * @param logType   Log type (0 = Network, 1 = Sensors, 2 = External)
-     * @param onDemand  Does entered by user or service
-     * @param item      String item to save
+     * @param path      File path to save item to
+     * @param header    CSV header if new file
+     * @param items     Strings to save
      */
-    public static void saveItemToLog(short logType, boolean onDemand, String item) throws FileNotFoundException, RuntimeException {
-        String logPath, logHeader;
-
-        switch (logType) {
-            case Constants.LOG_TYPE_NETWORK:
-                logHeader = Constants.CSV_HEADER_CELL;
-
-                if (onDemand)
-                    logPath = MainActivity.csvMarkFilePath;
-                else
-                    logPath = MainActivity.csvLogFilePath;
-                break;
-            case Constants.LOG_TYPE_SENSORS:
-                logHeader = Constants.CSV_HEADER_SENSOR;
-
-                if (onDemand)
-                    logPath = MainActivity.csvMarkFilePathSensor;
-                else
-                    logPath = MainActivity.csvLogFilePathSensor;
-                break;
-            case Constants.LOG_TYPE_EXTERNAL:
-                logHeader = Constants.CSV_HEADER_BASE + LoggerApplication.getApplication().getArduinoEngine().getHeader();
-
-                if (onDemand)
-                    logPath = MainActivity.csvMarkFilePathExternal;
-                else
-                    logPath = MainActivity.csvLogFilePathExternal;
-                break;
-            default:
-                throw new RuntimeException("Can not handle type: " + logType + ". Supported types are: 0 = Network and 1 = Sensors.");
-        }
-
-        File logFile = new File(logPath);
-        boolean isFileExist = logFile.exists();
-        PrintWriter pw = new PrintWriter(new FileOutputStream(logFile, true));
+    public static void append(String path, String header, List<String> items) throws FileNotFoundException, RuntimeException {
+        File file = new File(path);
+        boolean isFileExist = file.exists();
+        PrintWriter pw = new PrintWriter(new FileOutputStream(file, true));
 
         if (!isFileExist)
-            pw.println(logHeader);
+            pw.println(header);
 
-        pw.println(item);
+        if (items != null)
+            for (String item : items)
+                pw.println(item);
+
+        pw.flush();
         pw.close();
     }
 
