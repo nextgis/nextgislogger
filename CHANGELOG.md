@@ -1,6 +1,13 @@
 Changelog
 ***
-## version 1.5 (17.04.2015)
+## version 1.5.1 (28.01.2016)
+* Added LTE support
+* Added roaming status
+* Disabled sensors excluded from log
+* Bugfixing
+
+***
+## version 1.5 (16.07.2015)
 * Added data from external sensors (Supports only [Arduino](https://github.com/nextgis/nextgislogger/wiki/External-sensors-(Arduino)) now)
 * Added audio data to sensors
 * Added button to add new mark
