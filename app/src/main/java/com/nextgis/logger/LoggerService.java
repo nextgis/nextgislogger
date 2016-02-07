@@ -84,8 +84,10 @@ public class LoggerService extends Service implements ArduinoEngine.ConnectionLi
         mSensorEngine.onResume();
 
         mArduinoEngine = LoggerApplication.getApplication().getArduinoEngine();
-        mArduinoEngine.addConnectionListener(this);
-        mArduinoEngine.onResume();
+		if (mArduinoEngine.isEngineEnabled()) {
+			mArduinoEngine.addConnectionListener(this);
+			mArduinoEngine.onResume();
+		}
 
         notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 	}
