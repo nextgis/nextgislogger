@@ -22,11 +22,14 @@
   ~ ******************************************************************************
   -->
 <resources>
+    <style name="LoggerTheme" parent="android:Theme.Holo">
+        <item name="accent">?android:attr/textColorLink</item>
+    </style>
 
     <style name="tv_header">
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_width">match_parent</item>
-        <item name="android:textColor">@color/accent</item>
+        <item name="android:textColor">?attr/accent</item>
         <item name="android:layout_gravity">center_horizontal</item>
         <item name="android:gravity">center_horizontal</item>
         <item name="android:textSize">24sp</item>
@@ -50,7 +53,7 @@
     </style>
 
     <style name="tv_info_large" parent="tv_info">
-        <item name="android:textColor">@color/accent</item>
+        <item name="android:textColor">?attr/accent</item>
         <item name="android:singleLine">false</item>
         <item name="android:textAppearance">@android:style/TextAppearance.Large</item>
     </style>
