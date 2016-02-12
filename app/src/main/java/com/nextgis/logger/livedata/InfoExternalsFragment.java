@@ -73,10 +73,14 @@ public class InfoExternalsFragment extends Fragment implements View.OnClickListe
     }
 
     private void createTextViews() {
-        for (int i = 0; i < mArduinoEngine.getSensorsCount(); i++) {
-            View item = View.inflate(getActivity(), R.layout.info_external_row, null);
-            ((TextView) item.findViewById(R.id.tv_title)).setText(mArduinoEngine.getData().get(i).getTitle());
-            mLlData.addView(item);
+        if (mLlData.getChildCount() != mArduinoEngine.getSensorsCount()) {
+            mLlData.removeAllViews();
+
+            for (int i = 0; i < mArduinoEngine.getSensorsCount(); i++) {
+                View item = View.inflate(getActivity(), R.layout.info_external_row, null);
+                ((TextView) item.findViewById(R.id.tv_title)).setText(mArduinoEngine.getData().get(i).getTitle());
+                mLlData.addView(item);
+            }
         }
     }
 
