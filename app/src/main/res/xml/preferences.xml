@@ -98,6 +98,15 @@
             android:defaultValue="true"
             android:key="sensor_mic"
             android:title="@string/mic"/>
+
+        <com.nextgis.logger.util.AudioCalibratePreference
+            android:defaultValue="0"
+            android:dependency="sensor_mic"
+            android:dialogLayout="@layout/audio_calibrate_dialog"
+            android:key="sensor_mic_delta"
+            android:negativeButtonText="@android:string/cancel"
+            android:positiveButtonText="@android:string/ok"
+            android:title="@string/mic_delta"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/settings_external">

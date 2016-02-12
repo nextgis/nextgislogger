@@ -3,7 +3,7 @@
  * Purpose: Productive data logger for Android
  * Author:  Stanislav Petriakov, becomeglory@gmail.com
  ******************************************************************************
- * Copyright © 2014-2015 NextGIS
+ * Copyright © 2014-2016 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,6 +46,7 @@ import android.widget.Toast;
 import com.keenfin.sfcdialog.SimpleFileChooser;
 import com.nextgis.logger.UI.IntEditTextPreference;
 import com.nextgis.logger.engines.ArduinoEngine;
+import com.nextgis.logger.util.AudioCalibratePreference;
 import com.nextgis.logger.util.Constants;
 import com.nextgis.logger.util.FileUtil;
 
@@ -165,6 +166,9 @@ public class PreferencesActivity extends PreferenceActivity {
                 ((CheckBoxPreference) findPreference(Constants.PREF_SENSOR_GYRO)).setChecked(false);
                 findPreference(Constants.PREF_SENSOR_GYRO).setSummary(R.string.settings_sensor_sum);
             }
+
+            AudioCalibratePreference audio = (AudioCalibratePreference) findPreference(Constants.PREF_MIC_DELTA);
+            audio.setSummary();
 
 			if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.JELLY_BEAN_MR1)
 				findPreference(Constants.PREF_USE_API17).setEnabled(false);

@@ -4,7 +4,7 @@
  * Purpose: Productive data logger for Android
  * Authors: Stanislav Petriakov, becomeglory@gmail.com
  * *****************************************************************************
- * Copyright © 2015 NextGIS
+ * Copyright © 2015-2016 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,6 +48,7 @@ import com.nextgis.logger.LoggerService;
 import com.nextgis.logger.PreferencesActivity;
 import com.nextgis.logger.R;
 import com.nextgis.logger.util.Constants;
+import com.nextgis.logger.util.UiUtil;
 
 public class ProgressBarActivity extends FragmentActivity implements View.OnClickListener {
     protected SharedPreferences mPreferences;
@@ -83,8 +84,8 @@ public class ProgressBarActivity extends FragmentActivity implements View.OnClic
                 layout.removeView(mFAB);
                 base.addView(mFAB);
 
-                mFAB.setColorRipple(darkerColor(mFAB.getColorNormal(), 0.5f));
-                mFAB.setColorPressed(darkerColor(mFAB.getColorNormal(), 0.3f));
+                mFAB.setColorRipple(UiUtil.darkerColor(mFAB.getColorNormal(), 0.5f));
+                mFAB.setColorPressed(UiUtil.darkerColor(mFAB.getColorNormal(), 0.3f));
                 mFAB.setOnClickListener(this);
             }
         }
@@ -196,14 +197,6 @@ public class ProgressBarActivity extends FragmentActivity implements View.OnClic
             }
         }
         return false;
-    }
-
-    private int darkerColor(int color, float percent) {
-        int r = Color.red(color);
-        int b = Color.blue(color);
-        int g = Color.green(color);
-
-        return Color.rgb((int) (r * percent), (int) (g * percent), (int) (b * percent));
     }
 
     protected boolean isSessionClosed() {

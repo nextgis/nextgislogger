@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ ******************************************************************************
+  ~ Project: NextGIS Logger
+  ~ Purpose: Productive data logger for Android
+  ~ Author:  Stanislav Petriakov, becomeglory@gmail.com
+  ~ ******************************************************************************
+  ~ Copyright © 2016 NextGIS
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 2 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  ~ ******************************************************************************
+  -->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical">
+
+    <TextView
+        android:id='@+id/tv_message'
+        android:layout_width='match_parent'
+        android:layout_height='wrap_content'
+        android:layout_marginBottom='16dp'
+        android:layout_marginTop="16dp"
+        android:gravity="center"
+        android:textAppearance='?android:attr/textAppearanceLarge'/>
+
+    <LinearLayout
+        android:id="@+id/pref_num_picker"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <com.melnykov.fab.FloatingActionButton
+            android:id="@+id/fab_dec"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_remove_white_24dp"
+            app:fab_colorNormal="?attr/accent"
+            app:fab_type="mini"/>
+
+        <TextView
+            android:id="@+id/tv_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:textAppearance="?android:attr/textAppearanceLarge"/>
+
+        <com.melnykov.fab.FloatingActionButton
+            android:id="@+id/fab_inc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_add_white_24dp"
+            app:fab_colorNormal="?attr/accent"
+            app:fab_type="mini"/>
+    </LinearLayout>
+</LinearLayout>

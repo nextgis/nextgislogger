@@ -29,6 +29,7 @@ import android.media.AudioRecord;
 import android.media.MediaRecorder.AudioSource;
 import android.os.Process;
 import android.os.SystemClock;
+import android.preference.PreferenceManager;
 
 import com.nextgis.logger.R;
 import com.nextgis.logger.util.Constants;
@@ -39,11 +40,13 @@ import java.util.List;
 public class AudioEngine extends BaseEngine {
     private AudioMeter mAudioMeter;
     private InfoItem mAudioItem;
+    private int mDelta;
 
     public AudioEngine(Context context) {
         super(context);
         mAudioMeter = new AudioMeter();
         loadHeader();
+        mDelta = PreferenceManager.getDefaultSharedPreferences(context).getInt(Constants.PREF_MIC_DELTA, 0);
     }
 
     @Override
@@ -81,6 +84,14 @@ public class AudioEngine extends BaseEngine {
     @Override
     public List<String> getDataAsStringList(String preamble) {
         return Collections.singletonList(Constants.CSV_SEPARATOR + mAudioItem.getColumn(Constants.HEADER_AUDIO).getValue());
+    }
+
+    public int getDb() {
+        return Integer.parseInt(mAudioItem.getColumn(Constants.HEADER_AUDIO).getValue().toString());
+    }
+
+    public void setDelta(int delta) {
+        mDelta = delta;
     }
 
     @Override
@@ -163,7 +174,7 @@ public class AudioEngine extends BaseEngine {
                     @Override
                     public void run() {
                         while (isRecording()) {
-                            mAudioItem.setValue(Constants.HEADER_AUDIO, (int) getAmplitude() + "");
+                            mAudioItem.setValue(Constants.HEADER_AUDIO, (int) getAmplitude() + mDelta + "");
                             notifyListeners(mAudioItem.getTitle());
                             SystemClock.sleep(Constants.UPDATE_FREQUENCY);
                         }

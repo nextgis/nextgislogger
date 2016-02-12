@@ -101,6 +101,7 @@
     <string name="sensor_orientation">Orientation</string>
     <string name="gps">GPS</string>
     <string name="mic">Audio (mic)</string>
+    <string name="mic_delta">Calibrate audio</string>
 
     <string name="external_data">Enable external data</string>
     <string name="external_data_sum">Supports only Arduino now</string>
