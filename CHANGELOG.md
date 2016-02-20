@@ -1,5 +1,10 @@
 Changelog
 ***
+## version 1.5.2 (12.02.2016)
+* Added microphone level calibration
+* Bugfixing
+
+***
 ## version 1.5.1 (28.01.2016)
 * Added LTE support
 * Added roaming status
