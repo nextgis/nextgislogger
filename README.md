@@ -1,6 +1,8 @@
 NextGIS Logger
 ==========
 
+![Screenshot_1](/art/logger_img.png)
+
 Productive data logger for Android
 ***
 See [About](https://github.com/nextgis/nextgislogger/wiki/About) and [Data structure](https://github.com/nextgis/nextgislogger/wiki/Data-structures) pages for more info.
