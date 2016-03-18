@@ -1,6 +1,7 @@
 NextGIS Logger
 ==========
 Productive data logger for Android
+
 ![Screenshot_1](/art/logger_img.png)
 
 ***
