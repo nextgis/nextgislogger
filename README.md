@@ -15,9 +15,12 @@ Manual:
 * [Ru](http://gis-lab.info/qa/nextgis-logger.html)
 * [En](https://translate.google.com/translate?sl=ru&tl=en&js=y&prev=_t&hl=en&ie=UTF-8&u=http%3A%2F%2Fgis-lab.info%2Fqa%2Fnextgis-logger.html&edit-text=)
 
+License
+-------------
+This program is licensed under GNU GPL v2 or any later version
 
 Commercial support
 ----------
-Need to fix a bug or add a feature to android_gisapp (NextGIS Mobile)? We provide custom development and support for this software. [Contact us](http://nextgis.ru/en/contact/) to discuss options!
+Need to fix a bug or add a feature to NextGIS Logger? We provide custom development and support for this software. [Contact us](http://nextgis.ru/en/contact/) to discuss options!
 
 [![http://nextgis.com](http://nextgis.ru/img/nextgis.png)](http://nextgis.com)
