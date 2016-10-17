@@ -25,9 +25,7 @@
 
 <manifest
     package="com.nextgis.logger"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:versionCode="15"
-    android:versionName="1.5.1">
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
@@ -46,7 +44,7 @@
 
     <application
         android:name=".LoggerApplication"
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/LoggerTheme">

@@ -2,9 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/Logger.iml" filepath="$PROJECT_DIR$/Logger.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/nextgislogger.iml" filepath="$PROJECT_DIR$/nextgislogger.iml" />
     </modules>
   </component>
 </project>
-

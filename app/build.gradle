@@ -25,13 +25,15 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.2"
+    compileSdkVersion 24
+    buildToolsVersion "23.0.3"
 
     defaultConfig {
         applicationId "com.nextgis.logger"
         minSdkVersion 11
-        targetSdkVersion 22
+        targetSdkVersion 24
+        versionCode 17
+        versionName "1.6"
     }
 
     buildTypes {
@@ -41,11 +43,13 @@ android {
             proguardFile 'proguard-logger.txt'
         }
     }
+
+    return void
 }
 
 dependencies {
-    compile 'com.android.support:gridlayout-v7:23.1.1'
+    compile 'com.android.support:gridlayout-v7:24.2.1'
     compile 'com.melnykov:floatingactionbutton:1.2.0'
-    compile 'com.android.support:support-v4:23.1.1'
-    compile 'com.4ert:sfcdialog:0.1.1'
+    compile 'com.android.support:support-v4:24.2.1'
+    compile 'com.4ert:sfcdialog:0.2'
 }
