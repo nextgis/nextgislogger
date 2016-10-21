@@ -25,13 +25,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 24
+    compileSdkVersion 25
     buildToolsVersion "23.0.3"
 
     defaultConfig {
         applicationId "com.nextgis.logger"
         minSdkVersion 11
-        targetSdkVersion 24
+        targetSdkVersion 25
         versionCode 17
         versionName "1.6"
     }
@@ -48,8 +48,8 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:gridlayout-v7:24.2.1'
+    compile 'com.android.support:gridlayout-v7:25.0.0'
     compile 'com.melnykov:floatingactionbutton:1.2.0'
-    compile 'com.android.support:support-v4:24.2.1'
+    compile 'com.android.support:support-v4:25.0.0'
     compile 'com.4ert:sfcdialog:0.2'
 }
