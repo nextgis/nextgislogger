@@ -34,7 +34,13 @@ import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
 
-import com.nextgis.logger.util.Constants;
+import com.nextgis.logger.LoggerApplication;
+import com.nextgis.logger.util.LoggerConstants;
+import com.nextgis.maplib.datasource.Feature;
+import com.nextgis.maplib.datasource.GeoPoint;
+import com.nextgis.maplib.map.MapBase;
+import com.nextgis.maplib.map.NGWVectorLayer;
+import com.nextgis.maplib.util.Constants;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -71,7 +77,7 @@ public class ArduinoEngine extends BaseEngine {
 
     @Override
     public boolean isEngineEnabled() {
-        return getPreferences().getBoolean(Constants.PREF_EXTERNAL, false);
+        return getPreferences().getBoolean(LoggerConstants.PREF_EXTERNAL, false);
     }
 
     public interface ConnectionListener {
@@ -86,7 +92,7 @@ public class ArduinoEngine extends BaseEngine {
         super(context);
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         mConnectionListeners = new ArrayList<>();
-        String nameWithMAC = PreferenceManager.getDefaultSharedPreferences(context).getString(Constants.PREF_EXTERNAL_DEVICE, "");
+        String nameWithMAC = PreferenceManager.getDefaultSharedPreferences(context).getString(LoggerConstants.PREF_EXTERNAL_DEVICE, "");
         mDeviceMAC = splitDeviceMAC(nameWithMAC);
         mDeviceName = splitDeviceName(nameWithMAC);
 
@@ -113,7 +119,7 @@ public class ArduinoEngine extends BaseEngine {
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECTED);
         mContext.registerReceiver(mReceiver, filter);
 
-        mLine = getPreferences().getString(Constants.PREF_EXTERNAL_HEADER, "");
+        mLine = getPreferences().getString(LoggerConstants.PREF_EXTERNAL_HEADER, "");
         loadHeader();
         mLine = null;
         clearData();
@@ -150,6 +156,29 @@ public class ArduinoEngine extends BaseEngine {
     }
 
     @Override
+    public void saveData(long markId) {
+        saveData(getData(), markId);
+    }
+
+    @Override
+    public void saveData(ArrayList<InfoItem> items, long markId) {
+        NGWVectorLayer externalLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_EXTERNAL);
+        if (externalLayer != null) {
+            Feature mark;
+            mark = new Feature(Constants.NOT_FOUND, externalLayer.getFields());
+            mark.setFieldValue(LoggerApplication.FIELD_MARK, markId);
+
+            String data = "";
+            for (InfoItem item : items)
+                data += item.getColumns().get(0).getValue();
+
+            mark.setFieldValue(LoggerApplication.FIELD_DATA, data);
+            mark.setGeometry(new GeoPoint(0, 0));
+            externalLayer.createFeature(mark);
+        }
+    }
+
+    @Override
     public boolean onResume() {
         if (hasListeners() && (mWorkerThread != null && mWorkerThread.isAlive()))
             return false;
@@ -172,7 +201,7 @@ public class ArduinoEngine extends BaseEngine {
                         if (parseData())
                             notifyListeners("EXTERNAL");
 
-                        SystemClock.sleep(Constants.UPDATE_FREQUENCY);
+                        SystemClock.sleep(LoggerConstants.UPDATE_FREQUENCY);
                     } catch (IOException e) {
                         mLine = null;
                         clearData();
@@ -195,15 +224,15 @@ public class ArduinoEngine extends BaseEngine {
 
     private void clearData() {
         for (InfoItem item : mItems)
-            item.getColumns().get(0).setValue(Constants.NO_DATA);
+            item.getColumns().get(0).setValue(LoggerConstants.NO_DATA);
     }
 
     private synchronized void getExternalHeader() throws IOException {
         mOutputStream.write(GET_HEADER);
-        SystemClock.sleep(Constants.UPDATE_FREQUENCY);
+        SystemClock.sleep(LoggerConstants.UPDATE_FREQUENCY);
         mLine = readln();
         loadHeader();
-        getPreferences().edit().putString(Constants.PREF_EXTERNAL_HEADER, mLine).apply();
+        getPreferences().edit().putString(LoggerConstants.PREF_EXTERNAL_HEADER, mLine).apply();
         mIsFirstConnect = false;
 
         for (ConnectionListener listener : mConnectionListeners)

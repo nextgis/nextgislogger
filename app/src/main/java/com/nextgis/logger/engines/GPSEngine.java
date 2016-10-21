@@ -22,14 +22,21 @@
  */
 package com.nextgis.logger.engines;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 
 import com.nextgis.logger.R;
-import com.nextgis.logger.util.Constants;
+import com.nextgis.logger.util.LoggerConstants;
+import com.nextgis.maplib.datasource.GeoPoint;
+import com.nextgis.maplib.util.GeoConstants;
+
+import java.util.ArrayList;
 
 public class GPSEngine extends BaseEngine implements LocationListener {
     private final LocationManager mLocationManager;
@@ -45,7 +52,13 @@ public class GPSEngine extends BaseEngine implements LocationListener {
     @Override
     public boolean onResume() {
         if (super.onResume() && mLocationManager.getAllProviders().contains(LocationManager.GPS_PROVIDER) && isEngineEnabled()) {
-            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, Constants.MIN_GPS_TIME, Constants.MIN_GPS_DISTANCE, this);
+            if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                    && ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                return false;
+            }
+
+            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LoggerConstants.MIN_GPS_TIME, LoggerConstants.MIN_GPS_DISTANCE, this);
             mLastFix = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             return true;
         }
@@ -56,6 +69,12 @@ public class GPSEngine extends BaseEngine implements LocationListener {
     @Override
     public boolean onPause() {
         if (super.onPause()) {
+            if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                    && ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                return false;
+            }
+
             mLocationManager.removeUpdates(this);
             mLastFix = null;
             return true;
@@ -64,33 +83,69 @@ public class GPSEngine extends BaseEngine implements LocationListener {
         return false;
     }
 
+    @Override
+    public void saveData(long markId) {
+
+    }
+
+    @Override
+    public void saveData(ArrayList<InfoItem> items, long markId) {
+
+    }
+
     public int getSatellites() {
         return mLastFix.getExtras().getInt("satellites", 0);
     }
 
     public long getTime() {
         if (mLastFix == null)
-            return Constants.UNDEFINED;
+            return LoggerConstants.UNDEFINED;
 
         return mLastFix.getTime();
     }
 
+    public static GeoPoint getFix(ArrayList<InfoItem> items) {
+        InfoItem gpsItem = null;
+        for (InfoItem item : items) {
+            if (item.getColumn(LoggerConstants.HEADER_GPS_LAT) != null) {
+                gpsItem = item;
+                break;
+            }
+        }
+
+        double x = 0, y = 0;
+        if (gpsItem != null) {
+            Object value = gpsItem.getColumn(LoggerConstants.HEADER_GPS_LAT).getValue();
+            if (value instanceof Double)
+                x = (double) value;
+
+            value = gpsItem.getColumn(LoggerConstants.HEADER_GPS_LON).getValue();
+            if (value instanceof Double)
+                y = (double) value;
+        }
+
+        GeoPoint point = new GeoPoint(x, y);
+        point.setCRS(GeoConstants.CRS_WGS84);
+        point.project(GeoConstants.CRS_WEB_MERCATOR);
+        return point;
+    }
+
     @Override
     public boolean isEngineEnabled() {
-        return getPreferences().getBoolean(Constants.PREF_GPS, true);
+        return getPreferences().getBoolean(LoggerConstants.PREF_GPS, true);
     }
 
     @Override
     protected void loadHeader() {
         mGPSItem = new InfoItem(mContext.getString(R.string.gps));
-        mGPSItem.addColumn(Constants.HEADER_GPS_LAT, mContext.getString(R.string.info_lat), mContext.getString(R.string.info_degree), "%.6f")
-                .addColumn(Constants.HEADER_GPS_LON, mContext.getString(R.string.info_lon), mContext.getString(R.string.info_degree), "%.6f")
-                .addColumn(Constants.HEADER_GPS_ALT, mContext.getString(R.string.info_ele), mContext.getString(R.string.info_meter), "%.2f")
-                .addColumn(Constants.HEADER_GPS_ACC, mContext.getString(R.string.info_acc), mContext.getString(R.string.info_meter), "%.2f")
-                .addColumn(Constants.HEADER_GPS_SP, mContext.getString(R.string.info_speed), mContext.getString(R.string.info_kmh))
-                .addColumn(Constants.HEADER_GPS_BE, mContext.getString(R.string.info_bearing), mContext.getString(R.string.info_degree))
-                .addColumn(Constants.HEADER_GPS_SAT, mContext.getString(R.string.info_sat), null)
-                .addColumn(Constants.HEADER_GPS_TIME, mContext.getString(R.string.info_time), null);
+        mGPSItem.addColumn(LoggerConstants.HEADER_GPS_LAT, mContext.getString(R.string.info_lat), mContext.getString(R.string.info_degree), "%.6f")
+                .addColumn(LoggerConstants.HEADER_GPS_LON, mContext.getString(R.string.info_lon), mContext.getString(R.string.info_degree), "%.6f")
+                .addColumn(LoggerConstants.HEADER_GPS_ALT, mContext.getString(R.string.info_ele), mContext.getString(R.string.info_meter), "%.2f")
+                .addColumn(LoggerConstants.HEADER_GPS_ACC, mContext.getString(R.string.info_acc), mContext.getString(R.string.info_meter), "%.2f")
+                .addColumn(LoggerConstants.HEADER_GPS_SP, mContext.getString(R.string.info_speed), mContext.getString(R.string.info_kmh))
+                .addColumn(LoggerConstants.HEADER_GPS_BE, mContext.getString(R.string.info_bearing), mContext.getString(R.string.info_degree))
+                .addColumn(LoggerConstants.HEADER_GPS_SAT, mContext.getString(R.string.info_sat), null)
+                .addColumn(LoggerConstants.HEADER_GPS_TIME, mContext.getString(R.string.info_time), null);
 
         mItems.add(mGPSItem);
     }
@@ -98,14 +153,14 @@ public class GPSEngine extends BaseEngine implements LocationListener {
     @Override
     public void onLocationChanged(Location location) {
         mLastFix = location;
-        mGPSItem.setValue(Constants.HEADER_GPS_LAT, location.getLatitude());
-        mGPSItem.setValue(Constants.HEADER_GPS_LON, location.getLongitude());
-        mGPSItem.setValue(Constants.HEADER_GPS_ALT, location.getAltitude());
-        mGPSItem.setValue(Constants.HEADER_GPS_ACC, location.getAccuracy());
-        mGPSItem.setValue(Constants.HEADER_GPS_SP, location.getSpeed());
-        mGPSItem.setValue(Constants.HEADER_GPS_BE, location.getBearing());
-        mGPSItem.setValue(Constants.HEADER_GPS_SAT, getSatellites());
-        mGPSItem.setValue(Constants.HEADER_GPS_TIME, getTime());
+        mGPSItem.setValue(LoggerConstants.HEADER_GPS_LAT, location.getLatitude());
+        mGPSItem.setValue(LoggerConstants.HEADER_GPS_LON, location.getLongitude());
+        mGPSItem.setValue(LoggerConstants.HEADER_GPS_ALT, location.getAltitude());
+        mGPSItem.setValue(LoggerConstants.HEADER_GPS_ACC, location.getAccuracy());
+        mGPSItem.setValue(LoggerConstants.HEADER_GPS_SP, location.getSpeed());
+        mGPSItem.setValue(LoggerConstants.HEADER_GPS_BE, location.getBearing());
+        mGPSItem.setValue(LoggerConstants.HEADER_GPS_SAT, getSatellites());
+        mGPSItem.setValue(LoggerConstants.HEADER_GPS_TIME, getTime());
         notifyListeners(mGPSItem.getTitle());
     }
 

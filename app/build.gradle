@@ -52,4 +52,5 @@ dependencies {
     compile 'com.melnykov:floatingactionbutton:1.2.0'
     compile 'com.android.support:support-v4:25.0.0'
     compile 'com.4ert:sfcdialog:0.2'
+    compile project(':maplib')
 }

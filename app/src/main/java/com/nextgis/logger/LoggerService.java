@@ -22,7 +22,6 @@
 package com.nextgis.logger;
 
 import android.app.Notification;
-import android.support.v4.app.NotificationCompat;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -33,15 +32,16 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
+import android.support.v4.app.NotificationCompat;
 
 import com.nextgis.logger.engines.ArduinoEngine;
 import com.nextgis.logger.engines.BaseEngine;
 import com.nextgis.logger.engines.CellEngine;
+import com.nextgis.logger.engines.GPSEngine;
 import com.nextgis.logger.engines.SensorEngine;
-import com.nextgis.logger.util.Constants;
 import com.nextgis.logger.util.FileUtil;
-
-import java.io.FileNotFoundException;
+import com.nextgis.logger.util.LoggerConstants;
+import com.nextgis.maplib.datasource.GeoPoint;
 
 public class LoggerService extends Service implements ArduinoEngine.ConnectionListener {
 
@@ -57,7 +57,6 @@ public class LoggerService extends Service implements ArduinoEngine.ConnectionLi
 	private Thread thread = null;
 	private LocalBinder localBinder = new LocalBinder();
     private NotificationManager notificationManager;
-    private String userName;
 
     public class LocalBinder extends Binder {
 		public LoggerService getService() {
@@ -74,8 +73,7 @@ public class LoggerService extends Service implements ArduinoEngine.ConnectionLi
 		}
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        userName = prefs.getString(Constants.PREF_USER_NAME, Constants.DEFAULT_USERNAME);
-        interval = prefs.getInt(Constants.PREF_PERIOD_SEC, interval);
+        interval = prefs.getInt(LoggerConstants.PREF_PERIOD_SEC, interval);
 
 		mGsmEngine = LoggerApplication.getApplication().getCellEngine();
 		mGsmEngine.onResume();
@@ -171,10 +169,9 @@ public class LoggerService extends Service implements ArduinoEngine.ConnectionLi
 	private void RunTask() {
 		thread = new Thread(new Runnable() {
 			public void run() {
-				boolean isFileSystemError = false;
-				Intent intentStatus = new Intent(Constants.BROADCAST_ACTION);
+				Intent intentStatus = new Intent(LoggerConstants.BROADCAST_ACTION);
 
-				intentStatus.putExtra(Constants.PARAM_SERVICE_STATUS, Constants.STATUS_STARTED).putExtra(Constants.PARAM_TIME, timeStart);
+				intentStatus.putExtra(LoggerConstants.PARAM_SERVICE_STATUS, LoggerConstants.STATUS_STARTED).putExtra(LoggerConstants.PARAM_TIME, timeStart);
 				sendBroadcast(intentStatus);
 
 				PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
@@ -185,23 +182,21 @@ public class LoggerService extends Service implements ArduinoEngine.ConnectionLi
 					FileUtil.checkOrCreateDirectory(MainActivity.dataDirPath);
 
 					try {
-						String preamble = BaseEngine.getPreamble("", Constants.LOG_UID, userName, System.currentTimeMillis());
-						mGsmEngine.saveToLog(mGsmEngine.getDataAsStringList(preamble), false);
+						// TODO session id
+						GeoPoint point = GPSEngine.getFix(mSensorEngine.getData());
+						long markId = BaseEngine.saveMark(0, -1, LoggerConstants.LOG_UID, System.currentTimeMillis(), point);
+						mGsmEngine.saveData(markId);
 
 						if (mSensorEngine.isEngineEnabled())
-							mSensorEngine.saveToLog(mSensorEngine.getDataAsStringList(preamble), false);
+							mSensorEngine.saveData(markId);
 
 						if (mArduinoEngine.isEngineEnabled())
-							mArduinoEngine.saveToLog(mArduinoEngine.getDataAsStringList(preamble), false);
+							mArduinoEngine.saveData(markId);
 
-						intentStatus.putExtra(Constants.PARAM_SERVICE_STATUS, Constants.STATUS_RUNNING).putExtra(Constants.PARAM_RECORDS_COUNT, ++recordsCount);
+						intentStatus.putExtra(LoggerConstants.PARAM_SERVICE_STATUS, LoggerConstants.STATUS_RUNNING).putExtra(LoggerConstants.PARAM_RECORDS_COUNT, ++recordsCount);
 						sendBroadcast(intentStatus);
 
 						Thread.sleep(interval * 1000);
-					} catch (FileNotFoundException e) {
-						e.printStackTrace();
-						isFileSystemError = true;
-						break;
 					} catch (InterruptedException e) {
 						break;
 					}
@@ -212,14 +207,9 @@ public class LoggerService extends Service implements ArduinoEngine.ConnectionLi
 
 				wakeLock.release();
 
-				if (isFileSystemError) {
-					sendErrorNotification();
-					intentStatus.putExtra(Constants.PARAM_SERVICE_STATUS, Constants.STATUS_ERROR);
-				} else {
-					intentStatus.putExtra(Constants.PARAM_SERVICE_STATUS, Constants.STATUS_FINISHED).putExtra(Constants.PARAM_TIME,
-							System.currentTimeMillis());
+				intentStatus.putExtra(LoggerConstants.PARAM_SERVICE_STATUS, LoggerConstants.STATUS_FINISHED)
+						.putExtra(LoggerConstants.PARAM_TIME, System.currentTimeMillis());
 
-				}
 				sendBroadcast(intentStatus);
 
 				stopSelf();

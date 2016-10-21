@@ -23,11 +23,20 @@
 
 package com.nextgis.logger.engines;
 
+import android.os.Bundle;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.text.TextUtils;
 
 import java.util.IllegalFormatException;
 
-public class InfoColumn {
+public class InfoColumn implements Parcelable {
+    private static final String FNAME = "full_name";
+    private static final String SNAME = "short_name";
+    private static final String UNIT = "unit";
+    private static final String FORMAT = "format";
+    private static final String VALUE = "value";
+
     private String mFullName, mShortName, mUnit, mFormat;
     private Object mValue;
 
@@ -41,7 +50,7 @@ public class InfoColumn {
         this(shortName, fullName, unit);
 
         if (!isValueTypeValid(value))
-            throw new RuntimeException("Value must be following classes: [String, Double, Float, Integer]!");
+            throw new RuntimeException("Value must be following classes: [String, Double, Float, Integer, Long, Boolean]!");
 
         mValue = value;
     }
@@ -49,6 +58,56 @@ public class InfoColumn {
     public InfoColumn(String shortName, String fullName, String unit, Object value, String format) {
         this(shortName, fullName, unit, value);
         mFormat = format;
+    }
+
+    private InfoColumn(Parcel in) {
+        Bundle bundle = in.readBundle(getClass().getClassLoader());
+        mFullName = bundle.getString(FNAME);
+        mShortName = bundle.getString(SNAME);
+        mUnit = bundle.getString(UNIT);
+        mFormat = bundle.getString(FORMAT);
+        mValue = bundle.get(VALUE);
+    }
+
+    public static final Creator<InfoColumn> CREATOR = new Creator<InfoColumn>() {
+        @Override
+        public InfoColumn createFromParcel(Parcel in) {
+            return new InfoColumn(in);
+        }
+
+        @Override
+        public InfoColumn[] newArray(int size) {
+            return new InfoColumn[size];
+        }
+    };
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        Bundle bundle = new Bundle();
+        bundle.putString(FNAME, mFullName);
+        bundle.putString(SNAME, mShortName);
+        bundle.putString(UNIT, mUnit);
+        bundle.putString(FORMAT, mFullName);
+
+        if (mValue instanceof String)
+            bundle.putString(VALUE, (String) mValue);
+        else if (mValue instanceof Double)
+            bundle.putDouble(VALUE, (Double) mValue);
+        else if (mValue instanceof Float)
+            bundle.putFloat(VALUE, (Float) mValue);
+        else if (mValue instanceof Integer)
+            bundle.putInt(VALUE, (Integer) mValue);
+        else if (mValue instanceof Long)
+            bundle.putLong(VALUE, (Long) mValue);
+        else if (mValue instanceof Boolean)
+            bundle.putBoolean(VALUE, (Boolean) mValue);
+
+        dest.writeBundle(bundle);
     }
 
     private boolean isValueTypeValid(Object value) {

@@ -42,8 +42,14 @@ import android.telephony.TelephonyManager;
 import android.telephony.gsm.GsmCellLocation;
 import android.text.TextUtils;
 
+import com.nextgis.logger.LoggerApplication;
 import com.nextgis.logger.R;
-import com.nextgis.logger.util.Constants;
+import com.nextgis.logger.util.LoggerConstants;
+import com.nextgis.maplib.datasource.Feature;
+import com.nextgis.maplib.datasource.GeoPoint;
+import com.nextgis.maplib.map.MapBase;
+import com.nextgis.maplib.map.NGWVectorLayer;
+import com.nextgis.maplib.util.Constants;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -98,7 +104,7 @@ public class CellEngine extends BaseEngine {
 
 	@Override
 	public String getHeader() {
-		return Constants.CSV_HEADER_CELL;
+		return LoggerConstants.CSV_HEADER_CELL;
 	}
 
     @Override
@@ -109,7 +115,35 @@ public class CellEngine extends BaseEngine {
         return false;
     }
 
-    public void setSignalStrength(int signalStrength) {
+	@Override
+	public void saveData(long markId) {
+		saveData(getData(), markId);
+	}
+
+	@Override
+	public void saveData(ArrayList<InfoItem> items, long markId) {
+		NGWVectorLayer cellLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_CELL);
+		if (cellLayer != null) {
+			Feature mark;
+			for (InfoItem item : items) {
+				mark = new Feature(Constants.NOT_FOUND, cellLayer.getFields());
+				mark.setFieldValue(LoggerApplication.FIELD_MARK, markId);
+				mark.setFieldValue(LoggerConstants.HEADER_GEN, item.getColumn(LoggerConstants.HEADER_GEN).getValue());
+				mark.setFieldValue(LoggerConstants.HEADER_TYPE, item.getColumn(LoggerConstants.HEADER_TYPE).getValue());
+				mark.setFieldValue(LoggerConstants.HEADER_ACTIVE, item.getColumn(LoggerConstants.HEADER_ACTIVE).getValue());
+				mark.setFieldValue(LoggerConstants.HEADER_MCC, item.getColumn(LoggerConstants.HEADER_MCC).getValue());
+				mark.setFieldValue(LoggerConstants.HEADER_MNC, item.getColumn(LoggerConstants.HEADER_MNC).getValue());
+				mark.setFieldValue(LoggerConstants.HEADER_LAC, item.getColumn(LoggerConstants.HEADER_LAC).getValue());
+				mark.setFieldValue(LoggerConstants.HEADER_CID, item.getColumn(LoggerConstants.HEADER_CID).getValue());
+				mark.setFieldValue(LoggerConstants.HEADER_PSC, item.getColumn(LoggerConstants.HEADER_PSC).getValue());
+				mark.setFieldValue(LoggerConstants.HEADER_POWER, item.getColumn(LoggerConstants.HEADER_POWER).getValue());
+				mark.setGeometry(new GeoPoint(0, 0));
+				cellLayer.createFeature(mark);
+			}
+		}
+	}
+
+	public void setSignalStrength(int signalStrength) {
         mSignalStrength = signalStrength;
     }
 
@@ -169,7 +203,7 @@ public class CellEngine extends BaseEngine {
             String line = preamble;
 
             for (InfoColumn column : item.getColumns())
-                line += Constants.CSV_SEPARATOR + column.getValue();
+                line += LoggerConstants.CSV_SEPARATOR + column.getValue();
 
             result.add(line);
         }
@@ -189,7 +223,7 @@ public class CellEngine extends BaseEngine {
 		int api17 = android.os.Build.VERSION_CODES.JELLY_BEAN_MR1;
 		int api18 = android.os.Build.VERSION_CODES.JELLY_BEAN_MR2;
 
-		boolean useAPI17 = getPreferences().getBoolean(Constants.PREF_USE_API17, false); // WCDMA uses API 18+, now min is 18
+		boolean useAPI17 = getPreferences().getBoolean(LoggerConstants.PREF_USE_API17, false); // WCDMA uses API 18+, now min is 18
 		boolean isRegistered = false;
 		// #2 using API 17 to get all cell towers around, including one which phone registered to
 		if (osVersion >= api17 && useAPI17) {
@@ -205,7 +239,7 @@ public class CellEngine extends BaseEngine {
 
 						isRegistered |= gsm.isRegistered();
 						temp.add(new InfoItemGSM(gsm.isRegistered(), nwType, gsmIdentity.getMcc(), gsmIdentity.getMnc(), gsmIdentity.getLac(),
-								gsmIdentity.getCid(), Constants.UNDEFINED, gsm.getCellSignalStrength().getDbm()));
+								gsmIdentity.getCid(), LoggerConstants.UNDEFINED, gsm.getCellSignalStrength().getDbm()));
 
 						// 3G - WCDMA cell towers, its API 18+
 					} else if (osVersion >= api18 && cell.getClass() == CellInfoWcdma.class) {
@@ -230,8 +264,8 @@ public class CellEngine extends BaseEngine {
 
 		if (temp.size() == 0) { // in case API 17/18 didn't return anything
 			// #1 using default way to obtain cell towers info
-			int mcc = Constants.UNDEFINED;
-			int mnc = Constants.UNDEFINED;
+			int mcc = LoggerConstants.UNDEFINED;
+			int mnc = LoggerConstants.UNDEFINED;
 
 			//			boolean isNetworkTypeGSM = isGSMNetwork(mTelephonyManager.getNetworkType());
 			boolean isPhoneTypeGSM = mTelephonyManager.getPhoneType() == TelephonyManager.PHONE_TYPE_GSM;
@@ -264,7 +298,7 @@ public class CellEngine extends BaseEngine {
 			for (NeighboringCellInfo neighbor : neighbors) {
 				int nbNetworkType = neighbor.getNetworkType();
 
-				temp.add(new InfoItemGSM(false, nbNetworkType, Constants.UNDEFINED, Constants.UNDEFINED, neighbor.getLac(), neighbor.getCid(),
+				temp.add(new InfoItemGSM(false, nbNetworkType, LoggerConstants.UNDEFINED, LoggerConstants.UNDEFINED, neighbor.getLac(), neighbor.getCid(),
                         neighbor.getPsc(), signalStrengthAsuToDbm(neighbor.getRssi(), nbNetworkType)));
 			}
 		}
@@ -304,20 +338,20 @@ public class CellEngine extends BaseEngine {
 		switch (type) {
 		case TelephonyManager.NETWORK_TYPE_EDGE:
 		case TelephonyManager.NETWORK_TYPE_GPRS:
-			gen = Constants.GEN_2G;
+			gen = LoggerConstants.GEN_2G;
 			break;
 		case TelephonyManager.NETWORK_TYPE_UMTS:
 		case TelephonyManager.NETWORK_TYPE_HSPA:
 		case TelephonyManager.NETWORK_TYPE_HSDPA:
 		case TelephonyManager.NETWORK_TYPE_HSUPA:
 		case TelephonyManager.NETWORK_TYPE_HSPAP:
-			gen = Constants.GEN_3G;
+			gen = LoggerConstants.GEN_3G;
 			break;
 		case TelephonyManager.NETWORK_TYPE_LTE:
-			gen = Constants.GEN_4G;
+			gen = LoggerConstants.GEN_4G;
 			break;
 		default:
-			gen = Constants.UNKNOWN;
+			gen = LoggerConstants.UNKNOWN;
 			break;
 		}
 
@@ -360,7 +394,7 @@ public class CellEngine extends BaseEngine {
 			break;
 		case TelephonyManager.NETWORK_TYPE_UNKNOWN:
 		default:
-			network = Constants.UNKNOWN;
+			network = LoggerConstants.UNKNOWN;
 			break;
 		}
 
@@ -376,8 +410,8 @@ public class CellEngine extends BaseEngine {
         Collections.sort(array, new Comparator<InfoItem>() {
             @Override
             public int compare(InfoItem lhs, InfoItem rhs) {
-                boolean b1 = lhs.getColumn(Constants.HEADER_ACTIVE).getValue().equals("1");
-                boolean b2 = rhs.getColumn(Constants.HEADER_ACTIVE).getValue().equals("1");
+                boolean b1 = lhs.getColumn(LoggerConstants.HEADER_ACTIVE).getValue().equals("1");
+                boolean b2 = rhs.getColumn(LoggerConstants.HEADER_ACTIVE).getValue().equals("1");
 
                 if (b1 && !b2) {
                     return -1;
@@ -442,33 +476,33 @@ public class CellEngine extends BaseEngine {
     public class InfoItemGSM extends InfoItem {
 		public InfoItemGSM() {
 			super("Cell Info");
-            addColumn(Constants.HEADER_GEN, null, null);
-            addColumn(Constants.HEADER_TYPE, null, null);
-            setValue(Constants.HEADER_GEN, getNetworkGen(TelephonyManager.NETWORK_TYPE_UNKNOWN));
-            setValue(Constants.HEADER_TYPE, getNetworkType(TelephonyManager.NETWORK_TYPE_UNKNOWN));
+            addColumn(LoggerConstants.HEADER_GEN, null, null);
+            addColumn(LoggerConstants.HEADER_TYPE, null, null);
+            setValue(LoggerConstants.HEADER_GEN, getNetworkGen(TelephonyManager.NETWORK_TYPE_UNKNOWN));
+            setValue(LoggerConstants.HEADER_TYPE, getNetworkType(TelephonyManager.NETWORK_TYPE_UNKNOWN));
 
-            addColumn(Constants.HEADER_ACTIVE, null, null, 1);
-            addColumn(Constants.HEADER_MCC, null, null, Constants.UNDEFINED);
-            addColumn(Constants.HEADER_MNC, null, null, Constants.UNDEFINED);
-            addColumn(Constants.HEADER_LAC, null, null, Constants.UNDEFINED);
-            addColumn(Constants.HEADER_CID, null, null, Constants.UNDEFINED);
-            addColumn(Constants.HEADER_PSC, null, null, Constants.UNDEFINED);
-            addColumn(Constants.HEADER_POWER, null, mContext.getString(R.string.info_dbm), SIGNAL_STRENGTH_NONE);
+            addColumn(LoggerConstants.HEADER_ACTIVE, null, null, 1);
+            addColumn(LoggerConstants.HEADER_MCC, null, null, LoggerConstants.UNDEFINED);
+            addColumn(LoggerConstants.HEADER_MNC, null, null, LoggerConstants.UNDEFINED);
+            addColumn(LoggerConstants.HEADER_LAC, null, null, LoggerConstants.UNDEFINED);
+            addColumn(LoggerConstants.HEADER_CID, null, null, LoggerConstants.UNDEFINED);
+            addColumn(LoggerConstants.HEADER_PSC, null, null, LoggerConstants.UNDEFINED);
+            addColumn(LoggerConstants.HEADER_POWER, null, mContext.getString(R.string.info_dbm), SIGNAL_STRENGTH_NONE);
 		}
 
 		public InfoItemGSM(boolean active, int networkType, int mcc, int mnc, int lac, int cid, int psc, int power) {
             this();
-            setValue(Constants.HEADER_ACTIVE, active ? 1 : 0);
-            setValue(Constants.HEADER_GEN, getNetworkGen(networkType));
-            setValue(Constants.HEADER_TYPE, getNetworkType(networkType));
+            setValue(LoggerConstants.HEADER_ACTIVE, active ? 1 : 0);
+            setValue(LoggerConstants.HEADER_GEN, getNetworkGen(networkType));
+            setValue(LoggerConstants.HEADER_TYPE, getNetworkType(networkType));
 //            infoItemGSMArray.get(0).getMcc() + "-" + infoItemGSMArray.get(0).getMnc() + "-"
 //                    + infoItemGSMArray.get(0).getLac() + "-" + infoItemGSMArray.get(0).getCid();
 
             boolean outOfBounds = mcc <= LOW_BOUND || mcc >= MAX_MCC_MNC;
-            setValue(Constants.HEADER_MCC, outOfBounds ? Constants.UNDEFINED : mcc);
+            setValue(LoggerConstants.HEADER_MCC, outOfBounds ? LoggerConstants.UNDEFINED : mcc);
 
             outOfBounds = mnc <= LOW_BOUND || mnc >= MAX_MCC_MNC;
-            setValue(Constants.HEADER_MNC, outOfBounds ? Constants.UNDEFINED : mnc);
+            setValue(LoggerConstants.HEADER_MNC, outOfBounds ? LoggerConstants.UNDEFINED : mnc);
 
             switch (networkType) {
                 case TelephonyManager.NETWORK_TYPE_EDGE:
@@ -500,10 +534,10 @@ public class CellEngine extends BaseEngine {
 					break;
             }
 
-            setValue(Constants.HEADER_LAC, lac);
-            setValue(Constants.HEADER_CID, cid);
-            setValue(Constants.HEADER_PSC, psc);
-            setValue(Constants.HEADER_POWER, power);
+            setValue(LoggerConstants.HEADER_LAC, lac);
+            setValue(LoggerConstants.HEADER_CID, cid);
+            setValue(LoggerConstants.HEADER_PSC, psc);
+            setValue(LoggerConstants.HEADER_POWER, power);
 		}
 
         private void setValue(String key, int value) {

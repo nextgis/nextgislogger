@@ -47,7 +47,7 @@ import com.keenfin.sfcdialog.SimpleFileChooser;
 import com.nextgis.logger.UI.IntEditTextPreference;
 import com.nextgis.logger.engines.ArduinoEngine;
 import com.nextgis.logger.util.AudioCalibratePreference;
-import com.nextgis.logger.util.Constants;
+import com.nextgis.logger.util.LoggerConstants;
 import com.nextgis.logger.util.FileUtil;
 
 import java.io.File;
@@ -137,51 +137,51 @@ public class PreferencesActivity extends PreferenceActivity {
             LocationManager locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
 
             if (!locationManager.getAllProviders().contains(LocationManager.GPS_PROVIDER)) {
-                findPreference(Constants.PREF_GPS).setEnabled(false);
-                ((CheckBoxPreference) findPreference(Constants.PREF_GPS)).setChecked(false);
-                findPreference(Constants.PREF_GPS).setSummary(R.string.settings_sensor_sum);
+                findPreference(LoggerConstants.PREF_GPS).setEnabled(false);
+                ((CheckBoxPreference) findPreference(LoggerConstants.PREF_GPS)).setChecked(false);
+                findPreference(LoggerConstants.PREF_GPS).setSummary(R.string.settings_sensor_sum);
             }
 
 			SensorManager sm = (SensorManager) parent.getSystemService(Context.SENSOR_SERVICE);
 
 			if (sm.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION) == null) {
-                findPreference(Constants.PREF_SENSOR_MODE).setEnabled(false);
-                findPreference(Constants.PREF_SENSOR_MODE).setSummary(R.string.settings_sensor_sum);
+                findPreference(LoggerConstants.PREF_SENSOR_MODE).setEnabled(false);
+                findPreference(LoggerConstants.PREF_SENSOR_MODE).setSummary(R.string.settings_sensor_sum);
             }
 
 			if (sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD) == null) {
-                findPreference(Constants.PREF_SENSOR_MAG).setEnabled(false);
-                ((CheckBoxPreference) findPreference(Constants.PREF_SENSOR_MAG)).setChecked(false);
-                findPreference(Constants.PREF_SENSOR_MAG).setSummary(R.string.settings_sensor_sum);
+                findPreference(LoggerConstants.PREF_SENSOR_MAG).setEnabled(false);
+                ((CheckBoxPreference) findPreference(LoggerConstants.PREF_SENSOR_MAG)).setChecked(false);
+                findPreference(LoggerConstants.PREF_SENSOR_MAG).setSummary(R.string.settings_sensor_sum);
             }
 
 			if (sm.getDefaultSensor(Sensor.TYPE_ORIENTATION) == null) {
-                findPreference(Constants.PREF_SENSOR_ORIENT).setEnabled(false);
-                ((CheckBoxPreference) findPreference(Constants.PREF_SENSOR_ORIENT)).setChecked(false);
-                findPreference(Constants.PREF_SENSOR_ORIENT).setSummary(R.string.settings_sensor_sum);
+                findPreference(LoggerConstants.PREF_SENSOR_ORIENT).setEnabled(false);
+                ((CheckBoxPreference) findPreference(LoggerConstants.PREF_SENSOR_ORIENT)).setChecked(false);
+                findPreference(LoggerConstants.PREF_SENSOR_ORIENT).setSummary(R.string.settings_sensor_sum);
             }
 
 			if (sm.getDefaultSensor(Sensor.TYPE_GYROSCOPE) == null) {
-                findPreference(Constants.PREF_SENSOR_GYRO).setEnabled(false);
-                ((CheckBoxPreference) findPreference(Constants.PREF_SENSOR_GYRO)).setChecked(false);
-                findPreference(Constants.PREF_SENSOR_GYRO).setSummary(R.string.settings_sensor_sum);
+                findPreference(LoggerConstants.PREF_SENSOR_GYRO).setEnabled(false);
+                ((CheckBoxPreference) findPreference(LoggerConstants.PREF_SENSOR_GYRO)).setChecked(false);
+                findPreference(LoggerConstants.PREF_SENSOR_GYRO).setSummary(R.string.settings_sensor_sum);
             }
 
-            AudioCalibratePreference audio = (AudioCalibratePreference) findPreference(Constants.PREF_MIC_DELTA);
+            AudioCalibratePreference audio = (AudioCalibratePreference) findPreference(LoggerConstants.PREF_MIC_DELTA);
             audio.setSummary();
 
 			if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.JELLY_BEAN_MR1)
-				findPreference(Constants.PREF_USE_API17).setEnabled(false);
+				findPreference(LoggerConstants.PREF_USE_API17).setEnabled(false);
 
-			EditTextPreference userName = (EditTextPreference) findPreference(Constants.PREF_USER_NAME);
+			EditTextPreference userName = (EditTextPreference) findPreference(LoggerConstants.PREF_USER_NAME);
 			userName.setSummary(userName.getText());
 			userName.setOnPreferenceChangeListener(this);
 
-			IntEditTextPreference periodPreference = (IntEditTextPreference) findPreference(Constants.PREF_PERIOD_SEC);
+			IntEditTextPreference periodPreference = (IntEditTextPreference) findPreference(LoggerConstants.PREF_PERIOD_SEC);
 			periodPreference.setSummary(getString(R.string.settings_period_sum) + periodPreference.getPersistedString("1"));
 			periodPreference.setOnPreferenceChangeListener(this);
 
-			Preference catPathPreference = findPreference(Constants.PREF_CAT_PATH);
+			Preference catPathPreference = findPreference(LoggerConstants.PREF_CAT_PATH);
 
 			catPathPreference.setOnPreferenceClickListener(new OnPreferenceClickListener() {
                 @Override
@@ -194,8 +194,8 @@ public class PreferencesActivity extends PreferenceActivity {
                 }
             });
 
-            final Preference selectExternalDevice = findPreference(Constants.PREF_EXTERNAL_DEVICE);
-            selectExternalDevice.setSummary(PreferenceManager.getDefaultSharedPreferences(getActivity()).getString(Constants.PREF_EXTERNAL_DEVICE, null));
+            final Preference selectExternalDevice = findPreference(LoggerConstants.PREF_EXTERNAL_DEVICE);
+            selectExternalDevice.setSummary(PreferenceManager.getDefaultSharedPreferences(getActivity()).getString(LoggerConstants.PREF_EXTERNAL_DEVICE, null));
 
             selectExternalDevice.setOnPreferenceClickListener(new OnPreferenceClickListener() {
                 @Override
@@ -219,7 +219,7 @@ public class PreferencesActivity extends PreferenceActivity {
                                     public void onClick(DialogInterface dialog, int which) {
                                         String name = devicesNames.getItem(which);
                                         PreferenceManager.getDefaultSharedPreferences(getActivity()).edit()
-                                                .putString(Constants.PREF_EXTERNAL_DEVICE, name).commit();
+                                                .putString(LoggerConstants.PREF_EXTERNAL_DEVICE, name).commit();
                                         engine.setDeviceMAC(engine.splitDeviceMAC(name));
                                         engine.setDeviceName(engine.splitDeviceName(name));
                                         selectExternalDevice.setSummary(name);
@@ -256,10 +256,10 @@ public class PreferencesActivity extends PreferenceActivity {
         @Override
         public boolean onPreferenceChange(Preference preference, Object newValue) {
             switch (preference.getKey()) {
-                case Constants.PREF_USER_NAME:
+                case LoggerConstants.PREF_USER_NAME:
                     preference.setSummary((String) newValue);
                     return true;
-                case Constants.PREF_PERIOD_SEC:
+                case LoggerConstants.PREF_PERIOD_SEC:
                     int period;
 
                     try {

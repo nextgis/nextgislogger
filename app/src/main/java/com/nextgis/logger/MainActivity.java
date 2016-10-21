@@ -48,7 +48,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.nextgis.logger.UI.ProgressBarActivity;
-import com.nextgis.logger.util.Constants;
+import com.nextgis.logger.util.LoggerConstants;
 import com.nextgis.logger.util.FileUtil;
 
 import java.io.File;
@@ -60,13 +60,13 @@ import java.util.Calendar;
 import java.util.Locale;
 
 public class MainActivity extends ProgressBarActivity implements OnClickListener {
-	public static String dataDirPath = Constants.DATA_PATH;
-	public static String csvLogFilePath = dataDirPath + File.separator + Constants.CSV_LOG_CELL;
-	public static String csvLogFilePathSensor = dataDirPath + File.separator + Constants.CSV_LOG_SENSOR;
-	public static String csvLogFilePathExternal = dataDirPath + File.separator + Constants.CSV_LOG_EXTERNAL;
-	public static String csvMarkFilePath = dataDirPath + File.separator + Constants.CSV_MARK_CELL;
-	public static String csvMarkFilePathSensor = dataDirPath + File.separator + Constants.CSV_MARK_SENSOR;
-	public static String csvMarkFilePathExternal = dataDirPath + File.separator + Constants.CSV_MARK_EXTERNAL;
+	public static String dataDirPath = LoggerConstants.DATA_PATH;
+	public static String csvLogFilePath = dataDirPath + File.separator + LoggerConstants.CSV_LOG_CELL;
+	public static String csvLogFilePathSensor = dataDirPath + File.separator + LoggerConstants.CSV_LOG_SENSOR;
+	public static String csvLogFilePathExternal = dataDirPath + File.separator + LoggerConstants.CSV_LOG_EXTERNAL;
+	public static String csvMarkFilePath = dataDirPath + File.separator + LoggerConstants.CSV_MARK_CELL;
+	public static String csvMarkFilePathSensor = dataDirPath + File.separator + LoggerConstants.CSV_MARK_SENSOR;
+	public static String csvMarkFilePathExternal = dataDirPath + File.separator + LoggerConstants.CSV_MARK_EXTERNAL;
 
 	private static long timeStarted = 0;
 	private static int recordsCount = 0;
@@ -99,7 +99,7 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 
         setContentView(R.layout.main_activity);
 		PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
-        FileUtil.deleteFiles(new File(Constants.TEMP_PATH).listFiles()); // clear cache directory with shared zips
+        FileUtil.deleteFiles(new File(LoggerConstants.TEMP_PATH).listFiles()); // clear cache directory with shared zips
         ((TextView)findViewById(R.id.tv_sessions)).setText(getString(R.string.title_activity_sessions).toUpperCase());
 
 		boolean isServiceRunning = isLoggerServiceRunning(this);
@@ -112,7 +112,7 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 		markButton.setText(getString(R.string.btn_save_mark));
 		markButton.setOnClickListener(this);
 
-		String session = mPreferences.getString(Constants.PREF_SESSION_NAME, "");
+		String session = mPreferences.getString(LoggerConstants.PREF_SESSION_NAME, "");
 
 		setDataDirPath(session);
 		setInterfaceState(0, session.equals("") ? INTERFACE_STATE.SESSION_NONE : INTERFACE_STATE.SESSION_STARTED);
@@ -132,7 +132,7 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 		recordsCollectedCount = (TextView) findViewById(R.id.tv_records_collected_count);
 		marksCollectedCount = (TextView) findViewById(R.id.tv_marks_collected_count);
 
-		recordsCount = mPreferences.getInt(Constants.PREF_RECORDS_COUNT, 0);
+		recordsCount = mPreferences.getInt(LoggerConstants.PREF_RECORDS_COUNT, 0);
 
 		if (!isServiceRunning) {
 			if (timeStarted > 0) {
@@ -164,36 +164,36 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 
 		broadcastReceiver = new BroadcastReceiver() {
 			public void onReceive(Context context, Intent intent) {
-				int serviceStatus = intent.getIntExtra(Constants.PARAM_SERVICE_STATUS, 0);
-				long time = intent.getLongExtra(Constants.PARAM_TIME, 0);
+				int serviceStatus = intent.getIntExtra(LoggerConstants.PARAM_SERVICE_STATUS, 0);
+				long time = intent.getLongExtra(LoggerConstants.PARAM_TIME, 0);
 
 				switch (serviceStatus) {
-				case Constants.STATUS_STARTED:
+				case LoggerConstants.STATUS_STARTED:
 					timeStarted = time;
 					loggerStartedTime.setText(millisToDate(time, "dd.MM.yyyy hh:mm:ss"));
 					loggerFinishedTime.setText(getText(R.string.service_running));
 					break;
 
-				case Constants.STATUS_RUNNING:
-					recordsCollectedCount.setText(recordsCount + intent.getIntExtra(Constants.PARAM_RECORDS_COUNT, 0) + "");
+				case LoggerConstants.STATUS_RUNNING:
+					recordsCollectedCount.setText(recordsCount + intent.getIntExtra(LoggerConstants.PARAM_RECORDS_COUNT, 0) + "");
 					loggerFinishedTime.setText(getText(R.string.service_running));
 					break;
 
-				case Constants.STATUS_ERROR:
+				case LoggerConstants.STATUS_ERROR:
 					setInterfaceState(R.string.fs_error_msg, INTERFACE_STATE.ERROR);
-				case Constants.STATUS_FINISHED:
+				case LoggerConstants.STATUS_FINISHED:
                     updateFileForMTP(csvLogFilePath);
                     updateFileForMTP(csvLogFilePathSensor);
                     updateFileForMTP(csvLogFilePathExternal);
-					recordsCount += intent.getIntExtra(Constants.PARAM_RECORDS_COUNT, 0);
+					recordsCount += intent.getIntExtra(LoggerConstants.PARAM_RECORDS_COUNT, 0);
 					loggerFinishedTime.setText(millisToDate(time, "dd.MM.yyyy hh:mm:ss"));
-					mPreferences.edit().putInt(Constants.PREF_RECORDS_COUNT, recordsCount).apply();
+					mPreferences.edit().putInt(LoggerConstants.PREF_RECORDS_COUNT, recordsCount).apply();
 					break;
 				}
 			}
 		};
 
-		IntentFilter intentFilter = new IntentFilter(Constants.BROADCAST_ACTION);
+		IntentFilter intentFilter = new IntentFilter(LoggerConstants.BROADCAST_ACTION);
 		registerReceiver(broadcastReceiver, intentFilter);
 	}
 
@@ -201,7 +201,7 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 	protected void onResume() {
 		super.onResume();
 
-		int marksCount = mPreferences.getInt(Constants.PREF_MARKS_COUNT, 0);
+		int marksCount = mPreferences.getInt(LoggerConstants.PREF_MARKS_COUNT, 0);
 
 		if (marksCount > 0) {
             marksCollectedCount.setText(marksCount + "");
@@ -243,7 +243,7 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 
 				final EditText input = new EditText(this);
 				String defaultName = millisToDate(Calendar.getInstance().getTimeInMillis(), "yyyy-MM-dd--HH-mm-ss");
-                String userName = mPreferences.getString(Constants.PREF_USER_NAME, Constants.DEFAULT_USERNAME);
+                String userName = mPreferences.getString(LoggerConstants.PREF_USER_NAME, LoggerConstants.DEFAULT_USERNAME);
 				defaultName += userName.equals("") ? "" : "--" + userName;
 				input.setText(defaultName); // default session name
 				input.setSelection(input.getText().length()); // move cursor at the end
@@ -254,13 +254,13 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 						String value = input.getText().toString();
 
 						if (isCorrectName(value)) { // open session
-							mPreferences.edit().putString(Constants.PREF_SESSION_NAME, value).apply();
+							mPreferences.edit().putString(LoggerConstants.PREF_SESSION_NAME, value).apply();
 							setInterfaceState(0, INTERFACE_STATE.SESSION_STARTED);
 							setDataDirPath(value);
 							sessionButton.setText(R.string.btn_session_close);
 							sessionName.setText(value);
 
-							File deviceInfoFile = new File(dataDirPath + File.separator + Constants.DEVICE_INFO);
+							File deviceInfoFile = new File(dataDirPath + File.separator + LoggerConstants.DEVICE_INFO);
 
 							PrintWriter pw;
 							try {
@@ -284,10 +284,10 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 //				dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE); // show keyboard
 				dialog.show();
 			} else { // close session
-				mPreferences.edit().putString(Constants.PREF_SESSION_NAME, "")
-						.putInt(Constants.PREF_MARKS_COUNT, 0)
-						.putInt(Constants.PREF_RECORDS_COUNT, 0)
-                        .putInt(Constants.PREF_MARK_POS, Integer.MIN_VALUE).apply();
+				mPreferences.edit().putString(LoggerConstants.PREF_SESSION_NAME, "")
+						.putInt(LoggerConstants.PREF_MARKS_COUNT, 0)
+						.putInt(LoggerConstants.PREF_RECORDS_COUNT, 0)
+                        .putInt(LoggerConstants.PREF_MARK_POS, Integer.MIN_VALUE).apply();
 				recordsCount = 0;
 				setInterfaceState(0, INTERFACE_STATE.SESSION_NONE);
 				setDataDirPath("");
@@ -366,14 +366,14 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 	}
 
 	private void setDataDirPath(String directory) {
-		directory = directory.equals("") ? Constants.DATA_PATH : Constants.DATA_PATH + File.separator + directory;
+		directory = directory.equals("") ? LoggerConstants.DATA_PATH : LoggerConstants.DATA_PATH + File.separator + directory;
 		dataDirPath = directory;
-		csvLogFilePath = directory + File.separator + Constants.CSV_LOG_CELL;
-		csvLogFilePathSensor = directory + File.separator + Constants.CSV_LOG_SENSOR;
-		csvLogFilePathExternal = directory + File.separator + Constants.CSV_LOG_EXTERNAL;
-		csvMarkFilePath = directory + File.separator + Constants.CSV_MARK_CELL;
-		csvMarkFilePathSensor = directory + File.separator + Constants.CSV_MARK_SENSOR;
-		csvMarkFilePathExternal = directory + File.separator + Constants.CSV_MARK_EXTERNAL;
+		csvLogFilePath = directory + File.separator + LoggerConstants.CSV_LOG_CELL;
+		csvLogFilePathSensor = directory + File.separator + LoggerConstants.CSV_LOG_SENSOR;
+		csvLogFilePathExternal = directory + File.separator + LoggerConstants.CSV_LOG_EXTERNAL;
+		csvMarkFilePath = directory + File.separator + LoggerConstants.CSV_MARK_CELL;
+		csvMarkFilePathSensor = directory + File.separator + LoggerConstants.CSV_MARK_SENSOR;
+		csvMarkFilePathExternal = directory + File.separator + LoggerConstants.CSV_MARK_EXTERNAL;
 
 		if (!FileUtil.checkOrCreateDirectory(dataDirPath))
 			setInterfaceState(R.string.ext_media_unmounted_msg, INTERFACE_STATE.ERROR);

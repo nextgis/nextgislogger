@@ -38,7 +38,7 @@ import com.nextgis.logger.R;
 import com.nextgis.logger.engines.BaseEngine;
 import com.nextgis.logger.engines.CellEngine;
 import com.nextgis.logger.engines.InfoItem;
-import com.nextgis.logger.util.Constants;
+import com.nextgis.logger.util.LoggerConstants;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -118,20 +118,20 @@ public class InfoCellFragment extends Fragment {
         int id = 1;
         String gen, type, mnc, mcc, lac, cid, psc, power;
         for (InfoItem gsmItem : infoItemGSMArray) {
-            String data = (String) gsmItem.getColumn(Constants.HEADER_GEN).getValue();
-            gen = data.equals(Constants.UNKNOWN) ? na : data;
-            data = (String) gsmItem.getColumn(Constants.HEADER_TYPE).getValue();
-            type = data.equals(Constants.UNKNOWN) ? na : data;
-            mcc = replaceNegativeValue(gsmItem, Constants.HEADER_MCC, na);
-            mnc = replaceNegativeValue(gsmItem, Constants.HEADER_MNC, na);
-            lac = replaceNegativeValue(gsmItem, Constants.HEADER_LAC, na);
-            cid = replaceNegativeValue(gsmItem, Constants.HEADER_CID, na);
-            psc = replaceNegativeValue(gsmItem, Constants.HEADER_PSC, na);
-            power = gsmItem.getColumn(Constants.HEADER_POWER).getValueWithUnit();
+            String data = (String) gsmItem.getColumn(LoggerConstants.HEADER_GEN).getValue();
+            gen = data.equals(LoggerConstants.UNKNOWN) ? na : data;
+            data = (String) gsmItem.getColumn(LoggerConstants.HEADER_TYPE).getValue();
+            type = data.equals(LoggerConstants.UNKNOWN) ? na : data;
+            mcc = replaceNegativeValue(gsmItem, LoggerConstants.HEADER_MCC, na);
+            mnc = replaceNegativeValue(gsmItem, LoggerConstants.HEADER_MNC, na);
+            lac = replaceNegativeValue(gsmItem, LoggerConstants.HEADER_LAC, na);
+            cid = replaceNegativeValue(gsmItem, LoggerConstants.HEADER_CID, na);
+            psc = replaceNegativeValue(gsmItem, LoggerConstants.HEADER_PSC, na);
+            power = gsmItem.getColumn(LoggerConstants.HEADER_POWER).getValueWithUnit();
 
             itemData = new HashMap<>();
 
-            boolean isActive = gsmItem.getColumn(Constants.HEADER_ACTIVE).getValue().equals("1");
+            boolean isActive = gsmItem.getColumn(LoggerConstants.HEADER_ACTIVE).getValue().equals("1");
             if (!isActive)
                 itemData.put(CELL_ID, String.format("%s)", id++));
 
@@ -212,7 +212,7 @@ public class InfoCellFragment extends Fragment {
                 tvPower = (TextView) v.findViewById(R.id.tv_network_power);
 
                 boolean sameOperatorName = item.get(CELL_MNC).equals(mGsmEngine.getNetworkMNC() + "");
-                tvOperator.setText(sameOperatorName ? mGsmEngine.getNetworkOperator() : Constants.UNKNOWN);
+                tvOperator.setText(sameOperatorName ? mGsmEngine.getNetworkOperator() : LoggerConstants.UNKNOWN);
                 tvGen.setText((String) item.get(CELL_GEN));
                 tvType.setText((String) item.get(CELL_TYPE));
                 tvMCC.setText((String) item.get(CELL_MCC));
@@ -223,12 +223,12 @@ public class InfoCellFragment extends Fragment {
                 tvPower.setText((String) item.get(CELL_POWER));
 
                 switch (item.get(CELL_GEN).toString()) {
-                    case Constants.GEN_2G:
+                    case LoggerConstants.GEN_2G:
                         v.findViewById(R.id.ll_psc).setVisibility(View.GONE);
                         ((TextView) v.findViewById(R.id.tv_network_lac_title)).setText(R.string.info_lac);
                         ((TextView) v.findViewById(R.id.tv_network_cid_title)).setText(R.string.info_cid);
                         break;
-                    case Constants.GEN_4G:
+                    case LoggerConstants.GEN_4G:
                         v.findViewById(R.id.ll_psc).setVisibility(View.VISIBLE);
                         ((TextView) v.findViewById(R.id.tv_network_lac_title)).setText(R.string.info_tac);
                         ((TextView) v.findViewById(R.id.tv_network_cid_title)).setText(R.string.info_pci);
@@ -249,7 +249,7 @@ public class InfoCellFragment extends Fragment {
             TextView psc_title = (TextView) result.findViewById(R.id.tv_network_psc_title);
 
             switch (item.get(CELL_GEN).toString()) {
-                case Constants.GEN_2G:
+                case LoggerConstants.GEN_2G:
                     if (psc != null && psc_title != null) {
                         psc.setVisibility(View.INVISIBLE);
                         psc_title.setVisibility(View.INVISIBLE);
@@ -257,7 +257,7 @@ public class InfoCellFragment extends Fragment {
                         ((TextView) result.findViewById(R.id.tv_network_cid_title)).setText(R.string.info_cid);
                     }
                     break;
-                case Constants.GEN_4G:
+                case LoggerConstants.GEN_4G:
                     if (psc != null && psc_title != null) {
                         psc.setVisibility(View.VISIBLE);
                         psc_title.setText(R.string.info_ci);

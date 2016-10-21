@@ -32,8 +32,9 @@ import android.os.SystemClock;
 import android.preference.PreferenceManager;
 
 import com.nextgis.logger.R;
-import com.nextgis.logger.util.Constants;
+import com.nextgis.logger.util.LoggerConstants;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -46,7 +47,7 @@ public class AudioEngine extends BaseEngine {
         super(context);
         mAudioMeter = new AudioMeter();
         loadHeader();
-        mDelta = PreferenceManager.getDefaultSharedPreferences(context).getInt(Constants.PREF_MIC_DELTA, 0);
+        mDelta = PreferenceManager.getDefaultSharedPreferences(context).getInt(LoggerConstants.PREF_MIC_DELTA, 0);
     }
 
     @Override
@@ -57,6 +58,16 @@ public class AudioEngine extends BaseEngine {
         }
 
         return false;
+    }
+
+    @Override
+    public void saveData(long markId) {
+
+    }
+
+    @Override
+    public void saveData(ArrayList<InfoItem> items, long markId) {
+
     }
 
     @Override
@@ -72,22 +83,22 @@ public class AudioEngine extends BaseEngine {
     @Override
     protected void loadHeader() {
         mAudioItem = new InfoItem(mContext.getString(R.string.mic));
-        mAudioItem.addColumn(Constants.HEADER_AUDIO, null, mContext.getString(R.string.info_db));
+        mAudioItem.addColumn(LoggerConstants.HEADER_AUDIO, null, mContext.getString(R.string.info_db));
         mItems.add(mAudioItem);
     }
 
     @Override
     public String getHeader() {
-        return Constants.CSV_SEPARATOR + Constants.HEADER_AUDIO;
+        return LoggerConstants.CSV_SEPARATOR + LoggerConstants.HEADER_AUDIO;
     }
 
     @Override
     public List<String> getDataAsStringList(String preamble) {
-        return Collections.singletonList(Constants.CSV_SEPARATOR + mAudioItem.getColumn(Constants.HEADER_AUDIO).getValue());
+        return Collections.singletonList(LoggerConstants.CSV_SEPARATOR + mAudioItem.getColumn(LoggerConstants.HEADER_AUDIO).getValue());
     }
 
     public int getDb() {
-        return Integer.parseInt(mAudioItem.getColumn(Constants.HEADER_AUDIO).getValue().toString());
+        return Integer.parseInt(mAudioItem.getColumn(LoggerConstants.HEADER_AUDIO).getValue().toString());
     }
 
     public void setDelta(int delta) {
@@ -96,7 +107,7 @@ public class AudioEngine extends BaseEngine {
 
     @Override
     public boolean isEngineEnabled() {
-        return getPreferences().getBoolean(Constants.PREF_MIC, true);
+        return getPreferences().getBoolean(LoggerConstants.PREF_MIC, true);
     }
 
     public boolean isRecording() {
@@ -174,9 +185,9 @@ public class AudioEngine extends BaseEngine {
                     @Override
                     public void run() {
                         while (isRecording()) {
-                            mAudioItem.setValue(Constants.HEADER_AUDIO, (int) getAmplitude() + mDelta + "");
+                            mAudioItem.setValue(LoggerConstants.HEADER_AUDIO, (int) getAmplitude() + mDelta + "");
                             notifyListeners(mAudioItem.getTitle());
-                            SystemClock.sleep(Constants.UPDATE_FREQUENCY);
+                            SystemClock.sleep(LoggerConstants.UPDATE_FREQUENCY);
                         }
                     }
                 }).start();

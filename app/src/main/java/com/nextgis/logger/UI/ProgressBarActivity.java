@@ -28,7 +28,6 @@ import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -47,7 +46,7 @@ import com.nextgis.logger.livedata.InfoActivity;
 import com.nextgis.logger.LoggerService;
 import com.nextgis.logger.PreferencesActivity;
 import com.nextgis.logger.R;
-import com.nextgis.logger.util.Constants;
+import com.nextgis.logger.util.LoggerConstants;
 import com.nextgis.logger.util.UiUtil;
 
 public class ProgressBarActivity extends FragmentActivity implements View.OnClickListener {
@@ -200,6 +199,6 @@ public class ProgressBarActivity extends FragmentActivity implements View.OnClic
     }
 
     protected boolean isSessionClosed() {
-        return mPreferences.getString(Constants.PREF_SESSION_NAME, "").equals("");
+        return mPreferences.getString(LoggerConstants.PREF_SESSION_NAME, "").equals("");
     }
 }

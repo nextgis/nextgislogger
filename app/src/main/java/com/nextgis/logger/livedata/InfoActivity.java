@@ -33,7 +33,7 @@ import android.view.WindowManager;
 
 import com.nextgis.logger.R;
 import com.nextgis.logger.UI.ProgressBarActivity;
-import com.nextgis.logger.util.Constants;
+import com.nextgis.logger.util.LoggerConstants;
 
 public class InfoActivity extends ProgressBarActivity {
     private static final String PREF_LAST_VISITED = "last_tab";
@@ -63,7 +63,7 @@ public class InfoActivity extends ProgressBarActivity {
     protected void onResume() {
         super.onResume();
 
-        if(mPreferences.getBoolean(Constants.PREF_KEEP_SCREEN, true))
+        if(mPreferences.getBoolean(LoggerConstants.PREF_KEEP_SCREEN, true))
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         else
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);

@@ -129,7 +129,7 @@ public final class FileUtil {
 
     public static File getCategoriesFile(Context context) {
         String internalPath = context.getFilesDir().getAbsolutePath();
-        File result = new File(internalPath + "/" + Constants.CATEGORIES);
+        File result = new File(internalPath + "/" + LoggerConstants.CATEGORIES);
 
         if (!result.exists()) {
             try {

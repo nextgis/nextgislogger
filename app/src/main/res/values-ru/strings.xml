@@ -67,7 +67,7 @@
     <string name="marks_collected">Меток собрано:</string>
     <string name="service_running">запущен</string>
     <string name="service_stopped">остановлен</string>
-    <string name="network_type">Тип сети:</string>
+    <string name="network_type">Тип сети</string>
     <string name="btn_save_mark">Метки</string>
     <string name="tv_modes">РЕЖИМЫ</string>
 
@@ -158,4 +158,7 @@
     <string name="info_active">"Активных: "</string>
     <string name="info_expand">раскрыть</string>
     <string name="info_collapse">свернуть</string>
+
+    <string name="user_name">Пользователь</string>
+    <string name="timestamp">Временная метка</string>
 </resources>

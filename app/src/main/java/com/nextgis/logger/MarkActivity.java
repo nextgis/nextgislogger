@@ -56,13 +56,15 @@ import com.nextgis.logger.UI.ProgressBarActivity;
 import com.nextgis.logger.engines.ArduinoEngine;
 import com.nextgis.logger.engines.BaseEngine;
 import com.nextgis.logger.engines.CellEngine;
+import com.nextgis.logger.engines.GPSEngine;
+import com.nextgis.logger.engines.InfoItem;
 import com.nextgis.logger.engines.SensorEngine;
-import com.nextgis.logger.util.Constants;
+import com.nextgis.logger.util.LoggerConstants;
 import com.nextgis.logger.util.FileUtil;
 import com.nextgis.logger.util.MarkName;
+import com.nextgis.maplib.datasource.GeoPoint;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -78,6 +80,10 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 	private static final String BUNDLE_CELL     = "data_network";
 	private static final String BUNDLE_SENSOR   = "data_sensors";
 	private static final String BUNDLE_EXTERNAL = "data_external";
+	private static final String BUNDLE_SESSION  = "session";
+	private static final String BUNDLE_TIME     = "time";
+	private static final String BUNDLE_ID       = "mark_id";
+	private static final String BUNDLE_NAME     = "mark_name";
 
     private static int marksCount = 0;
     private boolean mIsHot, mIsVolumeControlEnabled, mIsActive, mLastConnection;
@@ -99,9 +105,9 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-        mIsVolumeControlEnabled = mPreferences.getBoolean(Constants.PREF_USE_VOL, true);
+        mIsVolumeControlEnabled = mPreferences.getBoolean(LoggerConstants.PREF_USE_VOL, true);
 
-        if(mPreferences.getBoolean(Constants.PREF_KEEP_SCREEN, true))
+        if(mPreferences.getBoolean(LoggerConstants.PREF_KEEP_SCREEN, true))
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 		setContentView(R.layout.mark_activity);
@@ -114,8 +120,8 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
         mArduinoEngine.addConnectionListener(this);
 //		wifiEngine = new WiFiEngine(this);
 
-        mSavedMarkPosition = mPreferences.getInt(Constants.PREF_MARK_POS, Integer.MIN_VALUE);
-        marksCount = mPreferences.getInt(Constants.PREF_MARKS_COUNT, 0);
+        mSavedMarkPosition = mPreferences.getInt(LoggerConstants.PREF_MARK_POS, Integer.MIN_VALUE);
+        marksCount = mPreferences.getInt(LoggerConstants.PREF_MARKS_COUNT, 0);
         marksHandler = new MarksHandler(this);
 
         mLvCategories = (ListView) findViewById(R.id.lv_categories);
@@ -219,7 +225,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
         mArduinoEngine.onPause();
 //		wifiEngine.onPause();
 
-		mPreferences.edit().putInt(Constants.PREF_MARKS_COUNT, marksCount).apply();
+		mPreferences.edit().putInt(LoggerConstants.PREF_MARKS_COUNT, marksCount).apply();
 	}
 
     @Override
@@ -405,26 +411,27 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 
         FileUtil.checkOrCreateDirectory(MainActivity.dataDirPath);
 
-        String markName = mark.getCAT();
-        String ID = mark.getID() + "";
-        String userName = mPreferences.getString(Constants.PREF_USER_NAME, Constants.DEFAULT_USERNAME);
-        String preamble = BaseEngine.getPreamble(ID, markName, userName, System.currentTimeMillis());
-
         final Bundle data = new Bundle();
-        data.putInt(Constants.PREF_MARK_POS, mMarksAdapter.getMarkPosition(mark));
-        data.putStringArrayList(BUNDLE_CELL, new ArrayList<>(mGsmEngine.getDataAsStringList(preamble)));
+        data.putInt(LoggerConstants.PREF_MARK_POS, mMarksAdapter.getMarkPosition(mark));
+        // TODO
+        data.putLong(BUNDLE_SESSION, 0);
+        data.putInt(BUNDLE_ID, mark.getID());
+        data.putString(BUNDLE_NAME, mark.getCAT());
+        data.putLong(BUNDLE_TIME, System.currentTimeMillis());
+        data.putParcelableArrayList(BUNDLE_CELL, new ArrayList<>(mGsmEngine.getData()));
+//        data.putStringArrayList(BUNDLE_CELL, new ArrayList<>(mGsmEngine.getDataAsStringList(preamble)));
 
         // checking sensors state
         if (mSensorEngine.isEngineEnabled())
-            data.putStringArrayList(BUNDLE_SENSOR, new ArrayList<>(mSensorEngine.getDataAsStringList(preamble)));
+            data.putParcelableArrayList(BUNDLE_SENSOR, new ArrayList<>(mSensorEngine.getData()));
 
         // checking external state
         if (mArduinoEngine.isEngineEnabled())
-            data.putStringArrayList(BUNDLE_EXTERNAL, new ArrayList<>(mArduinoEngine.getDataAsStringList(preamble)));
+            data.putParcelableArrayList(BUNDLE_EXTERNAL, new ArrayList<>(mArduinoEngine.getData()));
 
         Vibrator vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         vibe.vibrate(100);
-        String info = String.format(getString(R.string.mark_saved), markName);
+        String info = String.format(getString(R.string.mark_saved), mark.getCAT());
         info += " (" + ++marksCount + ")";
         Toast.makeText(this, info, Toast.LENGTH_SHORT).show();
         mIsHot = true;
@@ -605,22 +612,28 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
             switch (msg.what) {
                 case MARK_SAVE:
                     if (Math.abs(System.currentTimeMillis() - mUndoTimeStamp) >= DELAY) {
-                        try {
-                            mGsmEngine.saveToLog(msg.getData().getStringArrayList(BUNDLE_CELL), true);
+                        Bundle bundle = msg.getData();
+                        ArrayList<InfoItem> items = bundle.getParcelableArrayList(BUNDLE_SENSOR);
+                        GeoPoint point = GPSEngine.getFix(items);
+                        long session = bundle.getLong(BUNDLE_SESSION);
+                        int markId = bundle.getInt(BUNDLE_ID);
+                        String name = bundle.getString(BUNDLE_NAME);
+                        long time = bundle.getLong(BUNDLE_TIME);
+                        long newMarkId = BaseEngine.saveMark(session, markId, name, time, point);
 
-                            ArrayList<String> items = msg.getData().getStringArrayList(BUNDLE_SENSOR);
-                            if (items != null)
-                                mSensorEngine.saveToLog(items, true);
+                        items = bundle.getParcelableArrayList(BUNDLE_CELL);
+                        mGsmEngine.saveData(items, newMarkId);
 
-                            items = msg.getData().getStringArrayList(BUNDLE_EXTERNAL);
-                            if (items != null)
-                                mArduinoEngine.saveToLog(items, true);
+                        items = bundle.getParcelableArrayList(BUNDLE_SENSOR);
+                        if (items != null)
+                            mSensorEngine.saveData(items, newMarkId);
 
-                            mSavedMarkPosition = msg.getData().getInt(Constants.PREF_MARK_POS);
-                            PreferenceManager.getDefaultSharedPreferences(mParent).edit().putInt(Constants.PREF_MARK_POS, mSavedMarkPosition).apply();
-                        } catch (FileNotFoundException e) {
-                            e.printStackTrace();
-                        }
+                        items = bundle.getParcelableArrayList(BUNDLE_EXTERNAL);
+                        if (items != null)
+                            mArduinoEngine.saveData(items, newMarkId);
+
+                        mSavedMarkPosition = bundle.getInt(LoggerConstants.PREF_MARK_POS);
+                        PreferenceManager.getDefaultSharedPreferences(mParent).edit().putInt(LoggerConstants.PREF_MARK_POS, mSavedMarkPosition).apply();
                     } else
                         break;
                 case MARK_UNDO:

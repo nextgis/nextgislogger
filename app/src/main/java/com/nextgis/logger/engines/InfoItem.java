@@ -23,11 +23,19 @@
 
 package com.nextgis.logger.engines;
 
-import com.nextgis.logger.util.Constants;
+import android.os.Bundle;
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import com.nextgis.logger.util.LoggerConstants;
 
 import java.util.ArrayList;
 
-public class InfoItem {
+public class InfoItem implements Parcelable {
+    private static final String TITLE = "title";
+    private static final String DESC = "desc";
+    private static final String COLUMNS = "columns";
+
     private ArrayList<InfoColumn> mColumns;
     private String mTitle, mDescription;
 
@@ -39,6 +47,39 @@ public class InfoItem {
     public InfoItem(String title, String description) {
         this(title);
         mDescription = description;
+    }
+
+    private InfoItem(Parcel in) {
+        Bundle bundle = in.readBundle(getClass().getClassLoader());
+        mTitle = bundle.getString(TITLE);
+        mDescription = bundle.getString(DESC);
+        mColumns = bundle.getParcelableArrayList(COLUMNS);
+    }
+
+    public static final Creator<InfoItem> CREATOR = new Creator<InfoItem>() {
+        @Override
+        public InfoItem createFromParcel(Parcel in) {
+            return new InfoItem(in);
+        }
+
+        @Override
+        public InfoItem[] newArray(int size) {
+            return new InfoItem[size];
+        }
+    };
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        Bundle bundle = new Bundle();
+        bundle.putString(TITLE, mTitle);
+        bundle.putString(DESC, mDescription);
+        bundle.putParcelableArrayList(COLUMNS, mColumns);
+        dest.writeBundle(bundle);
     }
 
     public String getTitle() {
@@ -61,7 +102,7 @@ public class InfoItem {
      * @param unit           Column unit
      */
     public InfoItem addColumn(String shortName, String fullName, String unit) {
-        mColumns.add(new InfoColumn(shortName, fullName, unit, Constants.NO_DATA));
+        mColumns.add(new InfoColumn(shortName, fullName, unit, LoggerConstants.NO_DATA));
         return this;
     }
 
@@ -74,7 +115,7 @@ public class InfoItem {
      * @param format        Format for values
      */
     public InfoItem addColumn(String shortName, String fullName, String unit, String format) {
-        mColumns.add(new InfoColumn(shortName, fullName, unit, Constants.NO_DATA, format));
+        mColumns.add(new InfoColumn(shortName, fullName, unit, LoggerConstants.NO_DATA, format));
         return this;
     }
 

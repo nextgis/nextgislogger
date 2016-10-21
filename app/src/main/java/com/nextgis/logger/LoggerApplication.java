@@ -23,17 +23,77 @@
 
 package com.nextgis.logger;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
+import android.accounts.AccountManagerFuture;
+import android.accounts.AuthenticatorException;
+import android.accounts.OperationCanceledException;
 import android.app.Application;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.Bundle;
+import android.os.Handler;
+import android.preference.PreferenceManager;
 
 import com.nextgis.logger.engines.ArduinoEngine;
 import com.nextgis.logger.engines.CellEngine;
 import com.nextgis.logger.engines.SensorEngine;
+import com.nextgis.logger.util.LoggerConstants;
+import com.nextgis.maplib.api.IGISApplication;
+import com.nextgis.maplib.datasource.Field;
+import com.nextgis.maplib.location.GpsEventSource;
+import com.nextgis.maplib.map.LayerFactory;
+import com.nextgis.maplib.map.LayerGroup;
+import com.nextgis.maplib.map.MapBase;
+import com.nextgis.maplib.map.MapDrawable;
+import com.nextgis.maplib.map.NGWVectorLayer;
+import com.nextgis.maplib.util.Constants;
+import com.nextgis.maplib.util.GeoConstants;
+import com.nextgis.maplib.util.PermissionUtil;
+import com.nextgis.maplib.util.SettingsConstants;
 
-public class LoggerApplication extends Application {
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import static android.Manifest.permission.GET_ACCOUNTS;
+import static com.nextgis.maplib.util.Constants.MAP_EXT;
+import static com.nextgis.maplib.util.SettingsConstants.KEY_PREF_MAP;
+
+public class LoggerApplication extends Application implements IGISApplication {
+    private static final String MAP_NAME = "default";
+    private static final String PERMISSION_MANAGE_ACCOUNTS = "android.permission.MANAGE_ACCOUNTS";
+    private static final String PERMISSION_AUTHENTICATE_ACCOUNTS = "android.permission.AUTHENTICATE_ACCOUNTS";
+
+    public static final String TABLE_SESSION = "session";
+    public static final String TABLE_MARK = "mark";
+    public static final String TABLE_CELL = "data_cell";
+    public static final String TABLE_SENSOR = "data_sensor";
+    public static final String TABLE_EXTERNAL = "data_external";
+
+    public static final String FIELD_NAME = "name";
+    public static final String FIELD_USER = "user";
+    public static final String FIELD_SESSION = "session";
+    public static final String FIELD_MARK_ID = "mark_id";
+    public static final String FIELD_TIMESTAMP = "timestamp";
+    public static final String FIELD_DATETIME = "datetime";
+    public static final String FIELD_MARK = "mark";
+    public static final String FIELD_DATA = "data";
+
     private static ArduinoEngine mArduinoEngine;
     private static SensorEngine mSensorEngine;
     private static CellEngine mCellEngine;
     private static LoggerApplication mApplication;
+
+    protected MapDrawable mMap;
+    protected GpsEventSource mGpsEventSource;
+    protected SharedPreferences mSharedPreferences;
+    protected AccountManager mAccountManager;
 
     @Override
     public void onCreate() {
@@ -43,6 +103,31 @@ public class LoggerApplication extends Application {
         mArduinoEngine = new ArduinoEngine(this);
         mSensorEngine = new SensorEngine(this);
         mCellEngine = new CellEngine(this);
+
+        mGpsEventSource = new GpsEventSource(this);
+        mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+        getMap();
+
+//        if (mSharedPreferences.getBoolean(PREF_FIRST_RUN, true)) {
+            onFirstRun();
+//            mSharedPreferences.edit().putBoolean(PREF_FIRST_RUN, false).apply();
+//        }
+
+        //turn on periodic sync. Can be set for each layer individually, but this is simpler
+//        if (mSharedPreferences.getBoolean(KEY_PREF_SYNC_PERIODICALLY, true)) {
+//            long period = mSharedPreferences.getLong(KEY_PREF_SYNC_PERIOD_SEC_LONG, Constants.DEFAULT_SYNC_PERIOD); //1 hour
+//
+//            if (-1 == period)
+//                period = Constants.DEFAULT_SYNC_PERIOD;
+//
+//            Bundle params = new Bundle();
+//            params.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, false);
+//            params.putBoolean(ContentResolver.SYNC_EXTRAS_DO_NOT_RETRY, false);
+//            params.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, false);
+//
+//            SyncAdapter.setSyncPeriod(this, params, period);
+//        }
     }
 
     public static LoggerApplication getApplication() {
@@ -59,5 +144,309 @@ public class LoggerApplication extends Application {
 
     public CellEngine getCellEngine() {
         return mCellEngine;
+    }
+
+    @Override
+    public MapBase getMap() {
+        if (null != mMap) {
+            return mMap;
+        }
+
+        mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        File defaultPath = getExternalFilesDir(KEY_PREF_MAP);
+        if (defaultPath == null) {
+            defaultPath = new File(getFilesDir(), KEY_PREF_MAP);
+        }
+
+        String mapPath = mSharedPreferences.getString(SettingsConstants.KEY_PREF_MAP_PATH, defaultPath.getPath());
+        File mapFullPath = new File(mapPath, MAP_NAME + MAP_EXT);
+        final Bitmap bkBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.nextgis);
+
+        mMap = new MapDrawable(bkBitmap, this, mapFullPath, new LayerFactory() {
+            @Override
+            public void createNewRemoteTMSLayer(Context context, LayerGroup groupLayer) {
+
+            }
+
+            @Override
+            public void createNewNGWLayer(Context context, LayerGroup groupLayer) {
+
+            }
+
+            @Override
+            public void createNewLocalTMSLayer(Context context, LayerGroup groupLayer, Uri uri) {
+
+            }
+
+            @Override
+            public void createNewVectorLayer(Context context, LayerGroup groupLayer, Uri uri) {
+
+            }
+
+            @Override
+            public void createNewVectorLayerWithForm(Context context, LayerGroup groupLayer, Uri uri) {
+
+            }
+        });
+        mMap.setName(MAP_NAME);
+        mMap.load();
+
+        return mMap;
+    }
+
+    @Override
+    public String getAuthority() {
+        return LoggerConstants.AUTHORITY;
+    }
+
+    @Override
+    public Account getAccount(String accountName) {
+        if (checkAccountStatus(GET_ACCOUNTS))
+            return null;
+
+        try {
+            for (Account account : mAccountManager.getAccountsByType(Constants.NGW_ACCOUNT_TYPE)) {
+                if (account == null)
+                    continue;
+
+                if (account.name.equals(accountName))
+                    return account;
+            }
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    @Override
+    public AccountManagerFuture<Boolean> removeAccount(Account account) {
+        AccountManagerFuture<Boolean> bool = new AccountManagerFuture<Boolean>() {
+            @Override
+            public boolean cancel(boolean mayInterruptIfRunning) {
+                return false;
+            }
+
+            @Override
+            public boolean isCancelled() {
+                return false;
+            }
+
+            @Override
+            public boolean isDone() {
+                return false;
+            }
+
+            @Override
+            public Boolean getResult() throws OperationCanceledException, IOException, AuthenticatorException {
+                return null;
+            }
+
+            @Override
+            public Boolean getResult(long timeout, TimeUnit unit) throws OperationCanceledException, IOException, AuthenticatorException {
+                return null;
+            }
+        };
+
+        if (checkAccountStatus(PERMISSION_MANAGE_ACCOUNTS))
+            return bool;
+
+        try {
+            return mAccountManager.removeAccount(account, null, new Handler());
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        }
+
+        return bool;
+    }
+
+    @Override
+    public String getAccountUrl(Account account) {
+        return getAccountUserData(account, "url").toLowerCase();
+    }
+
+
+    @Override
+    public String getAccountLogin(Account account) {
+        return getAccountUserData(account, "login");
+    }
+
+    @Override
+    public String getAccountPassword(Account account) {
+        if (checkAccountStatus(PERMISSION_AUTHENTICATE_ACCOUNTS))
+            return "";
+
+        try {
+            return mAccountManager.getPassword(account);
+        } catch (SecurityException e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
+
+    @Override
+    public GpsEventSource getGpsEventSource() {
+        return mGpsEventSource;
+    }
+
+    @Override
+    public void showSettings(String setting) {
+
+    }
+
+    protected void onFirstRun() {
+        ArrayList<Field> fields = new ArrayList<>();
+        NGWVectorLayer layer = (NGWVectorLayer) mMap.getLayerByName(TABLE_SESSION);
+        if (layer == null) {
+            fields.clear();
+            fields.add(new Field(GeoConstants.FTString, FIELD_NAME, getString(R.string.mark_name)));
+            fields.add(new Field(GeoConstants.FTString, FIELD_USER, getString(R.string.user_name)));
+            layer = createEmptyVectorLayer(TABLE_SESSION, fields);
+            mMap.addLayer(layer);
+            mMap.save();
+        }
+
+        layer = (NGWVectorLayer) mMap.getLayerByName(TABLE_MARK);
+        if (layer == null) {
+            fields.clear();
+            fields.add(new Field(GeoConstants.FTInteger, FIELD_SESSION, getString(R.string.title_activity_sessions)));
+            fields.add(new Field(GeoConstants.FTInteger, FIELD_MARK_ID, getString(R.string.mark_id)));
+            fields.add(new Field(GeoConstants.FTString, FIELD_NAME, getString(R.string.mark_name)));
+            fields.add(new Field(GeoConstants.FTReal, FIELD_TIMESTAMP, getString(R.string.timestamp)));
+            fields.add(new Field(GeoConstants.FTDateTime, FIELD_DATETIME, getString(R.string.field_type_datetime)));
+            layer = createEmptyVectorLayer(TABLE_MARK, fields);
+            mMap.addLayer(layer);
+            mMap.save();
+        }
+
+        layer = (NGWVectorLayer) mMap.getLayerByName(TABLE_CELL);
+        if (layer == null) {
+            fields.clear();
+            fields.add(new Field(GeoConstants.FTInteger, FIELD_MARK, getString(R.string.btn_save_mark)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_GEN, getString(R.string.info_title_network)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_TYPE, getString(R.string.network_type)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_ACTIVE, getString(R.string.info_active)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_MCC, getString(R.string.info_mcc)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_MNC, getString(R.string.info_mnc)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_LAC, getString(R.string.info_lac)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_CID, getString(R.string.info_cid)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_PSC, getString(R.string.info_psc)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_POWER, getString(R.string.info_power)));
+            layer = createEmptyVectorLayer(TABLE_CELL, fields);
+            mMap.addLayer(layer);
+            mMap.save();
+        }
+
+        layer = (NGWVectorLayer) mMap.getLayerByName(TABLE_SENSOR);
+        if (layer == null) {
+            fields.clear();
+            fields.add(new Field(GeoConstants.FTInteger, FIELD_MARK, getString(R.string.btn_save_mark)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_ACC_X, getString(R.string.info_x)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_ACC_Y, getString(R.string.info_y)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_ACC_Z, getString(R.string.info_z)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_LINEAR_X, getString(R.string.info_x)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_LINEAR_Y, getString(R.string.info_y)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_LINEAR_Z, getString(R.string.info_z)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_AZIMUTH, getString(R.string.info_azimuth)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_PITCH, getString(R.string.info_pitch)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_ROLL, getString(R.string.info_roll)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_MAGNETIC_X, getString(R.string.info_x)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_MAGNETIC_Y, getString(R.string.info_y)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_MAGNETIC_Z, getString(R.string.info_z)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_GYRO_X, getString(R.string.info_x)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_GYRO_Y, getString(R.string.info_y)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_GYRO_Z, getString(R.string.info_z)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_GPS_LAT, getString(R.string.info_lat)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_GPS_LON, getString(R.string.info_lon)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_GPS_ALT, getString(R.string.info_ele)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_GPS_ACC, getString(R.string.info_acc)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_GPS_SP, getString(R.string.info_speed)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_GPS_BE, getString(R.string.info_bearing)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_GPS_SAT, getString(R.string.info_sat)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_GPS_TIME, getString(R.string.info_time)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_GPS_TIME, getString(R.string.mic)));
+            layer = createEmptyVectorLayer(TABLE_SENSOR, fields);
+            mMap.addLayer(layer);
+            mMap.save();
+        }
+
+        layer = (NGWVectorLayer) mMap.getLayerByName(TABLE_EXTERNAL);
+        if (layer == null) {
+            fields.clear();
+            fields.add(new Field(GeoConstants.FTInteger, FIELD_MARK, getString(R.string.btn_save_mark)));
+            fields.add(new Field(GeoConstants.FTString, FIELD_DATA, getString(R.string.info_title_external)));
+            layer = createEmptyVectorLayer(TABLE_EXTERNAL, fields);
+            mMap.addLayer(layer);
+            mMap.save();
+        }
+    }
+
+    public NGWVectorLayer createEmptyVectorLayer(String layerName, List<Field> fields) {
+        NGWVectorLayer layer = new NGWVectorLayer(this, mMap.createLayerStorage(layerName));
+        layer.setName(layerName);
+        layer.create(GeoConstants.GTPoint, fields);
+        return layer;
+    }
+
+    @Override
+    public boolean addAccount(String name, String url, String login, String password, String token) {
+        if (checkAccountStatus(PERMISSION_AUTHENTICATE_ACCOUNTS))
+            return false;
+
+        final Account account = new Account(name, Constants.NGW_ACCOUNT_TYPE);
+        Bundle userData = new Bundle();
+        userData.putString("url", url.trim());
+        userData.putString("login", login);
+
+        try {
+            boolean accountAdded = mAccountManager.addAccountExplicitly(account, password, userData);
+            if (accountAdded)
+                mAccountManager.setAuthToken(account, account.type, token);
+
+            return accountAdded;
+        } catch (SecurityException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    @Override
+    public void setPassword(String name, String value) {
+        if (checkAccountStatus(PERMISSION_AUTHENTICATE_ACCOUNTS))
+            return;
+
+        Account account = getAccount(name);
+        if (null != account)
+            mAccountManager.setPassword(account, value);
+    }
+
+    @Override
+    public void setUserData(String name, String key, String value) {
+        if (checkAccountStatus(PERMISSION_AUTHENTICATE_ACCOUNTS))
+            return;
+
+        Account account = getAccount(name);
+        if (null != account)
+            mAccountManager.setUserData(account, key, value);
+    }
+
+    @Override
+    public String getAccountUserData(Account account, String key) {
+        if (checkAccountStatus(PERMISSION_AUTHENTICATE_ACCOUNTS))
+            return "";
+
+        String result = mAccountManager.getUserData(account, key);
+        return result == null ? "" : result;
+    }
+
+    private boolean checkAccountStatus(String permission) {
+        return !PermissionUtil.hasPermission(this, permission) || !isAccountManagerValid();
+    }
+
+    private boolean isAccountManagerValid() {
+        if (null == mAccountManager)
+            mAccountManager = AccountManager.get(getApplicationContext());
+
+        return null != mAccountManager;
     }
 }

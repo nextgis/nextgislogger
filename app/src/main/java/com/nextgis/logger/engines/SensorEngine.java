@@ -31,8 +31,14 @@ import android.os.Handler;
 import android.os.Message;
 import android.widget.Toast;
 
+import com.nextgis.logger.LoggerApplication;
 import com.nextgis.logger.R;
-import com.nextgis.logger.util.Constants;
+import com.nextgis.logger.util.LoggerConstants;
+import com.nextgis.maplib.datasource.Feature;
+import com.nextgis.maplib.datasource.GeoPoint;
+import com.nextgis.maplib.map.MapBase;
+import com.nextgis.maplib.map.NGWVectorLayer;
+import com.nextgis.maplib.util.Constants;
 
 import java.util.ArrayList;
 
@@ -92,6 +98,69 @@ public class SensorEngine extends BaseEngine implements SensorEventListener {
     }
 
     @Override
+    public void saveData(long markId) {
+        saveData(getData(), markId);
+    }
+
+    @Override
+    public void saveData(ArrayList<InfoItem> items, long markId) {
+        NGWVectorLayer sensorLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_SENSOR);
+        if (sensorLayer != null) {
+            Feature mark = new Feature(Constants.NOT_FOUND, sensorLayer.getFields());
+            mark.setFieldValue(LoggerApplication.FIELD_MARK, markId);
+
+            for (InfoItem item : items) {
+                if (item.getColumn(LoggerConstants.HEADER_ACC_X) != null) {
+                    mark.setFieldValue(LoggerConstants.HEADER_ACC_X, item.getColumn(LoggerConstants.HEADER_ACC_X).getValue());
+                    mark.setFieldValue(LoggerConstants.HEADER_ACC_Y, item.getColumn(LoggerConstants.HEADER_ACC_Y).getValue());
+                    mark.setFieldValue(LoggerConstants.HEADER_ACC_Z, item.getColumn(LoggerConstants.HEADER_ACC_Z).getValue());
+                }
+
+                if (item.getColumn(LoggerConstants.HEADER_LINEAR_X) != null) {
+                    mark.setFieldValue(LoggerConstants.HEADER_LINEAR_X, item.getColumn(LoggerConstants.HEADER_LINEAR_X).getValue());
+                    mark.setFieldValue(LoggerConstants.HEADER_LINEAR_Y, item.getColumn(LoggerConstants.HEADER_LINEAR_Y).getValue());
+                    mark.setFieldValue(LoggerConstants.HEADER_LINEAR_Z, item.getColumn(LoggerConstants.HEADER_LINEAR_Z).getValue());
+                }
+
+                if (item.getColumn(LoggerConstants.HEADER_AZIMUTH) != null) {
+                    mark.setFieldValue(LoggerConstants.HEADER_AZIMUTH, item.getColumn(LoggerConstants.HEADER_AZIMUTH).getValue());
+                    mark.setFieldValue(LoggerConstants.HEADER_PITCH, item.getColumn(LoggerConstants.HEADER_PITCH).getValue());
+                    mark.setFieldValue(LoggerConstants.HEADER_ROLL, item.getColumn(LoggerConstants.HEADER_ROLL).getValue());
+                }
+
+                if (item.getColumn(LoggerConstants.HEADER_MAGNETIC_X) != null) {
+                    mark.setFieldValue(LoggerConstants.HEADER_MAGNETIC_X, item.getColumn(LoggerConstants.HEADER_MAGNETIC_X).getValue());
+                    mark.setFieldValue(LoggerConstants.HEADER_MAGNETIC_Y, item.getColumn(LoggerConstants.HEADER_MAGNETIC_Y).getValue());
+                    mark.setFieldValue(LoggerConstants.HEADER_MAGNETIC_Z, item.getColumn(LoggerConstants.HEADER_MAGNETIC_Z).getValue());
+                }
+
+                if (item.getColumn(LoggerConstants.HEADER_GYRO_X) != null) {
+                    mark.setFieldValue(LoggerConstants.HEADER_GYRO_X, item.getColumn(LoggerConstants.HEADER_GYRO_X).getValue());
+                    mark.setFieldValue(LoggerConstants.HEADER_GYRO_Y, item.getColumn(LoggerConstants.HEADER_GYRO_Y).getValue());
+                    mark.setFieldValue(LoggerConstants.HEADER_GYRO_Z, item.getColumn(LoggerConstants.HEADER_GYRO_Z).getValue());
+                }
+
+                if (item.getColumn(LoggerConstants.HEADER_GPS_LAT) != null) {
+                    mark.setFieldValue(LoggerConstants.HEADER_GPS_LAT, item.getColumn(LoggerConstants.HEADER_GPS_LAT).getValue());
+                    mark.setFieldValue(LoggerConstants.HEADER_GPS_LON, item.getColumn(LoggerConstants.HEADER_GPS_LON).getValue());
+                    mark.setFieldValue(LoggerConstants.HEADER_GPS_ALT, item.getColumn(LoggerConstants.HEADER_GPS_ALT).getValue());
+                    mark.setFieldValue(LoggerConstants.HEADER_GPS_ACC, item.getColumn(LoggerConstants.HEADER_GPS_ACC).getValue());
+                    mark.setFieldValue(LoggerConstants.HEADER_GPS_SP, item.getColumn(LoggerConstants.HEADER_GPS_SP).getValue());
+                    mark.setFieldValue(LoggerConstants.HEADER_GPS_BE, item.getColumn(LoggerConstants.HEADER_GPS_BE).getValue());
+                    mark.setFieldValue(LoggerConstants.HEADER_GPS_SAT, item.getColumn(LoggerConstants.HEADER_GPS_SAT).getValue());
+                    mark.setFieldValue(LoggerConstants.HEADER_GPS_TIME, item.getColumn(LoggerConstants.HEADER_GPS_TIME).getValue());
+                }
+
+                if (item.getColumn(LoggerConstants.HEADER_AUDIO) != null)
+                    mark.setFieldValue(LoggerConstants.HEADER_AUDIO, item.getColumn(LoggerConstants.HEADER_AUDIO).getValue());
+            }
+
+            mark.setGeometry(new GeoPoint(0, 0));
+            sensorLayer.createFeature(mark);
+        }
+    }
+
+    @Override
 	@SuppressWarnings("deprecation")
 	public boolean onResume() {
         mGPSEngine.onResume();
@@ -124,9 +193,9 @@ public class SensorEngine extends BaseEngine implements SensorEventListener {
 
             if (sensor != null) {
                 mAccelerometer = new InfoItem(mContext.getString(R.string.sensor_accelerometer), sensor.getName());
-                mAccelerometer.addColumn(Constants.HEADER_ACC_X, mContext.getString(R.string.info_x), mContext.getString(R.string.info_ms2), "%.2f");
-                mAccelerometer.addColumn(Constants.HEADER_ACC_Y, mContext.getString(R.string.info_y), mContext.getString(R.string.info_ms2), "%.2f");
-                mAccelerometer.addColumn(Constants.HEADER_ACC_Z, mContext.getString(R.string.info_z), mContext.getString(R.string.info_ms2), "%.2f");
+                mAccelerometer.addColumn(LoggerConstants.HEADER_ACC_X, mContext.getString(R.string.info_x), mContext.getString(R.string.info_ms2), "%.2f");
+                mAccelerometer.addColumn(LoggerConstants.HEADER_ACC_Y, mContext.getString(R.string.info_y), mContext.getString(R.string.info_ms2), "%.2f");
+                mAccelerometer.addColumn(LoggerConstants.HEADER_ACC_Z, mContext.getString(R.string.info_z), mContext.getString(R.string.info_ms2), "%.2f");
                 mItems.add(mAccelerometer);
                 mSensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
             } else {
@@ -140,15 +209,15 @@ public class SensorEngine extends BaseEngine implements SensorEventListener {
 
             if (sensor != null) {
                 mLinear = new InfoItem(mContext.getString(R.string.sensor_linear), sensor.getName());
-                mLinear.addColumn(Constants.HEADER_LINEAR_X, mContext.getString(R.string.info_x), mContext.getString(R.string.info_ms2), "%.2f");
-                mLinear.addColumn(Constants.HEADER_LINEAR_Y, mContext.getString(R.string.info_y), mContext.getString(R.string.info_ms2), "%.2f");
-                mLinear.addColumn(Constants.HEADER_LINEAR_Z, mContext.getString(R.string.info_z), mContext.getString(R.string.info_ms2), "%.2f");
+                mLinear.addColumn(LoggerConstants.HEADER_LINEAR_X, mContext.getString(R.string.info_x), mContext.getString(R.string.info_ms2), "%.2f");
+                mLinear.addColumn(LoggerConstants.HEADER_LINEAR_Y, mContext.getString(R.string.info_y), mContext.getString(R.string.info_ms2), "%.2f");
+                mLinear.addColumn(LoggerConstants.HEADER_LINEAR_Z, mContext.getString(R.string.info_z), mContext.getString(R.string.info_ms2), "%.2f");
                 mItems.add(mLinear);
                 mSensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
             } else {
                 noSensors.add(mContext.getString(R.string.sensor_linear).toLowerCase());
                 noSensor = true;
-                mPreferences.edit().putBoolean(Constants.PREF_SENSOR_MODE, false).apply();
+                mPreferences.edit().putBoolean(LoggerConstants.PREF_SENSOR_MODE, false).apply();
             }
         }
 
@@ -157,15 +226,15 @@ public class SensorEngine extends BaseEngine implements SensorEventListener {
 
             if (sensor != null) {
                 mGyroscope = new InfoItem(mContext.getString(R.string.sensor_gyroscope), sensor.getName());
-                mGyroscope.addColumn(Constants.HEADER_GYRO_X, mContext.getString(R.string.info_x), mContext.getString(R.string.info_rads), "%.2f");
-                mGyroscope.addColumn(Constants.HEADER_GYRO_Y, mContext.getString(R.string.info_y), mContext.getString(R.string.info_rads), "%.2f");
-                mGyroscope.addColumn(Constants.HEADER_GYRO_Z, mContext.getString(R.string.info_z), mContext.getString(R.string.info_rads), "%.2f");
+                mGyroscope.addColumn(LoggerConstants.HEADER_GYRO_X, mContext.getString(R.string.info_x), mContext.getString(R.string.info_rads), "%.2f");
+                mGyroscope.addColumn(LoggerConstants.HEADER_GYRO_Y, mContext.getString(R.string.info_y), mContext.getString(R.string.info_rads), "%.2f");
+                mGyroscope.addColumn(LoggerConstants.HEADER_GYRO_Z, mContext.getString(R.string.info_z), mContext.getString(R.string.info_rads), "%.2f");
                 mItems.add(mGyroscope);
                 mSensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
             } else {
                 noSensors.add(mContext.getString(R.string.sensor_gyroscope).toLowerCase());
                 noSensor = true;
-                mPreferences.edit().putBoolean(Constants.PREF_SENSOR_GYRO, false).apply();
+                mPreferences.edit().putBoolean(LoggerConstants.PREF_SENSOR_GYRO, false).apply();
             }
         }
 
@@ -174,15 +243,15 @@ public class SensorEngine extends BaseEngine implements SensorEventListener {
 
             if (sensor != null) {
                 mOrientation = new InfoItem(mContext.getString(R.string.sensor_orientation), sensor.getName());
-                mOrientation.addColumn(Constants.HEADER_AZIMUTH, mContext.getString(R.string.info_azimuth), mContext.getString(R.string.info_degree), "%.2f");
-                mOrientation.addColumn(Constants.HEADER_PITCH, mContext.getString(R.string.info_pitch), mContext.getString(R.string.info_degree), "%.2f");
-                mOrientation.addColumn(Constants.HEADER_ROLL, mContext.getString(R.string.info_roll), mContext.getString(R.string.info_degree), "%.2f");
+                mOrientation.addColumn(LoggerConstants.HEADER_AZIMUTH, mContext.getString(R.string.info_azimuth), mContext.getString(R.string.info_degree), "%.2f");
+                mOrientation.addColumn(LoggerConstants.HEADER_PITCH, mContext.getString(R.string.info_pitch), mContext.getString(R.string.info_degree), "%.2f");
+                mOrientation.addColumn(LoggerConstants.HEADER_ROLL, mContext.getString(R.string.info_roll), mContext.getString(R.string.info_degree), "%.2f");
                 mItems.add(mOrientation);
                 mSensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
             } else {
                 noSensors.add(mContext.getString(R.string.sensor_orientation).toLowerCase());
                 noSensor = true;
-                mPreferences.edit().putBoolean(Constants.PREF_SENSOR_ORIENT, false).apply();
+                mPreferences.edit().putBoolean(LoggerConstants.PREF_SENSOR_ORIENT, false).apply();
             }
         }
 
@@ -191,15 +260,15 @@ public class SensorEngine extends BaseEngine implements SensorEventListener {
 
             if (sensor != null) {
                 mMagnetic = new InfoItem(mContext.getString(R.string.sensor_magnetic), sensor.getName());
-                mMagnetic.addColumn(Constants.HEADER_MAGNETIC_X, mContext.getString(R.string.info_x), mContext.getString(R.string.info_tesla), "%.2f");
-                mMagnetic.addColumn(Constants.HEADER_MAGNETIC_Y, mContext.getString(R.string.info_y), mContext.getString(R.string.info_tesla), "%.2f");
-                mMagnetic.addColumn(Constants.HEADER_MAGNETIC_Z, mContext.getString(R.string.info_z), mContext.getString(R.string.info_tesla), "%.2f");
+                mMagnetic.addColumn(LoggerConstants.HEADER_MAGNETIC_X, mContext.getString(R.string.info_x), mContext.getString(R.string.info_tesla), "%.2f");
+                mMagnetic.addColumn(LoggerConstants.HEADER_MAGNETIC_Y, mContext.getString(R.string.info_y), mContext.getString(R.string.info_tesla), "%.2f");
+                mMagnetic.addColumn(LoggerConstants.HEADER_MAGNETIC_Z, mContext.getString(R.string.info_z), mContext.getString(R.string.info_tesla), "%.2f");
                 mItems.add(mMagnetic);
                 mSensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
             } else {
                 noSensors.add(mContext.getString(R.string.sensor_magnetic).toLowerCase());
                 noSensor = true;
-                mPreferences.edit().putBoolean(Constants.PREF_SENSOR_MAG, false).apply();
+                mPreferences.edit().putBoolean(LoggerConstants.PREF_SENSOR_MAG, false).apply();
             }
         }
 
@@ -232,51 +301,51 @@ public class SensorEngine extends BaseEngine implements SensorEventListener {
 		long curTime = System.currentTimeMillis();
 
 		if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-			if ((curTime - mLastUpdateAccelerometer) > Constants.UPDATE_FREQUENCY) {
+			if ((curTime - mLastUpdateAccelerometer) > LoggerConstants.UPDATE_FREQUENCY) {
 				mLastUpdateAccelerometer = curTime;
-                mAccelerometer.setValue(Constants.HEADER_ACC_X, event.values[0]);
-                mAccelerometer.setValue(Constants.HEADER_ACC_Y, event.values[1]);
-                mAccelerometer.setValue(Constants.HEADER_ACC_Z, event.values[2]);
+                mAccelerometer.setValue(LoggerConstants.HEADER_ACC_X, event.values[0]);
+                mAccelerometer.setValue(LoggerConstants.HEADER_ACC_Y, event.values[1]);
+                mAccelerometer.setValue(LoggerConstants.HEADER_ACC_Z, event.values[2]);
                 notifyListeners(mAccelerometer.getTitle());
 			}
 		}
 
 		if (event.sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION) {
-			if ((curTime - mLastUpdateLinear) > Constants.UPDATE_FREQUENCY) {
+			if ((curTime - mLastUpdateLinear) > LoggerConstants.UPDATE_FREQUENCY) {
 				mLastUpdateLinear = curTime;
-                mLinear.setValue(Constants.HEADER_LINEAR_X, event.values[0]);
-                mLinear.setValue(Constants.HEADER_LINEAR_Y, event.values[1]);
-                mLinear.setValue(Constants.HEADER_LINEAR_Z, event.values[2]);
+                mLinear.setValue(LoggerConstants.HEADER_LINEAR_X, event.values[0]);
+                mLinear.setValue(LoggerConstants.HEADER_LINEAR_Y, event.values[1]);
+                mLinear.setValue(LoggerConstants.HEADER_LINEAR_Z, event.values[2]);
                 notifyListeners(mLinear.getTitle());
 			}
 		}
 
 		if (event.sensor.getType() == Sensor.TYPE_ORIENTATION) {
-			if ((curTime - mLastUpdateOrient) > Constants.UPDATE_FREQUENCY) {
+			if ((curTime - mLastUpdateOrient) > LoggerConstants.UPDATE_FREQUENCY) {
 				mLastUpdateOrient = curTime;
-                mOrientation.setValue(Constants.HEADER_AZIMUTH, event.values[0]);
-                mOrientation.setValue(Constants.HEADER_PITCH, event.values[1]);
-                mOrientation.setValue(Constants.HEADER_ROLL, event.values[2]);
+                mOrientation.setValue(LoggerConstants.HEADER_AZIMUTH, event.values[0]);
+                mOrientation.setValue(LoggerConstants.HEADER_PITCH, event.values[1]);
+                mOrientation.setValue(LoggerConstants.HEADER_ROLL, event.values[2]);
                 notifyListeners(mOrientation.getTitle());
 			}
 		}
 		
 		if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
-			if ((curTime - mLastUpdateMag) > Constants.UPDATE_FREQUENCY) {
+			if ((curTime - mLastUpdateMag) > LoggerConstants.UPDATE_FREQUENCY) {
 				mLastUpdateMag = curTime;
-                mMagnetic.setValue(Constants.HEADER_MAGNETIC_X, event.values[0]);
-                mMagnetic.setValue(Constants.HEADER_MAGNETIC_Y, event.values[1]);
-                mMagnetic.setValue(Constants.HEADER_MAGNETIC_Z, event.values[2]);
+                mMagnetic.setValue(LoggerConstants.HEADER_MAGNETIC_X, event.values[0]);
+                mMagnetic.setValue(LoggerConstants.HEADER_MAGNETIC_Y, event.values[1]);
+                mMagnetic.setValue(LoggerConstants.HEADER_MAGNETIC_Z, event.values[2]);
                 notifyListeners(mMagnetic.getTitle());
 			}
 		}
 		
 		if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
-			if ((curTime - mLastUpdateGyro) > Constants.UPDATE_FREQUENCY) {
+			if ((curTime - mLastUpdateGyro) > LoggerConstants.UPDATE_FREQUENCY) {
 				mLastUpdateGyro = curTime;
-                mGyroscope.setValue(Constants.HEADER_GYRO_X, event.values[0]);
-                mGyroscope.setValue(Constants.HEADER_GYRO_Y, event.values[1]);
-                mGyroscope.setValue(Constants.HEADER_GYRO_Z, event.values[2]);
+                mGyroscope.setValue(LoggerConstants.HEADER_GYRO_X, event.values[0]);
+                mGyroscope.setValue(LoggerConstants.HEADER_GYRO_Y, event.values[1]);
+                mGyroscope.setValue(LoggerConstants.HEADER_GYRO_Z, event.values[2]);
                 notifyListeners(mGyroscope.getTitle());
 			}
 		}
@@ -286,15 +355,15 @@ public class SensorEngine extends BaseEngine implements SensorEventListener {
 	public boolean isSensorEnabled(int sensorType) {
         switch (sensorType) {
             case Sensor.TYPE_ACCELEROMETER:
-                return mPreferences.getBoolean(Constants.PREF_SENSOR_STATE, false);
+                return mPreferences.getBoolean(LoggerConstants.PREF_SENSOR_STATE, false);
             case Sensor.TYPE_LINEAR_ACCELERATION:
-                return mPreferences.getBoolean(Constants.PREF_SENSOR_MODE, false);
+                return mPreferences.getBoolean(LoggerConstants.PREF_SENSOR_MODE, false);
             case Sensor.TYPE_GYROSCOPE:
-                return mPreferences.getBoolean(Constants.PREF_SENSOR_GYRO, false);
+                return mPreferences.getBoolean(LoggerConstants.PREF_SENSOR_GYRO, false);
             case Sensor.TYPE_MAGNETIC_FIELD:
-                return mPreferences.getBoolean(Constants.PREF_SENSOR_MAG, false);
+                return mPreferences.getBoolean(LoggerConstants.PREF_SENSOR_MAG, false);
             case Sensor.TYPE_ORIENTATION:
-                return mPreferences.getBoolean(Constants.PREF_SENSOR_ORIENT, false);
+                return mPreferences.getBoolean(LoggerConstants.PREF_SENSOR_ORIENT, false);
 		}
 
 		return false;

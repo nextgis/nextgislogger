@@ -27,12 +27,14 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
-import com.nextgis.logger.MainActivity;
-import com.nextgis.logger.util.Constants;
-import com.nextgis.logger.util.FileUtil;
+import com.nextgis.logger.LoggerApplication;
+import com.nextgis.logger.util.LoggerConstants;
+import com.nextgis.maplib.datasource.Feature;
+import com.nextgis.maplib.datasource.GeoPoint;
+import com.nextgis.maplib.map.MapBase;
+import com.nextgis.maplib.map.NGWVectorLayer;
+import com.nextgis.maplib.util.Constants;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -92,37 +94,58 @@ public abstract class BaseEngine {
         return --mLocks <= 0;
     }
 
-    public void saveToLog(List<String> data, boolean onDemand) throws FileNotFoundException {
-        String logPath = MainActivity.dataDirPath + File.separator;
-        String logHeader = Constants.CSV_HEADER_PREAMBLE + getHeader();
+    public static long saveMark(long session, int id, String name, long timestamp, GeoPoint point) {
+        NGWVectorLayer markLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_MARK);
+        if (markLayer != null) {
+            Feature mark = new Feature(Constants.NOT_FOUND, markLayer.getFields());
+            mark.setFieldValue(LoggerApplication.FIELD_SESSION, session);
+            mark.setFieldValue(LoggerApplication.FIELD_MARK_ID, id);
+            mark.setFieldValue(LoggerApplication.FIELD_NAME, name);
+            mark.setFieldValue(LoggerApplication.FIELD_TIMESTAMP, timestamp * 1d);
+            mark.setFieldValue(LoggerApplication.FIELD_DATETIME, timestamp);
+            mark.setGeometry(point);
+            return markLayer.createFeature(mark);
+        }
 
-        if (this instanceof CellEngine) {
-            if (onDemand)
-                logPath += Constants.CSV_MARK_CELL;
-            else
-                logPath += Constants.CSV_LOG_CELL;
-        } else if (this instanceof SensorEngine) {
-            if (onDemand)
-                logPath += Constants.CSV_MARK_SENSOR;
-            else
-                logPath += Constants.CSV_LOG_SENSOR;
-        } else if (this instanceof ArduinoEngine) {
-            if (onDemand)
-                logPath += Constants.CSV_MARK_EXTERNAL;
-            else
-                logPath += Constants.CSV_LOG_EXTERNAL;
-        } else
-            throw new RuntimeException(getClass().getSimpleName() + " is not supported.");
-
-        FileUtil.append(logPath, logHeader, data);
+        return Constants.NOT_FOUND;
     }
+
+    public abstract void saveData(long markId);
+
+    public abstract void saveData(ArrayList<InfoItem> items, long markId);
+
+//    TODO
+//    public void saveToCSV throws FileNotFoundException {
+//        String logPath = MainActivity.dataDirPath + File.separator;
+//        String logHeader = LoggerConstants.CSV_HEADER_PREAMBLE + getHeader();
+//
+//        if (this instanceof CellEngine) {
+//            if (onDemand)
+//                logPath += LoggerConstants.CSV_MARK_CELL;
+//            else
+//                logPath += LoggerConstants.CSV_LOG_CELL;
+//        } else if (this instanceof SensorEngine) {
+//            if (onDemand)
+//                logPath += LoggerConstants.CSV_MARK_SENSOR;
+//            else
+//                logPath += LoggerConstants.CSV_LOG_SENSOR;
+//        } else if (this instanceof ArduinoEngine) {
+//            if (onDemand)
+//                logPath += LoggerConstants.CSV_MARK_EXTERNAL;
+//            else
+//                logPath += LoggerConstants.CSV_LOG_EXTERNAL;
+//        } else
+//            throw new RuntimeException(getClass().getSimpleName() + " is not supported.");
+//
+//        FileUtil.append(logPath, logHeader, data);
+//    }
 
     public String getHeader() {
         String result = "";
 
         for (InfoItem item : mItems)
             for (String name : item.getShortNames())
-                result += Constants.CSV_SEPARATOR + name;
+                result += LoggerConstants.CSV_SEPARATOR + name;
 
         return result;
     }
@@ -136,14 +159,14 @@ public abstract class BaseEngine {
 
         for (InfoItem item : mItems)
             for (InfoColumn column : item.getColumns())
-                result += Constants.CSV_SEPARATOR + column.getValue();
+                result += LoggerConstants.CSV_SEPARATOR + column.getValue();
 
         return Collections.singletonList(result);
     }
 
     public static String getPreamble(String ID, String markName, String userName, long timeStamp) {
-        return ID + Constants.CSV_SEPARATOR + markName + Constants.CSV_SEPARATOR + userName + Constants.CSV_SEPARATOR
-                + timeStamp + Constants.CSV_SEPARATOR + DateFormat.getDateTimeInstance().format(new Date(timeStamp));
+        return ID + LoggerConstants.CSV_SEPARATOR + markName + LoggerConstants.CSV_SEPARATOR + userName + LoggerConstants.CSV_SEPARATOR
+                + timeStamp + LoggerConstants.CSV_SEPARATOR + DateFormat.getDateTimeInstance().format(new Date(timeStamp));
     }
 
     protected SharedPreferences getPreferences() {
