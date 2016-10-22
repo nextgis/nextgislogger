@@ -83,6 +83,7 @@ public interface LoggerConstants {
     String HEADER_GPS_TIME = "GPS_FixTime";
     String HEADER_AUDIO = "Audio";
 
+    String PREF_APP_VERSION = "app_version";
     String PREF_PERIOD_SEC = "period_sec";
     String PREF_SENSOR_STATE = "sensor_state";
     String PREF_SENSOR_MODE = "sensor_mode";
@@ -96,7 +97,7 @@ public interface LoggerConstants {
     String PREF_CAT_PATH = "cat_path";
     String PREF_USE_VOL = "use_volume_buttons";
     String PREF_USER_NAME = "user_name";
-    String PREF_SESSION_NAME = "session_name";
+    String PREF_SESSION_ID = "session_name";
     String PREF_MARKS_COUNT = "marks_count";
     String PREF_MARK_POS = "mark_position";
     String PREF_RECORDS_COUNT = "records_count";

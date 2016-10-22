@@ -48,6 +48,7 @@ import com.nextgis.logger.PreferencesActivity;
 import com.nextgis.logger.R;
 import com.nextgis.logger.util.LoggerConstants;
 import com.nextgis.logger.util.UiUtil;
+import com.nextgis.maplib.util.Constants;
 
 public class ProgressBarActivity extends FragmentActivity implements View.OnClickListener {
     protected SharedPreferences mPreferences;
@@ -199,6 +200,6 @@ public class ProgressBarActivity extends FragmentActivity implements View.OnClic
     }
 
     protected boolean isSessionClosed() {
-        return mPreferences.getString(LoggerConstants.PREF_SESSION_NAME, "").equals("");
+        return mPreferences.getLong(LoggerConstants.PREF_SESSION_ID, Constants.NOT_FOUND) == Constants.NOT_FOUND;
     }
 }

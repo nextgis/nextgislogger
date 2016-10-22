@@ -1,9 +1,10 @@
-/******************************************************************************
+/*
+ * *****************************************************************************
  * Project: NextGIS Logger
  * Purpose: Productive data logger for Android
- * Authors: Stanislav Petriakov, becomeglory@gmail.com
- ******************************************************************************
- * Copyright © 2014 NextGIS
+ * Author:  Stanislav Petriakov, becomeglory@gmail.com
+ * *****************************************************************************
+ * Copyright © 2015-2016 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +18,9 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *****************************************************************************/
+ * *****************************************************************************
+ */
+
 package com.nextgis.logger;
 
 import android.content.Intent;
@@ -34,6 +37,10 @@ import android.widget.Toast;
 import com.nextgis.logger.UI.ProgressBarActivity;
 import com.nextgis.logger.util.LoggerConstants;
 import com.nextgis.logger.util.FileUtil;
+import com.nextgis.maplib.datasource.Feature;
+import com.nextgis.maplib.map.MapBase;
+import com.nextgis.maplib.map.NGWVectorLayer;
+import com.nextgis.maplib.util.Constants;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -42,22 +49,23 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 public class SessionsActivity extends ProgressBarActivity implements View.OnClickListener {
-    private ListView lvSessions;
+    private ListView mLvSessions;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.sessions_activity);
 
-        lvSessions = (ListView) findViewById(R.id.lv_sessions);
-        lvSessions.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_multiple_choice, getSessions()));
+        mLvSessions = (ListView) findViewById(R.id.lv_sessions);
+        mLvSessions.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_multiple_choice, getSessions()));
 
         if (mFAB != null)
-            mFAB.attachToListView(lvSessions);
+            mFAB.attachToListView(mLvSessions);
     }
 
     @Override
@@ -75,11 +83,11 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
 
         if (item.getItemId() == R.id.action_share || item.getItemId() == R.id.action_delete) {
             ArrayList<File> result = new ArrayList<>();
-            SparseBooleanArray sbaSelectedItems = lvSessions.getCheckedItemPositions();
+            SparseBooleanArray sbaSelectedItems = mLvSessions.getCheckedItemPositions();
 
             for (int i = 0; i < sbaSelectedItems.size(); i++) {
                 if (sbaSelectedItems.valueAt(i)) {
-                    String fileName = lvSessions.getAdapter().getItem(sbaSelectedItems.keyAt(i)).toString();
+                    String fileName = mLvSessions.getAdapter().getItem(sbaSelectedItems.keyAt(i)).toString();
 
                     if (fileName.contains("*"))
                         fileName = fileName.substring(0, fileName.indexOf(" *"));
@@ -139,7 +147,7 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
                     case R.id.action_delete:
                         FileUtil.deleteFiles(result.toArray(new File[result.size()]));
                         Toast.makeText(this, R.string.delete_sessions_done, Toast.LENGTH_SHORT).show();
-                        lvSessions.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_multiple_choice, getSessions()));
+                        mLvSessions.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_multiple_choice, getSessions()));
                         return true;
                 }
             else
@@ -148,8 +156,8 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
 
         switch (item.getItemId()) {
             case R.id.action_select_all:
-                for (int i = 0; i < lvSessions.getAdapter().getCount(); i++)
-                    lvSessions.setItemChecked(i, !item.isChecked());
+                for (int i = 0; i < mLvSessions.getAdapter().getCount(); i++)
+                    mLvSessions.setItemChecked(i, !item.isChecked());
 
                 item.setChecked(!item.isChecked());
                 return true;
@@ -162,22 +170,16 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
 
     private ArrayList<String> getSessions() {
         ArrayList<String> sessions = new ArrayList<>();
-
-        try {
-            File baseDir = new File(LoggerConstants.DATA_PATH);
-
-            if (!baseDir.exists() || !baseDir.isDirectory()) {
-                return sessions;
+        NGWVectorLayer sessionLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_SESSION);
+        if (sessionLayer != null) {
+            long currentId = mPreferences.getLong(LoggerConstants.PREF_SESSION_ID, Constants.NOT_FOUND);
+            List<Long> ids = sessionLayer.query(null);
+            // TODO should we block current session?
+            for (Long id : ids) {
+                Feature feature = sessionLayer.getFeature(id);
+                String name = feature.getFieldValueAsString(LoggerApplication.FIELD_NAME);
+                sessions.add(id == currentId ? name + " *" + getString(R.string.scl_current_session) + "*" : name);
             }
-
-            for (File file : baseDir.listFiles())
-                if (file.isDirectory() && !file.isHidden())
-                    if (file.getName().equals(mPreferences.getString(LoggerConstants.PREF_SESSION_NAME, "")))  // TODO should we block this session?
-                        sessions.add(file.getName() + " *" + getString(R.string.scl_current_session) + "*");    // it's current opened session
-                    else
-                        sessions.add(file.getName());
-        } catch (Exception e) {
-            e.printStackTrace();
         }
 
         Collections.sort(sessions, Collections.reverseOrder());    // descending sort

@@ -161,4 +161,5 @@
 
     <string name="user_name">Пользователь</string>
     <string name="timestamp">Временная метка</string>
+    <string name="device_info">Устройство</string>
 </resources>

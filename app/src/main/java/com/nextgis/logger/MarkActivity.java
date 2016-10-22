@@ -63,6 +63,7 @@ import com.nextgis.logger.util.LoggerConstants;
 import com.nextgis.logger.util.FileUtil;
 import com.nextgis.logger.util.MarkName;
 import com.nextgis.maplib.datasource.GeoPoint;
+import com.nextgis.maplib.util.Constants;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -85,8 +86,9 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 	private static final String BUNDLE_ID       = "mark_id";
 	private static final String BUNDLE_NAME     = "mark_name";
 
-    private static int marksCount = 0;
+    private static int mMarksCount = 0;
     private boolean mIsHot, mIsVolumeControlEnabled, mIsActive, mLastConnection;
+    private long mSessionId;
 
     private SearchView mSearchView;
     private MenuItem mSearchBox, mBtRetry;
@@ -98,7 +100,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 	private static ArduinoEngine mArduinoEngine;
 //	private WiFiEngine wifiEngine;
 
-    static MarksHandler marksHandler;
+    private static MarksHandler mMarksHandler;
     private static int mSavedMarkPosition;
 
 	@Override
@@ -120,9 +122,10 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
         mArduinoEngine.addConnectionListener(this);
 //		wifiEngine = new WiFiEngine(this);
 
+        mSessionId = mPreferences.getLong(LoggerConstants.PREF_SESSION_ID, Constants.NOT_FOUND);
         mSavedMarkPosition = mPreferences.getInt(LoggerConstants.PREF_MARK_POS, Integer.MIN_VALUE);
-        marksCount = mPreferences.getInt(LoggerConstants.PREF_MARKS_COUNT, 0);
-        marksHandler = new MarksHandler(this);
+        mMarksCount = mPreferences.getInt(LoggerConstants.PREF_MARKS_COUNT, 0);
+        mMarksHandler = new MarksHandler(this);
 
         mLvCategories = (ListView) findViewById(R.id.lv_categories);
         mLvCategories.setOnItemClickListener(new OnItemClickListener() {
@@ -189,8 +192,8 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
         switch (v.getId()) {
             case R.id.fab:
                 if (mIsHot) {
-                    marksCount--;
-                    marksHandler.sendEmptyMessage(MARK_UNDO);
+                    mMarksCount--;
+                    mMarksHandler.sendEmptyMessage(MARK_UNDO);
                     Toast.makeText(this, R.string.mark_undo, Toast.LENGTH_SHORT).show();
                     break;
                 }
@@ -225,7 +228,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
         mArduinoEngine.onPause();
 //		wifiEngine.onPause();
 
-		mPreferences.edit().putInt(LoggerConstants.PREF_MARKS_COUNT, marksCount).apply();
+		mPreferences.edit().putInt(LoggerConstants.PREF_MARKS_COUNT, mMarksCount).apply();
 	}
 
     @Override
@@ -413,13 +416,11 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 
         final Bundle data = new Bundle();
         data.putInt(LoggerConstants.PREF_MARK_POS, mMarksAdapter.getMarkPosition(mark));
-        // TODO
-        data.putLong(BUNDLE_SESSION, 0);
+        data.putLong(BUNDLE_SESSION, mSessionId);
         data.putInt(BUNDLE_ID, mark.getID());
         data.putString(BUNDLE_NAME, mark.getCAT());
         data.putLong(BUNDLE_TIME, System.currentTimeMillis());
         data.putParcelableArrayList(BUNDLE_CELL, new ArrayList<>(mGsmEngine.getData()));
-//        data.putStringArrayList(BUNDLE_CELL, new ArrayList<>(mGsmEngine.getDataAsStringList(preamble)));
 
         // checking sensors state
         if (mSensorEngine.isEngineEnabled())
@@ -432,7 +433,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
         Vibrator vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         vibe.vibrate(100);
         String info = String.format(getString(R.string.mark_saved), mark.getCAT());
-        info += " (" + ++marksCount + ")";
+        info += " (" + ++mMarksCount + ")";
         Toast.makeText(this, info, Toast.LENGTH_SHORT).show();
         mIsHot = true;
 
@@ -451,7 +452,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
                 Message msg = new Message();
                 msg.what = MARK_SAVE;
                 msg.setData(data);
-                marksHandler.sendMessage(msg);
+                mMarksHandler.sendMessage(msg);
             }
         }, DELAY);
     }

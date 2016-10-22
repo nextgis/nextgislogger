@@ -31,6 +31,7 @@ import android.accounts.OperationCanceledException;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -78,6 +79,7 @@ public class LoggerApplication extends Application implements IGISApplication {
 
     public static final String FIELD_NAME = "name";
     public static final String FIELD_USER = "user";
+    public static final String FIELD_DEVICE_INFO = "device_info";
     public static final String FIELD_SESSION = "session";
     public static final String FIELD_MARK_ID = "mark_id";
     public static final String FIELD_TIMESTAMP = "timestamp";
@@ -108,11 +110,8 @@ public class LoggerApplication extends Application implements IGISApplication {
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         getMap();
-
-//        if (mSharedPreferences.getBoolean(PREF_FIRST_RUN, true)) {
-            onFirstRun();
-//            mSharedPreferences.edit().putBoolean(PREF_FIRST_RUN, false).apply();
-//        }
+        checkLayers();
+        updateFromPrevious();
 
         //turn on periodic sync. Can be set for each layer individually, but this is simpler
 //        if (mSharedPreferences.getBoolean(KEY_PREF_SYNC_PERIODICALLY, true)) {
@@ -294,13 +293,14 @@ public class LoggerApplication extends Application implements IGISApplication {
 
     }
 
-    protected void onFirstRun() {
+    protected void checkLayers() {
         ArrayList<Field> fields = new ArrayList<>();
         NGWVectorLayer layer = (NGWVectorLayer) mMap.getLayerByName(TABLE_SESSION);
         if (layer == null) {
             fields.clear();
             fields.add(new Field(GeoConstants.FTString, FIELD_NAME, getString(R.string.mark_name)));
-            fields.add(new Field(GeoConstants.FTString, FIELD_USER, getString(R.string.user_name)));
+            fields.add(new Field(GeoConstants.FTString, FIELD_USER, getString(R.string.device_info)));
+            fields.add(new Field(GeoConstants.FTString, FIELD_DEVICE_INFO, getString(R.string.user_name)));
             layer = createEmptyVectorLayer(TABLE_SESSION, fields);
             mMap.addLayer(layer);
             mMap.save();
@@ -364,7 +364,7 @@ public class LoggerApplication extends Application implements IGISApplication {
             fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_GPS_BE, getString(R.string.info_bearing)));
             fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_GPS_SAT, getString(R.string.info_sat)));
             fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_GPS_TIME, getString(R.string.info_time)));
-            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_GPS_TIME, getString(R.string.mic)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_AUDIO, getString(R.string.mic)));
             layer = createEmptyVectorLayer(TABLE_SENSOR, fields);
             mMap.addLayer(layer);
             mMap.save();
@@ -448,5 +448,25 @@ public class LoggerApplication extends Application implements IGISApplication {
             mAccountManager = AccountManager.get(getApplicationContext());
 
         return null != mAccountManager;
+    }
+
+    private void updateFromPrevious() {
+        try {
+            int currentVersionCode = getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
+            int savedVersionCode = mSharedPreferences.getInt(LoggerConstants.PREF_APP_VERSION, 0);
+
+            switch (savedVersionCode) {
+                case 0:
+                    mSharedPreferences.edit().putLong(LoggerConstants.PREF_SESSION_ID, -1)
+                            .putInt(LoggerConstants.PREF_MARKS_COUNT, 0)
+                            .putInt(LoggerConstants.PREF_RECORDS_COUNT, 0)
+                            .putInt(LoggerConstants.PREF_MARK_POS, Integer.MIN_VALUE).apply();
+                default:
+                    break;
+            }
+
+            if (savedVersionCode < currentVersionCode)
+                mSharedPreferences.edit().putInt(LoggerConstants.PREF_APP_VERSION, currentVersionCode).apply();
+        } catch (PackageManager.NameNotFoundException ignored) { }
     }
 }
