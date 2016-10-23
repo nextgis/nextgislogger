@@ -54,11 +54,13 @@ public class ProgressBarActivity extends FragmentActivity implements View.OnClic
     protected SharedPreferences mPreferences;
     protected FloatingActionButton mFAB;
     protected boolean mHasFAB = true;
+    protected long mSessionId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        mSessionId = mPreferences.getLong(LoggerConstants.PREF_SESSION_ID, Constants.NOT_FOUND);
 
         if (getActionBar() != null)
             getActionBar().setDisplayHomeAsUpEnabled(true);
@@ -189,9 +191,7 @@ public class ProgressBarActivity extends FragmentActivity implements View.OnClic
 
     public static boolean isLoggerServiceRunning(Context context) {
         ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-
             if (LoggerService.class.getName().equals(service.service.getClassName())) {
                 return true;
             }
@@ -201,5 +201,21 @@ public class ProgressBarActivity extends FragmentActivity implements View.OnClic
 
     protected boolean isSessionClosed() {
         return mPreferences.getLong(LoggerConstants.PREF_SESSION_ID, Constants.NOT_FOUND) == Constants.NOT_FOUND;
+    }
+
+    protected void clearSession() {
+        mPreferences.edit().remove(LoggerConstants.PREF_SESSION_ID)
+                .remove(LoggerConstants.PREF_MARKS_COUNT)
+                .remove(LoggerConstants.PREF_RECORDS_COUNT)
+                .remove(LoggerConstants.PREF_TIME_START)
+                .remove(LoggerConstants.PREF_TIME_FINISH)
+                .remove(LoggerConstants.PREF_MARK_POS).apply();
+    }
+
+    protected void stopService() {
+        Intent stopService = new Intent(getApplicationContext(), LoggerService.class);
+        stopService.setAction(LoggerConstants.ACTION_STOP);
+        startService(stopService);
+        setActionBarProgress(false);
     }
 }

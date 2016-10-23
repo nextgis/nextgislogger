@@ -88,7 +88,6 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 
     private static int mMarksCount = 0;
     private boolean mIsHot, mIsVolumeControlEnabled, mIsActive, mLastConnection;
-    private long mSessionId;
 
     private SearchView mSearchView;
     private MenuItem mSearchBox, mBtRetry;
@@ -122,7 +121,6 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
         mArduinoEngine.addConnectionListener(this);
 //		wifiEngine = new WiFiEngine(this);
 
-        mSessionId = mPreferences.getLong(LoggerConstants.PREF_SESSION_ID, Constants.NOT_FOUND);
         mSavedMarkPosition = mPreferences.getInt(LoggerConstants.PREF_MARK_POS, Integer.MIN_VALUE);
         mMarksCount = mPreferences.getInt(LoggerConstants.PREF_MARKS_COUNT, 0);
         mMarksHandler = new MarksHandler(this);
@@ -411,8 +409,6 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
     private void saveMark(MarkName mark) {
         if (mIsHot)
             return;
-
-        FileUtil.checkOrCreateDirectory(MainActivity.dataDirPath);
 
         final Bundle data = new Bundle();
         data.putInt(LoggerConstants.PREF_MARK_POS, mMarksAdapter.getMarkPosition(mark));

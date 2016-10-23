@@ -27,53 +27,48 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.BitmapFactory;
-import android.os.Binder;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
 
 import com.nextgis.logger.engines.ArduinoEngine;
 import com.nextgis.logger.engines.BaseEngine;
 import com.nextgis.logger.engines.CellEngine;
 import com.nextgis.logger.engines.GPSEngine;
 import com.nextgis.logger.engines.SensorEngine;
-import com.nextgis.logger.util.FileUtil;
 import com.nextgis.logger.util.LoggerConstants;
 import com.nextgis.maplib.datasource.GeoPoint;
+import com.nextgis.maplib.map.MapBase;
+import com.nextgis.maplib.map.MapContentProviderHelper;
 import com.nextgis.maplib.util.Constants;
 
 public class LoggerService extends Service implements ArduinoEngine.ConnectionListener {
+    // TODO
+    // 1. move engines to service
+    // 2. run while app active
+    // 3. separate process
 
-	private static long mTimeStart = 0;
-	private static int mRecordsCount = 0;
-	private static int mInterval = 1;
-
-	private boolean mIsRunning = false;
-
-	private static ArduinoEngine mArduinoEngine;
+    private static ArduinoEngine mArduinoEngine;
     private static SensorEngine mSensorEngine;
     private static CellEngine mGsmEngine;
 	private Thread mThread = null;
-	private LocalBinder mLocalBinder = new LocalBinder();
     private NotificationManager mNotificationManager;
-	private long mSessionId;
 
-    public class LocalBinder extends Binder {
-		public LoggerService getService() {
-			return LoggerService.this;
-		}
-	}
+	private boolean mIsRunning = false;
+	private int mRecordsCount;
+	private int mInterval = 1;
+	private long mSessionId;
 
 	@Override
 	public void onCreate() {
 		super.onCreate();
 
-		if (mTimeStart == 0) {
-			mTimeStart = System.currentTimeMillis();
-		}
-
+        Log.d("LOGGER", "onCreate");
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         mInterval = prefs.getInt(LoggerConstants.PREF_PERIOD_SEC, mInterval);
         mSessionId = prefs.getLong(LoggerConstants.PREF_SESSION_ID, Constants.NOT_FOUND);
@@ -95,18 +90,45 @@ public class LoggerService extends Service implements ArduinoEngine.ConnectionLi
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
+        String action = intent != null ? intent.getAction() != null ? intent.getAction() : "" : "";
+        Log.d("LOGGER", "onStartCommand: " + action);
+        switch (action) {
+            case LoggerConstants.ACTION_STOP:
+                Log.d("LOGGER", "mThread: " + mThread);
+                if (mThread != null)
+                    mThread.interrupt();
 
-		if (!mIsRunning) {
-			mIsRunning = true;
-			mRecordsCount = 0;
-			sendNotification();
-			RunTask();
-		}
-
-		return super.onStartCommand(intent, flags, startId);
+                stopSelf();
+                return START_NOT_STICKY;
+            case LoggerConstants.ACTION_START:
+            default:
+                if (!mIsRunning) {
+                    mIsRunning = true;
+                    mRecordsCount = getRecordsCount();
+                    sendNotification();
+                    startMeasuring();
+                }
+                return START_STICKY;
+        }
 	}
 
-	@Override
+    private int getRecordsCount() {
+        int result = 0;
+        SQLiteDatabase db = ((MapContentProviderHelper) MapBase.getInstance()).getDatabase(false);
+        Cursor count = db.rawQuery("SELECT COUNT(*) FROM " + LoggerApplication.TABLE_MARK + " WHERE " + LoggerApplication.FIELD_MARK_ID + " = -1 AND " +
+                LoggerApplication.FIELD_SESSION + " = ?;", new String[]{mSessionId + ""});
+
+        if (count != null) {
+            if (count.moveToFirst())
+                result = count.getInt(0);
+
+            count.close();
+        }
+
+        return result;
+    }
+
+    @Override
 	public void onDestroy() {
 		super.onDestroy();
 
@@ -114,15 +136,11 @@ public class LoggerService extends Service implements ArduinoEngine.ConnectionLi
 		mSensorEngine.onPause();
         mArduinoEngine.removeConnectionListener(this);
         mArduinoEngine.onPause();
-
-		if (mThread != null) {
-			mThread.interrupt();
-		}
 	}
 
 	@Override
 	public IBinder onBind(Intent intent) {
-		return mLocalBinder;
+		return null;
 	}
 
 	private void sendNotification() {
@@ -144,37 +162,12 @@ public class LoggerService extends Service implements ArduinoEngine.ConnectionLi
 		startForeground(1, notification);
 	}
 
-	private void sendErrorNotification() {
-		PendingIntent pIntent = PendingIntent.getActivity(this, 0, new Intent(), 0);
-
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
-        builder.setContentIntent(pIntent)
-                .setSmallIcon(R.drawable.ic_status_notification)
-                .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher))
-                .setTicker(getString(R.string.service_notif_title))
-                .setWhen(System.currentTimeMillis())
-                .setAutoCancel(true)
-                .setContentTitle(getString(R.string.service_notif_title))
-                .setContentText(getString(R.string.fs_error_msg));
-
-        Notification notification = builder.build();
-		mNotificationManager.notify(2, notification);
-	}
-
-	public long getTimeStart() {
-		return mTimeStart;
-	}
-
-	public int getRecordsCount() {
-		return mRecordsCount;
-	}
-
-	private void RunTask() {
+	private void startMeasuring() {
 		mThread = new Thread(new Runnable() {
 			public void run() {
-				Intent intentStatus = new Intent(LoggerConstants.BROADCAST_ACTION);
-
-				intentStatus.putExtra(LoggerConstants.PARAM_SERVICE_STATUS, LoggerConstants.STATUS_STARTED).putExtra(LoggerConstants.PARAM_TIME, mTimeStart);
+				Intent intentStatus = new Intent(LoggerConstants.ACTION_INFO);
+				intentStatus.putExtra(LoggerConstants.SERVICE_STATUS, LoggerConstants.STATUS_STARTED)
+                        .putExtra(LoggerConstants.PREF_TIME_START, System.currentTimeMillis());
 				sendBroadcast(intentStatus);
 
 				PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
@@ -182,8 +175,6 @@ public class LoggerService extends Service implements ArduinoEngine.ConnectionLi
 				wakeLock.acquire();
 
 				while (true) {
-					FileUtil.checkOrCreateDirectory(MainActivity.dataDirPath);
-
 					try {
 						GeoPoint point = GPSEngine.getFix(mSensorEngine.getData());
 						long markId = BaseEngine.saveMark(mSessionId, -1, LoggerConstants.LOG_UID, System.currentTimeMillis(), point);
@@ -195,9 +186,11 @@ public class LoggerService extends Service implements ArduinoEngine.ConnectionLi
 						if (mArduinoEngine.isEngineEnabled())
 							mArduinoEngine.saveData(markId);
 
-						intentStatus.putExtra(LoggerConstants.PARAM_SERVICE_STATUS, LoggerConstants.STATUS_RUNNING).putExtra(LoggerConstants.PARAM_RECORDS_COUNT, ++mRecordsCount);
+						intentStatus.putExtra(LoggerConstants.SERVICE_STATUS, LoggerConstants.STATUS_RUNNING)
+								.putExtra(LoggerConstants.PREF_RECORDS_COUNT, ++mRecordsCount);
 						sendBroadcast(intentStatus);
 
+                        Log.d("LOGGER", "sleep");
 						Thread.sleep(mInterval * 1000);
 					} catch (InterruptedException e) {
 						break;
@@ -207,14 +200,12 @@ public class LoggerService extends Service implements ArduinoEngine.ConnectionLi
 						break;
 				}
 
+                Log.d("LOGGER", "end while");
+                intentStatus.putExtra(LoggerConstants.SERVICE_STATUS, LoggerConstants.STATUS_FINISHED)
+                        .putExtra(LoggerConstants.PREF_TIME_FINISH, System.currentTimeMillis());
+                sendBroadcast(intentStatus);
+
 				wakeLock.release();
-
-				intentStatus.putExtra(LoggerConstants.PARAM_SERVICE_STATUS, LoggerConstants.STATUS_FINISHED)
-						.putExtra(LoggerConstants.PARAM_TIME, System.currentTimeMillis());
-
-				sendBroadcast(intentStatus);
-
-				stopSelf();
 			}
 		});
 

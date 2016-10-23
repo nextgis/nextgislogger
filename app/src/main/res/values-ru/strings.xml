@@ -74,6 +74,7 @@
     <string name="session_name">Имя сессии:</string>
     <string name="session_incorrect_name">"Неверный символ "</string>
     <string name="session_null_name">Имя не может быть пустым</string>
+    <string name="sessions_start_fail">Невозможно начать новую сессию</string>
     <string name="btn_session_open">Новая</string>
     <string name="btn_session_close">Закрыть</string>
     <string name="btn_sessions_manage">Управление</string>

@@ -78,6 +78,7 @@
     <string name="session_name">Session name:</string>
     <string name="session_incorrect_name">"Incorrect char "</string>
     <string name="session_null_name">Name can not be blank</string>
+    <string name="sessions_start_fail">Can not start new session</string>
     <string name="btn_session_open">New</string>
     <string name="btn_session_close">Close</string>
     <string name="btn_sessions_manage">Manage</string>

@@ -23,7 +23,9 @@
 
 package com.nextgis.logger;
 
-import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.SparseBooleanArray;
@@ -35,34 +37,36 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.nextgis.logger.UI.ProgressBarActivity;
-import com.nextgis.logger.util.LoggerConstants;
-import com.nextgis.logger.util.FileUtil;
 import com.nextgis.maplib.datasource.Feature;
 import com.nextgis.maplib.map.MapBase;
+import com.nextgis.maplib.map.MapContentProviderHelper;
 import com.nextgis.maplib.map.NGWVectorLayer;
 import com.nextgis.maplib.util.Constants;
+import com.nextgis.maplib.util.MapUtil;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 public class SessionsActivity extends ProgressBarActivity implements View.OnClickListener {
+    private static int LAYOUT = android.R.layout.simple_list_item_multiple_choice;
+
     private ListView mLvSessions;
+    private List<Feature> mSessions;
+    private List<String> mSessionsName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.sessions_activity);
 
+        mSessionsName = new ArrayList<>();
+        mSessions = new ArrayList<>();
+
+        loadSessions();
+
         mLvSessions = (ListView) findViewById(R.id.lv_sessions);
-        mLvSessions.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_multiple_choice, getSessions()));
+        mLvSessions.setAdapter(new ArrayAdapter<>(this, LAYOUT, mSessionsName));
 
         if (mFAB != null)
             mFAB.attachToListView(mLvSessions);
@@ -82,73 +86,73 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
         // as you specify a parent activity in AndroidManifest.xml.
 
         if (item.getItemId() == R.id.action_share || item.getItemId() == R.id.action_delete) {
-            ArrayList<File> result = new ArrayList<>();
+            ArrayList<Integer> result = new ArrayList<>();
             SparseBooleanArray sbaSelectedItems = mLvSessions.getCheckedItemPositions();
 
             for (int i = 0; i < sbaSelectedItems.size(); i++) {
                 if (sbaSelectedItems.valueAt(i)) {
-                    String fileName = mLvSessions.getAdapter().getItem(sbaSelectedItems.keyAt(i)).toString();
-
-                    if (fileName.contains("*"))
-                        fileName = fileName.substring(0, fileName.indexOf(" *"));
-
-                    result.add(new File(LoggerConstants.DATA_PATH + File.separator + fileName));
+//                    String fileName = mLvSessions.getAdapter().getItem(sbaSelectedItems.keyAt(i)).toString();
+                    result.add(i);
                 }
             }
 
             if (result.size() > 0)
                 switch (item.getItemId()) {
                     case R.id.action_share:
-                        ArrayList<Uri> logsZips = new ArrayList<>();
-
-                        try {
-                            byte[] buffer = new byte[1024];
-
-                            FileUtil.checkOrCreateDirectory(LoggerConstants.TEMP_PATH);
-
-                            for (File file : result) { // for each selected logs directory
-                                String tempFileName = LoggerConstants.TEMP_PATH + File.separator + file.getName() + ".zip"; // set temp zip file path
-
-                                File[] files = file.listFiles(); // get all files in current log directory
-
-                                if (files.length == 0) // skip empty directories
-                                    continue;
-
-                                FileOutputStream fos = new FileOutputStream(tempFileName);
-                                ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(fos));
-
-                                for (File file1 : files) { // for each log-file in directory
-                                    FileInputStream fis = new FileInputStream(file1);
-                                    zos.putNextEntry(new ZipEntry(file1.getName())); // put it in zip
-
-                                    int length;
-
-                                    while ((length = fis.read(buffer)) > 0)
-                                        // write it to zip
-                                        zos.write(buffer, 0, length);
-
-                                    zos.closeEntry();
-                                    fis.close();
-                                }
-
-                                zos.close();
-                                logsZips.add(Uri.fromFile(new File(tempFileName))); // add file's uri to share list
-                            }
-                        } catch (IOException e) {
-                            Toast.makeText(this, R.string.fs_error_msg, Toast.LENGTH_SHORT).show();
-                        }
-
-                        Intent shareIntent = new Intent();
-                        shareIntent.setAction(Intent.ACTION_SEND_MULTIPLE); // multiple sharing
-                        shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, logsZips); // set data
-                        shareIntent.setType("application/zip"); //set mime type
-                        startActivity(Intent.createChooser(shareIntent, getString(R.string.share_sessions_title)));
+//                        ArrayList<Uri> logsZips = new ArrayList<>();
+//
+//                        try {
+//                            byte[] buffer = new byte[1024];
+//
+//                            FileUtil.checkOrCreateDirectory(LoggerConstants.TEMP_PATH);
+//
+//                            for (File file : result) { // for each selected logs directory
+//                                String tempFileName = LoggerConstants.TEMP_PATH + File.separator + file.getName() + ".zip"; // set temp zip file path
+//
+//                                File[] files = file.listFiles(); // get all files in current log directory
+//
+//                                if (files.length == 0) // skip empty directories
+//                                    continue;
+//
+//                                FileOutputStream fos = new FileOutputStream(tempFileName);
+//                                ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(fos));
+//
+//                                for (File file1 : files) { // for each log-file in directory
+//                                    FileInputStream fis = new FileInputStream(file1);
+//                                    zos.putNextEntry(new ZipEntry(file1.getName())); // put it in zip
+//
+//                                    int length;
+//
+//                                    while ((length = fis.read(buffer)) > 0)
+//                                        // write it to zip
+//                                        zos.write(buffer, 0, length);
+//
+//                                    zos.closeEntry();
+//                                    fis.close();
+//                                }
+//
+//                                zos.close();
+//                                logsZips.add(Uri.fromFile(new File(tempFileName))); // add file's uri to share list
+//                            }
+//                        } catch (IOException e) {
+//                            Toast.makeText(this, R.string.fs_error_msg, Toast.LENGTH_SHORT).show();
+//                        }
+//
+//                        Intent shareIntent = new Intent();
+//                        shareIntent.setAction(Intent.ACTION_SEND_MULTIPLE); // multiple sharing
+//                        shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, logsZips); // set data
+//                        shareIntent.setType("application/zip"); //set mime type
+//                        startActivity(Intent.createChooser(shareIntent, getString(R.string.share_sessions_title)));
                         return true;
                     case R.id.action_delete:
-                        FileUtil.deleteFiles(result.toArray(new File[result.size()]));
-                        Toast.makeText(this, R.string.delete_sessions_done, Toast.LENGTH_SHORT).show();
-                        mLvSessions.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_multiple_choice, getSessions()));
-                        return true;
+                        if (deleteSessions(result)) {
+                            Toast.makeText(this, R.string.delete_sessions_done, Toast.LENGTH_SHORT).show();
+                            loadSessions();
+                            mLvSessions.setAdapter(new ArrayAdapter<>(this, LAYOUT, mSessionsName));
+                            return true;
+                        }
+
+                        return false;
                 }
             else
                 Toast.makeText(this, R.string.sessions_nothing_selected, Toast.LENGTH_SHORT).show();
@@ -168,22 +172,118 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
         return super.onOptionsItemSelected(item);
     }
 
-    private ArrayList<String> getSessions() {
-        ArrayList<String> sessions = new ArrayList<>();
+    private void loadSessions() {
+        mSessionsName.clear();
+        mSessions.clear();
         NGWVectorLayer sessionLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_SESSION);
         if (sessionLayer != null) {
-            long currentId = mPreferences.getLong(LoggerConstants.PREF_SESSION_ID, Constants.NOT_FOUND);
             List<Long> ids = sessionLayer.query(null);
-            // TODO should we block current session?
             for (Long id : ids) {
                 Feature feature = sessionLayer.getFeature(id);
+                if (feature == null)
+                    continue;
+
+                // TODO
+                if (mSessionId == id)
+                    continue;
+
+                mSessions.add(feature);
                 String name = feature.getFieldValueAsString(LoggerApplication.FIELD_NAME);
-                sessions.add(id == currentId ? name + " *" + getString(R.string.scl_current_session) + "*" : name);
+                mSessionsName.add(id == mSessionId ? name + " *" + getString(R.string.scl_current_session) + "*" : name);
             }
+
+            Collections.sort(mSessionsName, Collections.reverseOrder());
+        }
+    }
+
+    private boolean deleteSessions(List<Integer> positions) {
+        boolean result = false;
+        String authority = ((LoggerApplication) getApplication()).getAuthority();
+        Uri uri;
+
+        try {
+            String[] ids = getIdsFromPositions(positions);
+            NGWVectorLayer layer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_MARK);
+            String placeholders = MapUtil.makePlaceholders(ids.length);
+            String in = " IN (" + placeholders + ")";
+            List<String> markIds = new ArrayList<>();
+
+            if (hasCurrentSession(ids)) {
+                stopService();
+                clearSession(); // TODO dialog
+            }
+
+            if (layer != null) {
+                Cursor allMarks = layer.query(new String[]{Constants.FIELD_ID}, Constants.FIELD_ID + in, ids, null, null);
+                if (allMarks != null) {
+                    if (allMarks.moveToFirst()) {
+                        do {
+                            markIds.add(allMarks.getString(0));
+                        } while (allMarks.moveToNext());
+                    }
+
+                    allMarks.close();
+                }
+
+                uri = Uri.parse("content://" + authority + "/" + layer.getPath().getName() + "/");
+                layer.delete(uri, LoggerApplication.FIELD_SESSION + in, ids);
+                layer.rebuildCache(null);
+            }
+
+            layer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_SESSION);
+            if (layer != null) {
+                uri = Uri.parse("content://" + authority + "/" + layer.getPath().getName() + "/");
+                layer.delete(uri, Constants.FIELD_ID + in, ids);
+                layer.rebuildCache(null);
+            }
+
+            ids = markIds.toArray(new String[markIds.size()]);
+            layer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_CELL);
+            if (layer != null) {
+                uri = Uri.parse("content://" + authority + "/" + layer.getPath().getName() + "/");
+                layer.delete(uri, LoggerApplication.FIELD_MARK + in, ids);
+                layer.rebuildCache(null);
+            }
+
+            layer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_SENSOR);
+            if (layer != null) {
+                uri = Uri.parse("content://" + authority + "/" + layer.getPath().getName() + "/");
+                layer.delete(uri, LoggerApplication.FIELD_MARK + in, ids);
+                layer.rebuildCache(null);
+            }
+
+            layer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_EXTERNAL);
+            if (layer != null) {
+                uri = Uri.parse("content://" + authority + "/" + layer.getPath().getName() + "/");
+                layer.delete(uri, LoggerApplication.FIELD_MARK + in, ids);
+                layer.rebuildCache(null);
+            }
+
+            result = true;
+
+            // shrink database
+            SQLiteDatabase db = ((MapContentProviderHelper) MapBase.getInstance()).getDatabase(false);
+            db.execSQL("VACUUM");
+        } catch (SQLiteException e) {
+            e.printStackTrace();
         }
 
-        Collections.sort(sessions, Collections.reverseOrder());    // descending sort
+        return result;
+    }
 
-        return sessions;
+    private boolean hasCurrentSession(String[] ids) {
+        for (String id : ids)
+            if (id.equals(mSessionId + ""))
+                return true;
+
+        return false;
+    }
+
+    private String[] getIdsFromPositions(List<Integer> positions) {
+        String[] result = new String[positions.size()];
+        for (int i = 0; i < positions.size(); i++)
+            result[i] = mSessions.get(i).getId() + "";
+
+        return result;
     }
 }

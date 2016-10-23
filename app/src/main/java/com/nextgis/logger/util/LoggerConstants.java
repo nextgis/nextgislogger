@@ -39,8 +39,7 @@ public interface LoggerConstants {
     String CSV_MARK_EXTERNAL = "external_time_marks.csv";
     String CATEGORIES = "categories.csv";
     String DEVICE_INFO = "device_info.txt";
-    String DATA_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "nextgis_logger";
-    String TEMP_PATH = DATA_PATH + File.separator + ".temp";
+    String TEMP_PATH = ".temp";
 
     String CSV_HEADER_PREAMBLE = "ID" + CSV_SEPARATOR + "Name" + CSV_SEPARATOR + "User" + CSV_SEPARATOR + "TimeStamp" + CSV_SEPARATOR + "DateTime";
 
@@ -105,20 +104,22 @@ public interface LoggerConstants {
     String PREF_EXTERNAL = "external_data";
     String PREF_EXTERNAL_DEVICE = "external_device";
     String PREF_EXTERNAL_HEADER = "external_header";
+    String PREF_TIME_START = "time_start";
+    String PREF_TIME_FINISH = "time_finish";
+
     String DEFAULT_USERNAME = "User1";
     String LOG_UID = "ServiceLog";
+
+    String SERVICE_STATUS = "service_status";
+    String ACTION_INFO = "com.nextgis.logger.SERVICE_INFO";
+    String ACTION_START = "com.nextgis.logger.SERVICE_START";
+    String ACTION_STOP = "com.nextgis.logger.SERVICE_STOP";
 
     String GEN_2G = "2G";
     String GEN_3G = "3G";
     String GEN_4G = "4G";
     String UNKNOWN = "unknown";
     String NO_DATA = "NaN";
-
-    String BROADCAST_ACTION = "com.nextgis.gsm_logger.MainActivity";
-
-    String PARAM_SERVICE_STATUS = "serviceStatus";
-    String PARAM_TIME = "time";
-    String PARAM_RECORDS_COUNT = "recordsCount";
 
     int STATUS_STARTED = 100;
     int STATUS_RUNNING = 101;

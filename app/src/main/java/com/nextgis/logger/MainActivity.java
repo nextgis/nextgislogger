@@ -27,18 +27,15 @@ package com.nextgis.logger;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.view.Menu;
 import android.view.View;
@@ -63,27 +60,11 @@ import java.util.Calendar;
 import java.util.Locale;
 
 public class MainActivity extends ProgressBarActivity implements OnClickListener {
-	public static String dataDirPath = LoggerConstants.DATA_PATH;
-	public static String csvLogFilePath = dataDirPath + File.separator + LoggerConstants.CSV_LOG_CELL;
-	public static String csvLogFilePathSensor = dataDirPath + File.separator + LoggerConstants.CSV_LOG_SENSOR;
-	public static String csvLogFilePathExternal = dataDirPath + File.separator + LoggerConstants.CSV_LOG_EXTERNAL;
-	public static String csvMarkFilePath = dataDirPath + File.separator + LoggerConstants.CSV_MARK_CELL;
-	public static String csvMarkFilePathSensor = dataDirPath + File.separator + LoggerConstants.CSV_MARK_SENSOR;
-	public static String csvMarkFilePathExternal = dataDirPath + File.separator + LoggerConstants.CSV_MARK_EXTERNAL;
-
-	private static long mTimeStarted = 0;
-	private static int mRecordsCount = 0;
-
-	private enum INTERFACE_STATE {
-		SESSION_NONE, SESSION_STARTED, ERROR, OK
-	}
-
 	private BroadcastReceiver mLoggerServiceReceiver;
-	private Button mButtonService, mButtonMark, mButtonSession;
+	private Button mButtonService, mButtonSession;
 	private TextView mTvSessionName, mTvStartedTime, mTvFinishedTime, mTvRecordsCount, mTvMarksCount;
-	private ServiceConnection mServiceConnection = null;
 
-	@Override
+    @Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
@@ -93,117 +74,63 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
         setContentView(R.layout.main_activity);
 		PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
         FileUtil.deleteFiles(new File(LoggerConstants.TEMP_PATH).listFiles()); // clear cache directory with shared zips
+
         ((TextView)findViewById(R.id.tv_sessions)).setText(getString(R.string.title_activity_sessions).toUpperCase());
-
-		boolean isServiceRunning = isLoggerServiceRunning(this);
-
-		mButtonService = (Button) findViewById(R.id.btn_service_onoff);
-		mButtonService.setText(getString(isServiceRunning ? R.string.btn_service_stop : R.string.btn_service_start));
-		mButtonService.setOnClickListener(this);
-
-		mButtonMark = (Button) findViewById(R.id.btn_mark);
-		mButtonMark.setText(getString(R.string.btn_save_mark));
-		mButtonMark.setOnClickListener(this);
-
-		String sessionName = "";
-		long id = mPreferences.getLong(LoggerConstants.PREF_SESSION_ID, Constants.NOT_FOUND);
-		NGWVectorLayer sessionLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_SESSION);
-		if (sessionLayer != null && id != Constants.NOT_FOUND) {
-			Feature session = sessionLayer.getFeature(id);
-			sessionName = session.getFieldValueAsString(LoggerApplication.FIELD_NAME);
-		}
-
-		setDataDirPath(sessionName);
-		setInterfaceState(0, id == Constants.NOT_FOUND ? INTERFACE_STATE.SESSION_NONE : INTERFACE_STATE.SESSION_STARTED);
-
         findViewById(R.id.btn_sessions).setOnClickListener(this);
 
-		mTvSessionName = (TextView) findViewById(R.id.tv_current_session_name);
-		mTvSessionName.setText(sessionName);
+        mTvSessionName = (TextView) findViewById(R.id.tv_current_session_name);
+        mTvStartedTime = (TextView) findViewById(R.id.tv_logger_started_time);
+        mTvFinishedTime = (TextView) findViewById(R.id.tv_logger_finished_time);
+        mTvRecordsCount = (TextView) findViewById(R.id.tv_records_collected_count);
+        mTvMarksCount = (TextView) findViewById(R.id.tv_marks_collected_count);
 
-		mButtonSession = (Button) findViewById(R.id.btn_session);
-		mButtonSession.setText(getString(sessionName.equals("") ? R.string.btn_session_open : R.string.btn_session_close));
-		mButtonSession.setEnabled(!isServiceRunning);
-		mButtonSession.setOnClickListener(this);
+        mButtonService = (Button) findViewById(R.id.btn_service_onoff);
+        mButtonService.setOnClickListener(this);
+        Button buttonMark = (Button) findViewById(R.id.btn_mark);
+        buttonMark.setOnClickListener(this);
+        buttonMark.setText(getString(R.string.btn_save_mark));
+        mButtonSession = (Button) findViewById(R.id.btn_session);
+        mButtonSession.setOnClickListener(this);
 
-		mTvStartedTime = (TextView) findViewById(R.id.tv_logger_started_time);
-		mTvFinishedTime = (TextView) findViewById(R.id.tv_logger_finished_time);
-		mTvRecordsCount = (TextView) findViewById(R.id.tv_records_collected_count);
-		mTvMarksCount = (TextView) findViewById(R.id.tv_marks_collected_count);
-
-		mRecordsCount = mPreferences.getInt(LoggerConstants.PREF_RECORDS_COUNT, 0);
-
-		if (!isServiceRunning) {
-			if (mTimeStarted > 0)
-				mTvStartedTime.setText(millisToDate(mTimeStarted, "dd.MM.yyyy hh:mm:ss"));
-
-//			mTvFinishedTime.setText(getText(R.string.service_stopped));
-
-			if (mRecordsCount > 0)
-				mTvRecordsCount.setText(mRecordsCount + "");
-		} else {
-			mServiceConnection = new ServiceConnection() {
-				public void onServiceConnected(ComponentName name, IBinder binder) {
-					LoggerService loggerService = ((LoggerService.LocalBinder) binder).getService();
-					mTvStartedTime.setText(millisToDate(loggerService.getTimeStart(), "dd.MM.yyyy hh:mm:ss"));
-					mTvRecordsCount.setText(mRecordsCount + loggerService.getRecordsCount() + "");
-				}
-
-				public void onServiceDisconnected(ComponentName name) { }
-			};
-			Intent intentConn = new Intent(this, LoggerService.class);
-			bindService(intentConn, mServiceConnection, 0);
-
-			mTvFinishedTime.setText(getText(R.string.service_running));
-		}
-
-		mLoggerServiceReceiver = new BroadcastReceiver() {
+        mLoggerServiceReceiver = new BroadcastReceiver() {
 			public void onReceive(Context context, Intent intent) {
-				int serviceStatus = intent.getIntExtra(LoggerConstants.PARAM_SERVICE_STATUS, 0);
-				long time = intent.getLongExtra(LoggerConstants.PARAM_TIME, 0);
+				int serviceStatus = intent.getIntExtra(LoggerConstants.SERVICE_STATUS, 0);
+                int count = intent.getIntExtra(LoggerConstants.PREF_RECORDS_COUNT, 0);
+				long time;
 
 				switch (serviceStatus) {
 				case LoggerConstants.STATUS_STARTED:
-					mTimeStarted = time;
-					mTvStartedTime.setText(millisToDate(time, "dd.MM.yyyy hh:mm:ss"));
-					mTvFinishedTime.setText(getText(R.string.service_running));
+                    time = intent.getLongExtra(LoggerConstants.PREF_TIME_START, 0);
+					mTvStartedTime.setText(millisToDate(time));
+					mTvFinishedTime.setText(R.string.service_running);
+					mPreferences.edit().putLong(LoggerConstants.PREF_TIME_START, time).apply();
 					break;
-
 				case LoggerConstants.STATUS_RUNNING:
-					mTvRecordsCount.setText(mRecordsCount + intent.getIntExtra(LoggerConstants.PARAM_RECORDS_COUNT, 0) + "");
-					mTvFinishedTime.setText(getText(R.string.service_running));
+					mTvRecordsCount.setText(count + "");
+					mTvFinishedTime.setText(R.string.service_running);
 					break;
-
-				case LoggerConstants.STATUS_ERROR:
-					setInterfaceState(R.string.fs_error_msg, INTERFACE_STATE.ERROR);
 				case LoggerConstants.STATUS_FINISHED:
-                    updateFileForMTP(csvLogFilePath);
-                    updateFileForMTP(csvLogFilePathSensor);
-                    updateFileForMTP(csvLogFilePathExternal);
-					mRecordsCount += intent.getIntExtra(LoggerConstants.PARAM_RECORDS_COUNT, 0);
-					mTvFinishedTime.setText(millisToDate(time, "dd.MM.yyyy hh:mm:ss"));
-					mPreferences.edit().putInt(LoggerConstants.PREF_RECORDS_COUNT, mRecordsCount).apply();
+                    time = intent.getLongExtra(LoggerConstants.PREF_TIME_FINISH, 0);
+					mTvFinishedTime.setText(millisToDate(time));
+					mPreferences.edit().putLong(LoggerConstants.PREF_TIME_FINISH, time)
+							.putInt(LoggerConstants.PREF_RECORDS_COUNT, count).apply();
 					break;
 				}
 			}
 		};
 
-		IntentFilter intentFilter = new IntentFilter(LoggerConstants.BROADCAST_ACTION);
+		IntentFilter intentFilter = new IntentFilter(LoggerConstants.ACTION_INFO);
 		registerReceiver(mLoggerServiceReceiver, intentFilter);
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
+        updateInterface();
 
 		int marksCount = mPreferences.getInt(LoggerConstants.PREF_MARKS_COUNT, 0);
-
-		if (marksCount > 0) {
+		if (marksCount > 0)
             mTvMarksCount.setText(marksCount + "");
-            updateFileForMTP(csvMarkFilePath);
-            updateFileForMTP(csvMarkFilePathSensor);
-            updateFileForMTP(csvMarkFilePathExternal);
-        }
 	}
 
 	@Override
@@ -213,12 +140,7 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 
 	@Override
 	protected void onDestroy() {
-		if (mServiceConnection != null) {
-			unbindService(mServiceConnection);
-		}
-
 		unregisterReceiver(mLoggerServiceReceiver);
-
 		super.onDestroy();
 	}
 
@@ -232,73 +154,18 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 	public void onClick(View view) {
 		switch (view.getId()) {
 		case R.id.btn_session:
-			if (isSessionClosed()) {
-				AlertDialog.Builder alert = new AlertDialog.Builder(this);
-				alert.setTitle(getString(R.string.session_name));
-
-				final EditText input = new EditText(this);
-				String defaultName = millisToDate(Calendar.getInstance().getTimeInMillis(), "yyyy-MM-dd--HH-mm-ss");
-                final String userName = mPreferences.getString(LoggerConstants.PREF_USER_NAME, LoggerConstants.DEFAULT_USERNAME);
-				defaultName += userName.equals("") ? "" : "--" + userName;
-				input.setText(defaultName); // default session name
-				input.setSelection(input.getText().length()); // move cursor at the end
-				alert.setView(input);
-
-				alert.setPositiveButton(getString(R.string.btn_ok), new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int whichButton) {
-						String value = input.getText().toString();
-
-						if (isCorrectName(value)) { // open session
-							long id = startSession(value, userName, getDeviceInfo());
-							if (id == Constants.NOT_FOUND)
-								return;
-
-							mPreferences.edit().putLong(LoggerConstants.PREF_SESSION_ID, id).apply();
-							setInterfaceState(0, INTERFACE_STATE.SESSION_STARTED);
-							setDataDirPath(value);
-							mButtonSession.setText(R.string.btn_session_close);
-							mTvSessionName.setText(value);
-						}
-					}
-				});
-				alert.setNegativeButton(getString(R.string.btn_cancel), null);
-
-				AlertDialog dialog = alert.create();
-//				dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE); // show keyboard
-				dialog.show();
-			} else { // close session
-				mPreferences.edit().putLong(LoggerConstants.PREF_SESSION_ID, -1)
-						.putInt(LoggerConstants.PREF_MARKS_COUNT, 0)
-						.putInt(LoggerConstants.PREF_RECORDS_COUNT, 0)
-                        .putInt(LoggerConstants.PREF_MARK_POS, Integer.MIN_VALUE).apply();
-				mRecordsCount = 0;
-				setInterfaceState(0, INTERFACE_STATE.SESSION_NONE);
-				setDataDirPath("");
-				mButtonSession.setText(R.string.btn_session_open);
-				mTvSessionName.setText("");
-
-                mTvStartedTime.setText("");
-                mTvFinishedTime.setText("");
-				mTvMarksCount.setText("");
-				mTvRecordsCount.setText("");
-			}
+			if (isSessionClosed())
+				showSessionNameDialog();
+			else // close session
+				closeSession();
 			break;
 		case R.id.btn_service_onoff:
 			// Service can be stopped, but still visible in the system as working,
 			// therefore, we need to use isLoggerServiceRunning()
-			if (isLoggerServiceRunning(this)) {
-				stopService(new Intent(getApplicationContext(), LoggerService.class));
-				mButtonService.setText(getString(R.string.btn_service_start));
-                setActionBarProgress(false);
-				mButtonSession.setEnabled(true);
-			} else {
-				Intent intent = new Intent(getApplicationContext(), LoggerService.class);
-				startService(intent);
-
-				mButtonService.setText(getString(R.string.btn_service_stop));
-                setActionBarProgress(true);
-				mButtonSession.setEnabled(false);
-			}
+			if (isLoggerServiceRunning(this))
+				stopService();
+			else
+				startService();
 			break;
 		case R.id.btn_mark:
 			Intent markActivity = new Intent(this, MarkActivity.class);
@@ -314,7 +181,57 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 		}
 	}
 
-	private long startSession(String name, String userName, String deviceInfo) {
+    private void startService() {
+        Intent intent = new Intent(getApplicationContext(), LoggerService.class);
+        startService(intent);
+        mButtonService.setText(getString(R.string.btn_service_stop));
+        setActionBarProgress(true);
+        mButtonSession.setEnabled(false);
+    }
+
+    @Override
+    protected void stopService() {
+        super.stopService();
+        mButtonService.setText(getString(R.string.btn_service_start));
+        mButtonSession.setEnabled(true);
+    }
+
+    private void showSessionNameDialog() {
+        AlertDialog.Builder alert = new AlertDialog.Builder(this);
+        alert.setTitle(getString(R.string.session_name));
+
+        final EditText input = new EditText(this);
+        String defaultName = millisToDate(Calendar.getInstance().getTimeInMillis(), "yyyy-MM-dd--HH-mm-ss");
+        final String userName = mPreferences.getString(LoggerConstants.PREF_USER_NAME, LoggerConstants.DEFAULT_USERNAME);
+        defaultName += userName.equals("") ? "" : "--" + userName;
+        input.setText(defaultName); // default session name
+        input.setSelection(input.getText().length()); // move cursor to the end
+
+        alert.setView(input);
+        alert.setNegativeButton(getString(R.string.btn_cancel), null);
+        alert.setPositiveButton(getString(R.string.btn_ok), new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                String value = input.getText().toString();
+                if (isCorrectName(value)) { // open session
+                    long id = startSession(value, userName, getDeviceInfo());
+                    if (id == Constants.NOT_FOUND) {
+                        Toast.makeText(MainActivity.this, R.string.sessions_start_fail, Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    mSessionId = id;
+                    mPreferences.edit().putLong(LoggerConstants.PREF_SESSION_ID, id).apply();
+                    updateInterface();
+                }
+            }
+        });
+
+        AlertDialog dialog = alert.create();
+//				dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE); // show keyboard
+        dialog.show();
+    }
+
+    private long startSession(String name, String userName, String deviceInfo) {
 		NGWVectorLayer sessionLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_SESSION);
 		if (sessionLayer != null) {
 			Feature mark = new Feature(Constants.NOT_FOUND, sessionLayer.getFields());
@@ -363,20 +280,6 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 		return result.toString();
 	}
 
-	private void setDataDirPath(String directory) {
-		directory = directory.equals("") ? LoggerConstants.DATA_PATH : LoggerConstants.DATA_PATH + File.separator + directory;
-		dataDirPath = directory;
-		csvLogFilePath = directory + File.separator + LoggerConstants.CSV_LOG_CELL;
-		csvLogFilePathSensor = directory + File.separator + LoggerConstants.CSV_LOG_SENSOR;
-		csvLogFilePathExternal = directory + File.separator + LoggerConstants.CSV_LOG_EXTERNAL;
-		csvMarkFilePath = directory + File.separator + LoggerConstants.CSV_MARK_CELL;
-		csvMarkFilePathSensor = directory + File.separator + LoggerConstants.CSV_MARK_SENSOR;
-		csvMarkFilePathExternal = directory + File.separator + LoggerConstants.CSV_MARK_EXTERNAL;
-
-		if (!FileUtil.checkOrCreateDirectory(dataDirPath))
-			setInterfaceState(R.string.ext_media_unmounted_msg, INTERFACE_STATE.ERROR);
-	}
-
 	private boolean isCorrectName(String value) {
 		final char[] ILLEGAL_CHARACTERS = { '/', '\n', '\r', '\t', '\0', '\f', '`', '?', '*', '\\', '<', '>', '|', '\"', ':' };
 
@@ -394,28 +297,63 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 		return true;
 	}
 
-	private void setInterfaceState(int resId, INTERFACE_STATE state) {
-		switch (state) {
-		case ERROR:
-            setActionBarProgress(false);
-            mButtonSession.setEnabled(true);
-            mButtonService.setText(getString(R.string.btn_service_start));
-            Toast.makeText(this, resId, Toast.LENGTH_LONG).show();
-            break;
-		case SESSION_NONE:
-			mButtonService.setEnabled(false);
-			mButtonMark.setEnabled(false);
-            setActionBarProgress(false);
+	private void updateInterface() {
+        mSessionId = mPreferences.getLong(LoggerConstants.PREF_SESSION_ID, Constants.NOT_FOUND);
+        if (mSessionId == Constants.NOT_FOUND) {
             findViewById(R.id.rl_modes).setVisibility(View.GONE);
-			break;
-		case SESSION_STARTED:
-		default:
-			mButtonService.setEnabled(true);
-			mButtonMark.setEnabled(true);
+            mButtonSession.setText(R.string.btn_session_open);
+
+            mTvSessionName.setText("");
+            mTvStartedTime.setText("");
+            mTvFinishedTime.setText("");
+            mTvMarksCount.setText("");
+            mTvRecordsCount.setText("");
+        } else {
             findViewById(R.id.rl_modes).setVisibility(View.VISIBLE);
-			break;
-		}
-	}
+            mButtonSession.setText(R.string.btn_session_close);
+
+            String sessionName;
+            NGWVectorLayer sessionLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_SESSION);
+            if (sessionLayer != null) {
+                Feature session = sessionLayer.getFeature(mSessionId);
+                if (session != null)
+                    sessionName = session.getFieldValueAsString(LoggerApplication.FIELD_NAME);
+                else {
+                    closeSession();
+                    return;
+                }
+            } else {
+                closeSession();
+                return;
+            }
+
+            mTvSessionName.setText(sessionName);
+            Long time = mPreferences.getLong(LoggerConstants.PREF_TIME_START, 0);
+            mTvStartedTime.setText(time > 0 ? millisToDate(time) : getString(R.string.service_stopped));
+            time = mPreferences.getLong(LoggerConstants.PREF_TIME_FINISH, 0);
+            mTvFinishedTime.setText(time > 0 ? millisToDate(time) : getString(R.string.service_stopped));
+            mTvMarksCount.setText(mPreferences.getInt(LoggerConstants.PREF_MARKS_COUNT, 0) + "");
+            mTvRecordsCount.setText(mPreferences.getInt(LoggerConstants.PREF_RECORDS_COUNT, 0) + "");
+        }
+
+        boolean isServiceRunning = isLoggerServiceRunning(this);
+        setActionBarProgress(isServiceRunning);
+
+        mButtonService.setText(getString(isServiceRunning ? R.string.btn_service_stop : R.string.btn_service_start));
+        mButtonSession.setEnabled(!isServiceRunning);
+
+        if (isServiceRunning)
+            mTvFinishedTime.setText(R.string.service_running);
+    }
+
+    private void closeSession() {
+        clearSession();
+        updateInterface();
+    }
+
+    public static String millisToDate(long milliSeconds) {
+        return millisToDate(milliSeconds, "dd.MM.yyyy HH:mm:ss");
+    }
 
 	/**
 	 * Return date in specified format.
