@@ -33,6 +33,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -48,8 +49,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.nextgis.logger.UI.ProgressBarActivity;
-import com.nextgis.logger.util.LoggerConstants;
 import com.nextgis.logger.util.FileUtil;
+import com.nextgis.logger.util.LoggerConstants;
 import com.nextgis.maplib.datasource.Feature;
 import com.nextgis.maplib.datasource.GeoPoint;
 import com.nextgis.maplib.map.MapBase;
@@ -57,9 +58,6 @@ import com.nextgis.maplib.map.NGWVectorLayer;
 import com.nextgis.maplib.util.Constants;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
@@ -251,7 +249,7 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 						String value = input.getText().toString();
 
 						if (isCorrectName(value)) { // open session
-							long id = startSession(value, userName);
+							long id = startSession(value, userName, getDeviceInfo());
 							if (id == Constants.NOT_FOUND)
 								return;
 
@@ -260,18 +258,6 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 							setDataDirPath(value);
 							mButtonSession.setText(R.string.btn_session_close);
 							mTvSessionName.setText(value);
-
-							File deviceInfoFile = new File(dataDirPath + File.separator + LoggerConstants.DEVICE_INFO);
-
-							PrintWriter pw;
-							try {
-								pw = new PrintWriter(new FileOutputStream(deviceInfoFile, true));
-								pw.println(getDeviceInfo());
-								pw.close();
-                                updateFileForMTP(deviceInfoFile.getPath());
-							} catch (FileNotFoundException e) {
-								e.printStackTrace();
-							}
 						}
 					}
 				});
@@ -328,12 +314,13 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 		}
 	}
 
-	private long startSession(String name, String userName) {
+	private long startSession(String name, String userName, String deviceInfo) {
 		NGWVectorLayer sessionLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_SESSION);
 		if (sessionLayer != null) {
 			Feature mark = new Feature(Constants.NOT_FOUND, sessionLayer.getFields());
 			mark.setFieldValue(LoggerApplication.FIELD_NAME, name);
 			mark.setFieldValue(LoggerApplication.FIELD_USER, userName);
+			mark.setFieldValue(LoggerApplication.FIELD_DEVICE_INFO, deviceInfo);
 			mark.setGeometry(new GeoPoint(0, 0));
 			return sessionLayer.createFeature(mark);
 		}
@@ -366,8 +353,9 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 			result.append("Radio firmware:\t").append(Build.RADIO).append("\r\n");
 
         try {
-            result.append("Logger version name:\t").append(getPackageManager().getPackageInfo(getPackageName(), 0).versionName).append("\r\n");
-            result.append("Logger version code:\t").append(getPackageManager().getPackageInfo(getPackageName(), 0).versionCode).append("\r\n");
+			PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+            result.append("Logger version name:\t").append(packageInfo.versionName).append("\r\n");
+            result.append("Logger version code:\t").append(packageInfo.versionCode).append("\r\n");
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
