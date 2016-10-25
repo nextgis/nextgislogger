@@ -32,32 +32,44 @@ import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 import com.nextgis.logger.engines.ArduinoEngine;
 import com.nextgis.logger.engines.CellEngine;
 import com.nextgis.logger.engines.SensorEngine;
 import com.nextgis.logger.util.LoggerConstants;
+import com.nextgis.logger.util.LoggerVectorLayer;
 import com.nextgis.maplib.api.IGISApplication;
+import com.nextgis.maplib.api.ILayer;
 import com.nextgis.maplib.datasource.Field;
 import com.nextgis.maplib.location.GpsEventSource;
 import com.nextgis.maplib.map.LayerFactory;
 import com.nextgis.maplib.map.LayerGroup;
+import com.nextgis.maplib.map.LocalTMSLayer;
 import com.nextgis.maplib.map.MapBase;
-import com.nextgis.maplib.map.MapContentProviderHelper;
 import com.nextgis.maplib.map.MapDrawable;
+import com.nextgis.maplib.map.NGWLookupTable;
+import com.nextgis.maplib.map.NGWRasterLayer;
+import com.nextgis.maplib.map.NGWTrackLayer;
 import com.nextgis.maplib.map.NGWVectorLayer;
+import com.nextgis.maplib.map.NGWWebMapLayer;
+import com.nextgis.maplib.map.RemoteTMSLayer;
+import com.nextgis.maplib.map.TrackLayer;
+import com.nextgis.maplib.map.VectorLayer;
 import com.nextgis.maplib.util.Constants;
+import com.nextgis.maplib.util.FileUtil;
 import com.nextgis.maplib.util.GeoConstants;
 import com.nextgis.maplib.util.PermissionUtil;
 import com.nextgis.maplib.util.SettingsConstants;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
@@ -66,7 +78,20 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static android.Manifest.permission.GET_ACCOUNTS;
+import static com.nextgis.maplib.util.Constants.CONFIG;
+import static com.nextgis.maplib.util.Constants.JSON_TYPE_KEY;
+import static com.nextgis.maplib.util.Constants.LAYERTYPE_GROUP;
+import static com.nextgis.maplib.util.Constants.LAYERTYPE_LOCAL_TMS;
+import static com.nextgis.maplib.util.Constants.LAYERTYPE_LOCAL_VECTOR;
+import static com.nextgis.maplib.util.Constants.LAYERTYPE_LOOKUPTABLE;
+import static com.nextgis.maplib.util.Constants.LAYERTYPE_NGW_RASTER;
+import static com.nextgis.maplib.util.Constants.LAYERTYPE_NGW_TRACKS;
+import static com.nextgis.maplib.util.Constants.LAYERTYPE_NGW_VECTOR;
+import static com.nextgis.maplib.util.Constants.LAYERTYPE_NGW_WEBMAP;
+import static com.nextgis.maplib.util.Constants.LAYERTYPE_REMOTE_TMS;
+import static com.nextgis.maplib.util.Constants.LAYERTYPE_TRACKS;
 import static com.nextgis.maplib.util.Constants.MAP_EXT;
+import static com.nextgis.maplib.util.Constants.TAG;
 import static com.nextgis.maplib.util.SettingsConstants.KEY_PREF_MAP;
 
 public class LoggerApplication extends Application implements IGISApplication {
@@ -119,19 +144,19 @@ public class LoggerApplication extends Application implements IGISApplication {
         updateFromPrevious();
 
         //turn on periodic sync. Can be set for each layer individually, but this is simpler
-//        if (mSharedPreferences.getBoolean(KEY_PREF_SYNC_PERIODICALLY, true)) {
-//            long period = mSharedPreferences.getLong(KEY_PREF_SYNC_PERIOD_SEC_LONG, Constants.DEFAULT_SYNC_PERIOD); //1 hour
-//
-//            if (-1 == period)
-//                period = Constants.DEFAULT_SYNC_PERIOD;
-//
-//            Bundle params = new Bundle();
-//            params.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, false);
-//            params.putBoolean(ContentResolver.SYNC_EXTRAS_DO_NOT_RETRY, false);
-//            params.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, false);
-//
-//            SyncAdapter.setSyncPeriod(this, params, period);
-//        }
+        //        if (mSharedPreferences.getBoolean(KEY_PREF_SYNC_PERIODICALLY, true)) {
+        //            long period = mSharedPreferences.getLong(KEY_PREF_SYNC_PERIOD_SEC_LONG, Constants.DEFAULT_SYNC_PERIOD); //1 hour
+        //
+        //            if (-1 == period)
+        //                period = Constants.DEFAULT_SYNC_PERIOD;
+        //
+        //            Bundle params = new Bundle();
+        //            params.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, false);
+        //            params.putBoolean(ContentResolver.SYNC_EXTRAS_DO_NOT_RETRY, false);
+        //            params.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, false);
+        //
+        //            SyncAdapter.setSyncPeriod(this, params, period);
+        //        }
     }
 
     public static LoggerApplication getApplication() {
@@ -167,6 +192,27 @@ public class LoggerApplication extends Application implements IGISApplication {
         final Bitmap bkBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.nextgis);
 
         mMap = new MapDrawable(bkBitmap, this, mapFullPath, new LayerFactory() {
+            @Override
+            public ILayer createLayer(Context context, File path) {
+                File config_file = new File(path, CONFIG);
+                try {
+                    String sData = FileUtil.readFromFile(config_file);
+                    JSONObject rootObject = new JSONObject(sData);
+                    int nType = rootObject.getInt(JSON_TYPE_KEY);
+
+                    switch (nType) {
+                        case LAYERTYPE_NGW_VECTOR:
+                            return new LoggerVectorLayer(context, path);
+                        default:
+                            return super.createLayer(context, path);
+                    }
+                } catch (IOException | JSONException e) {
+                    Log.d(TAG, e.getLocalizedMessage());
+                }
+
+                return super.createLayer(context, path);
+            }
+
             @Override
             public void createNewRemoteTMSLayer(Context context, LayerGroup groupLayer) {
 
@@ -269,7 +315,6 @@ public class LoggerApplication extends Application implements IGISApplication {
         return getAccountUserData(account, "url").toLowerCase();
     }
 
-
     @Override
     public String getAccountLogin(Account account) {
         return getAccountUserData(account, "login");
@@ -300,7 +345,7 @@ public class LoggerApplication extends Application implements IGISApplication {
 
     protected void checkLayers() {
         ArrayList<Field> fields = new ArrayList<>();
-        NGWVectorLayer layer = (NGWVectorLayer) mMap.getLayerByName(TABLE_SESSION);
+        LoggerVectorLayer layer = (LoggerVectorLayer) mMap.getLayerByName(TABLE_SESSION);
         if (layer == null) {
             fields.clear();
             fields.add(new Field(GeoConstants.FTString, FIELD_UNIQUE_ID, getString(R.string.unique_id)));
@@ -308,11 +353,12 @@ public class LoggerApplication extends Application implements IGISApplication {
             fields.add(new Field(GeoConstants.FTString, FIELD_USER, getString(R.string.user_name)));
             fields.add(new Field(GeoConstants.FTString, FIELD_DEVICE_INFO, getString(R.string.device_info)));
             layer = createEmptyVectorLayer(TABLE_SESSION, fields);
+            layer.setAccountName("");
             mMap.addLayer(layer);
             mMap.save();
         }
 
-        layer = (NGWVectorLayer) mMap.getLayerByName(TABLE_MARK);
+        layer = (LoggerVectorLayer) mMap.getLayerByName(TABLE_MARK);
         if (layer == null) {
             fields.clear();
             fields.add(new Field(GeoConstants.FTString, FIELD_UNIQUE_ID, getString(R.string.unique_id)));
@@ -322,11 +368,12 @@ public class LoggerApplication extends Application implements IGISApplication {
             fields.add(new Field(GeoConstants.FTReal, FIELD_TIMESTAMP, getString(R.string.timestamp)));
             fields.add(new Field(GeoConstants.FTDateTime, FIELD_DATETIME, getString(R.string.field_type_datetime)));
             layer = createEmptyVectorLayer(TABLE_MARK, fields);
+            layer.setAccountName("");
             mMap.addLayer(layer);
             mMap.save();
         }
 
-        layer = (NGWVectorLayer) mMap.getLayerByName(TABLE_CELL);
+        layer = (LoggerVectorLayer) mMap.getLayerByName(TABLE_CELL);
         if (layer == null) {
             fields.clear();
             fields.add(new Field(GeoConstants.FTString, FIELD_MARK, getString(R.string.btn_save_mark)));
@@ -335,16 +382,17 @@ public class LoggerApplication extends Application implements IGISApplication {
             fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_ACTIVE, getString(R.string.info_active)));
             fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_MCC, getString(R.string.info_mcc)));
             fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_MNC, getString(R.string.info_mnc)));
-            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_LAC, getString(R.string.info_lac)));
-            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_CID, getString(R.string.info_cid)));
-            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_PSC, getString(R.string.info_psc)));
-            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_POWER, getString(R.string.info_power)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_LAC, "LAC/TAC"));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_CID, "CID/PCI"));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_PSC, "PSC/CID"));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_POWER, "RSSI/RSRP"));
             layer = createEmptyVectorLayer(TABLE_CELL, fields);
+            layer.setAccountName("");
             mMap.addLayer(layer);
             mMap.save();
         }
 
-        layer = (NGWVectorLayer) mMap.getLayerByName(TABLE_SENSOR);
+        layer = (LoggerVectorLayer) mMap.getLayerByName(TABLE_SENSOR);
         if (layer == null) {
             fields.clear();
             fields.add(new Field(GeoConstants.FTString, FIELD_MARK, getString(R.string.btn_save_mark)));
@@ -373,23 +421,25 @@ public class LoggerApplication extends Application implements IGISApplication {
             fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_GPS_TIME, getString(R.string.info_time)));
             fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_AUDIO, getString(R.string.mic)));
             layer = createEmptyVectorLayer(TABLE_SENSOR, fields);
+            layer.setAccountName("");
             mMap.addLayer(layer);
             mMap.save();
         }
 
-        layer = (NGWVectorLayer) mMap.getLayerByName(TABLE_EXTERNAL);
+        layer = (LoggerVectorLayer) mMap.getLayerByName(TABLE_EXTERNAL);
         if (layer == null) {
             fields.clear();
             fields.add(new Field(GeoConstants.FTString, FIELD_MARK, getString(R.string.btn_save_mark)));
             fields.add(new Field(GeoConstants.FTString, FIELD_DATA, getString(R.string.info_title_external)));
             layer = createEmptyVectorLayer(TABLE_EXTERNAL, fields);
+            layer.setAccountName("");
             mMap.addLayer(layer);
             mMap.save();
         }
     }
 
-    public NGWVectorLayer createEmptyVectorLayer(String layerName, List<Field> fields) {
-        NGWVectorLayer layer = new NGWVectorLayer(this, mMap.createLayerStorage(layerName));
+    public LoggerVectorLayer createEmptyVectorLayer(String layerName, List<Field> fields) {
+        LoggerVectorLayer layer = new LoggerVectorLayer(this, mMap.createLayerStorage(layerName));
         layer.setName(layerName);
         layer.create(GeoConstants.GTPoint, fields);
         return layer;
@@ -461,10 +511,8 @@ public class LoggerApplication extends Application implements IGISApplication {
 
             switch (savedVersionCode) {
                 case 0:
-                    mSharedPreferences.edit().putString(LoggerConstants.PREF_SESSION_ID, null)
-                            .putInt(LoggerConstants.PREF_MARKS_COUNT, 0)
-                            .putInt(LoggerConstants.PREF_RECORDS_COUNT, 0)
-                            .putInt(LoggerConstants.PREF_MARK_POS, Integer.MIN_VALUE).apply();
+                    mSharedPreferences.edit().putString(LoggerConstants.PREF_SESSION_ID, null).putInt(LoggerConstants.PREF_MARKS_COUNT, 0)
+                                      .putInt(LoggerConstants.PREF_RECORDS_COUNT, 0).putInt(LoggerConstants.PREF_MARK_POS, Integer.MIN_VALUE).apply();
                 default:
                     break;
             }

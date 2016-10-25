@@ -175,6 +175,7 @@
     <string name="field_not_filled">Некоторые поля пустые</string>
     <string name="error_invalid_url">Неправильный URL</string>
     <string name="error_login">Ошибка входа</string>
+    <string name="error_incompatible">Сервер несовместим</string>
     <string name="nextgis_com">Обратно к входу через nextgis.com</string>
     <string name="ngw_url">NextGIS Web URL</string>
     <string name="ngw_edit">Изменить аккаунт</string>

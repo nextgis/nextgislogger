@@ -29,6 +29,8 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.SyncResult;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Pair;
@@ -45,6 +47,7 @@ import com.nextgis.maplib.map.NGWVectorLayer;
 import com.nextgis.maplib.map.VectorLayer;
 import com.nextgis.maplib.util.AccountUtil;
 import com.nextgis.maplib.util.Constants;
+import com.nextgis.maplib.util.FeatureChanges;
 import com.nextgis.maplib.util.MapUtil;
 import com.nextgis.maplib.util.NGWUtil;
 import com.nextgis.maplib.util.NetworkUtil;
@@ -65,6 +68,9 @@ public class NGWLoginActivity extends ProgressBarActivity implements NGWLoginFra
     public static final String CHANGE_ACCOUNT_URL = "change_account_url";
     public static final String CHANGE_ACCOUNT_LOGIN = "change_account_login";
 
+    private static final String[] TABLES = new String[]{LoggerApplication.TABLE_SESSION, LoggerApplication.TABLE_MARK,
+            LoggerApplication.TABLE_CELL, LoggerApplication.TABLE_SENSOR, LoggerApplication.TABLE_EXTERNAL};
+
     protected boolean mForNewAccount = true;
     protected boolean mChangeAccountUrl = mForNewAccount;
     protected boolean mChangeAccountLogin = mForNewAccount;
@@ -76,6 +82,7 @@ public class NGWLoginActivity extends ProgressBarActivity implements NGWLoginFra
     private ProgressDialog mProgress;
     private Long mGroupId;
     private int mCounter;
+    private volatile Pair<Integer, Integer> mVer;
 
     @Override
     protected void onCreate(Bundle saveInstanceState) {
@@ -123,14 +130,24 @@ public class NGWLoginActivity extends ProgressBarActivity implements NGWLoginFra
     @Override
     public void onAddAccount(Account account, String token, boolean accountAdded) {
         getConnection();
-        if (mConnection == null) // TODO Toast
+        if (mConnection == null) {
+            Toast.makeText(this, R.string.error_login, Toast.LENGTH_SHORT).show();
             return;
+        }
 
+        final FindGroup task = new FindGroup();
         mProgress = new ProgressDialog(this);
+        mProgress.setCanceledOnTouchOutside(false);
+        mProgress.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialogInterface) {
+                task.cancel(true);
+            }
+        });
         mProgress.setMessage(getString(R.string.message_loading));
         mProgress.show();
 
-        new FindGroup().execute();
+        task.execute();
     }
 
     private void checkLayers() {
@@ -167,100 +184,46 @@ public class NGWLoginActivity extends ProgressBarActivity implements NGWLoginFra
     }
 
     private void createLayers(HashMap<String, INGWResource> keys) {
-        NGWVectorLayer layer;
-        if (keys.get(LoggerApplication.TABLE_SESSION) == null) {
-            layer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_SESSION);
-            if (layer != null) {
-                NGWCreateNewResourceTask createLayer = new NGWCreateNewResourceTask(this, mConnection, mGroupId);
-                createLayer.setLayer(layer);
-                createLayer.execute();
-                mCounter++;
-            }
-        }
-
-        if (keys.get(LoggerApplication.TABLE_MARK) == null) {
-            layer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_MARK);
-            if (layer != null) {
-                NGWCreateNewResourceTask createLayer = new NGWCreateNewResourceTask(this, mConnection, mGroupId);
-                createLayer.setLayer(layer);
-                createLayer.execute();
-                mCounter++;
-            }
-        }
-
-        if (keys.get(LoggerApplication.TABLE_CELL) == null) {
-            layer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_CELL);
-            if (layer != null) {
-                NGWCreateNewResourceTask createLayer = new NGWCreateNewResourceTask(this, mConnection, mGroupId);
-                createLayer.setLayer(layer);
-                createLayer.execute();
-                mCounter++;
-            }
-        }
-
-        if (keys.get(LoggerApplication.TABLE_SENSOR) == null) {
-            layer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_SENSOR);
-            if (layer != null) {
-                NGWCreateNewResourceTask createLayer = new NGWCreateNewResourceTask(this, mConnection, mGroupId);
-                createLayer.setLayer(layer);
-                createLayer.execute();
-                mCounter++;
-            }
-        }
-
-        if (keys.get(LoggerApplication.TABLE_EXTERNAL) == null) {
-            layer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_EXTERNAL);
-            if (layer != null) {
-                NGWCreateNewResourceTask createLayer = new NGWCreateNewResourceTask(this, mConnection, mGroupId);
-                createLayer.setLayer(layer);
-                createLayer.execute();
-                mCounter++;
+        for (String table : keys.keySet()) {
+            if (keys.get(table) == null) {
+                NGWVectorLayer layer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(table);
+                if (layer != null) {
+                    NGWCreateNewResourceTask createLayer = new NGWCreateNewResourceTask(this, mConnection, mGroupId);
+                    createLayer.setLayer(layer);
+                    createLayer.execute();
+                    mCounter++;
+                }
             }
         }
     }
 
     private void assignLayers(HashMap<String, INGWResource> keys) {
+        IGISApplication app = (IGISApplication) getApplicationContext();
+        String authority = app.getAuthority();
         String account = mConnection.getName();
-        Pair<Integer, Integer> ver = null;
-        try {
-            AccountUtil.AccountData accountData = AccountUtil.getAccountData(this, account);
-            ver = NGWUtil.getNgwVersion(accountData.url, accountData.login, accountData.password);
-        } catch (Exception ignored) {}
+
+        if (mVer == null) {
+            try {
+                AccountUtil.AccountData accountData = AccountUtil.getAccountData(this, account);
+                mVer = NGWUtil.getNgwVersion(accountData.url, accountData.login, accountData.password);
+            } catch (Exception ignored) {}
+        }
 
         long id;
-        NGWVectorLayer layer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_SESSION);
-        if (layer != null) {
-            id = ((Resource) keys.get(LoggerApplication.TABLE_SESSION)).getRemoteId();
-            layer.toNGW(id, account, ver);
-            layer.save();
-        }
-
-        layer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_MARK);
-        if (layer != null) {
-            id = ((Resource) keys.get(LoggerApplication.TABLE_MARK)).getRemoteId();
-            layer.toNGW(id, account, ver);
-            layer.save();
-        }
-
-        layer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_CELL);
-        if (layer != null) {
-            id = ((Resource) keys.get(LoggerApplication.TABLE_CELL)).getRemoteId();
-            layer.toNGW(id, account, ver);
-            layer.save();
-        }
-
-        layer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_SENSOR);
-        if (layer != null) {
-            id = ((Resource) keys.get(LoggerApplication.TABLE_SENSOR)).getRemoteId();
-            layer.toNGW(id, account, ver);
-            layer.save();
-        }
-
-        layer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_EXTERNAL);
-        if (layer != null) {
-            id = ((Resource) keys.get(LoggerApplication.TABLE_EXTERNAL)).getRemoteId();
-            layer.toNGW(id, account, ver);
-            layer.save();
+        for (String table : TABLES) {
+            NGWVectorLayer layer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(table);
+            if (layer != null && mVer != null) {
+                id = ((Resource) keys.get(table)).getRemoteId();
+                layer.mNgwVersionMajor = mVer.first;
+                layer.mNgwVersionMinor = mVer.second;
+                layer.mNGWLayerType = Connection.NGWResourceTypeVectorLayer;
+                layer.setSyncType(Constants.SYNC_ALL);
+                layer.setAccountName(account);
+                layer.setRemoteId(id);
+                layer.save();
+                FeatureChanges.initialize(layer.getChangeTableName());
+                layer.sync(authority, mVer, new SyncResult());
+            }
         }
 
         mProgress.dismiss();
@@ -319,9 +282,9 @@ public class NGWLoginActivity extends ProgressBarActivity implements NGWLoginFra
         }
     }
 
-    public class FindGroup extends AsyncTask<Void, Void, Void> {
+    public class FindGroup extends AsyncTask<Object, Object, String> {
         @Override
-        protected Void doInBackground(Void... voids) {
+        protected String doInBackground(Object... voids) {
             HashMap<String, INGWResource> keys = new HashMap<>();
             keys.put(mLoggerName, null);
             getResourceByName(mConnection, keys);
@@ -332,9 +295,17 @@ public class NGWLoginActivity extends ProgressBarActivity implements NGWLoginFra
                 mGroupId = ((ResourceGroup) group).getRemoteId();
                 checkLayers();
             } else
-                ; // TODO toast incompatible
+                return "";
 
             return null;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+
+            if (result != null)
+                Toast.makeText(NGWLoginActivity.this, R.string.error_incompatible, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -342,7 +313,6 @@ public class NGWLoginActivity extends ProgressBarActivity implements NGWLoginFra
         private Connection mConnection;
         private VectorLayer mLayer;
         private Context mContext;
-        private Pair<Integer, Integer> mVer;
         private long mParentId;
         private String mName;
 
@@ -365,17 +335,18 @@ public class NGWLoginActivity extends ProgressBarActivity implements NGWLoginFra
         @Override
         protected String doInBackground(Void... voids) {
             if (mConnection.isConnected() || mConnection.connect()) {
-                mVer = null;
-                try {
-                    AccountUtil.AccountData accountData = AccountUtil.getAccountData(mContext, mConnection.getName());
-                    if (null == accountData.url)
-                        return "404";
+                if (mVer == null) {
+                    try {
+                        AccountUtil.AccountData accountData = AccountUtil.getAccountData(mContext, mConnection.getName());
+                        if (null == accountData.url)
+                            return "404";
 
-                    mVer = NGWUtil.getNgwVersion(accountData.url, accountData.login, accountData.password);
-                } catch (IllegalStateException e) {
-                    return "401";
-                } catch (JSONException | IOException | NumberFormatException e) {
-                    e.printStackTrace();
+                        mVer = NGWUtil.getNgwVersion(accountData.url, accountData.login, accountData.password);
+                    } catch (IllegalStateException e) {
+                        return "401";
+                    } catch (JSONException | IOException | NumberFormatException e) {
+                        e.printStackTrace();
+                    }
                 }
 
                 String result;

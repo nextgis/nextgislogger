@@ -118,7 +118,7 @@ public class LoggerService extends Service implements ArduinoEngine.ConnectionLi
 
     private int getRecordsCount() {
         int result = 0;
-        SQLiteDatabase db = ((MapContentProviderHelper) MapBase.getInstance()).getDatabase(false);
+        SQLiteDatabase db = ((MapContentProviderHelper) MapBase.getInstance()).getDatabase(true);
         Cursor count = db.rawQuery("SELECT COUNT(*) FROM " + LoggerApplication.TABLE_MARK + " WHERE " + LoggerApplication.FIELD_MARK_ID + " = -1 AND " +
                 LoggerApplication.FIELD_SESSION + " = ?;", new String[]{mSessionId});
 

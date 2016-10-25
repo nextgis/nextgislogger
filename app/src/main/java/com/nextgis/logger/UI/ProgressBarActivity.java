@@ -29,6 +29,7 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SyncResult;
@@ -189,6 +190,13 @@ public class ProgressBarActivity extends FragmentActivity implements View.OnClic
 
         Sync(Activity activity) {
             mProgress = new ProgressDialog(activity);
+            mProgress.setCanceledOnTouchOutside(false);
+            mProgress.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                @Override
+                public void onCancel(DialogInterface dialogInterface) {
+                    cancel(true);
+                }
+            });
             mProgress.setMessage(getString(R.string.sync_progress));
         }
 

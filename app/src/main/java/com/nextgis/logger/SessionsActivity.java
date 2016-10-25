@@ -28,7 +28,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.net.Uri;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.SparseBooleanArray;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -205,18 +204,17 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
 
         try {
             String[] ids = getIdsFromPositions(positions);
-            NGWVectorLayer layer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_MARK);
-            String placeholders = MapUtil.makePlaceholders(ids.length);
-            String in = " IN (" + placeholders + ")";
-            List<String> markIds = new ArrayList<>();
 
             if (hasCurrentSession(ids)) {
                 stopService();
                 clearSession(); // TODO dialog
             }
 
+            NGWVectorLayer layer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_MARK);
+            String in = " IN (" + MapUtil.makePlaceholders(ids.length) + ")";
+            List<String> markIds = new ArrayList<>();
             if (layer != null) {
-                Cursor allMarks = layer.query(new String[]{Constants.FIELD_ID}, Constants.FIELD_ID + in, ids, null, null);
+                Cursor allMarks = layer.query(new String[]{LoggerApplication.FIELD_UNIQUE_ID}, LoggerApplication.FIELD_SESSION + in, ids, null, null);
                 if (allMarks != null) {
                     if (allMarks.moveToFirst()) {
                         do {
@@ -235,11 +233,12 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
             layer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_SESSION);
             if (layer != null) {
                 uri = Uri.parse("content://" + authority + "/" + layer.getPath().getName() + "/");
-                layer.delete(uri, Constants.FIELD_ID + in, ids);
+                layer.delete(uri, LoggerApplication.FIELD_UNIQUE_ID + in, ids);
                 layer.rebuildCache(null);
             }
 
             ids = markIds.toArray(new String[markIds.size()]);
+            in = " IN (" + MapUtil.makePlaceholders(ids.length) + ")";
             layer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_CELL);
             if (layer != null) {
                 uri = Uri.parse("content://" + authority + "/" + layer.getPath().getName() + "/");
@@ -274,16 +273,9 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
     }
 
     private boolean hasCurrentSession(String[] ids) {
-        for (String id : ids) {
-            for (Feature feature : mSessions) {
-                if (feature.getId() == Long.parseLong(id))
-                    continue;
-
-                String uniqueId = feature.getFieldValueAsString(LoggerApplication.FIELD_UNIQUE_ID);
-                if (!TextUtils.isEmpty(uniqueId) && uniqueId.equals(mSessionId))
-                    return true;
-            }
-        }
+        for (String id : ids)
+            if (id.equals(mSessionId))
+                return true;
 
         return false;
     }
@@ -291,7 +283,7 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
     private String[] getIdsFromPositions(List<Integer> positions) {
         String[] result = new String[positions.size()];
         for (int i = 0; i < positions.size(); i++)
-            result[i] = mSessions.get(i).getId() + "";
+            result[i] = mSessions.get(i).getFieldValueAsString(LoggerApplication.FIELD_UNIQUE_ID);
 
         return result;
     }

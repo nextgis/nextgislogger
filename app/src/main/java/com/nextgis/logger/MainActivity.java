@@ -368,7 +368,7 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 
     private String getSessionName() {
         String result = null;
-        SQLiteDatabase db = ((MapContentProviderHelper) MapBase.getInstance()).getDatabase(false);
+        SQLiteDatabase db = ((MapContentProviderHelper) MapBase.getInstance()).getDatabase(true);
         Cursor count = db.rawQuery("SELECT " + LoggerApplication.FIELD_NAME + " FROM " + LoggerApplication.TABLE_SESSION + " WHERE " +
                 LoggerApplication.FIELD_UNIQUE_ID + " = ?;", new String[]{mSessionId});
 

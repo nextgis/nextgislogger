@@ -200,6 +200,7 @@
     <string name="field_not_filled">Some fields are empty</string>
     <string name="error_invalid_url">URL is invalid</string>
     <string name="error_login">Login failed</string>
+    <string name="error_incompatible">Server is incompatible</string>
     <string name="nextgis_com">Back to nextgis.com login screen</string>
     <string name="ngw_url">NextGIS Web URL</string>
     <string name="ngw_edit">Edit account</string>
