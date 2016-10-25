@@ -24,6 +24,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Rect;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -62,6 +63,7 @@ import com.nextgis.logger.engines.SensorEngine;
 import com.nextgis.logger.util.LoggerConstants;
 import com.nextgis.logger.util.FileUtil;
 import com.nextgis.logger.util.MarkName;
+import com.nextgis.maplib.api.IGISApplication;
 import com.nextgis.maplib.datasource.GeoPoint;
 import com.nextgis.maplib.util.Constants;
 
@@ -101,8 +103,9 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 
     private static MarksHandler mMarksHandler;
     private static int mSavedMarkPosition;
+    private static Uri mUri;
 
-	@Override
+    @Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
@@ -176,6 +179,9 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 		mMarksAdapter = new MarkArrayAdapter(this, markNames);
 		mLvCategories.setAdapter(mMarksAdapter);
         mLvCategories.setChoiceMode(AbsListView.CHOICE_MODE_SINGLE);
+
+        mUri = Uri.parse("content://" + ((IGISApplication) getApplicationContext()).getAuthority());
+        mUri = mUri.buildUpon().appendPath(LoggerApplication.TABLE_MARK).build();
 	}
 
     protected void setFABIcon(boolean restore) {
@@ -412,7 +418,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 
         final Bundle data = new Bundle();
         data.putInt(LoggerConstants.PREF_MARK_POS, mMarksAdapter.getMarkPosition(mark));
-        data.putLong(BUNDLE_SESSION, mSessionId);
+        data.putString(BUNDLE_SESSION, mSessionId);
         data.putInt(BUNDLE_ID, mark.getID());
         data.putString(BUNDLE_NAME, mark.getCAT());
         data.putLong(BUNDLE_TIME, System.currentTimeMillis());
@@ -612,11 +618,11 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
                         Bundle bundle = msg.getData();
                         ArrayList<InfoItem> items = bundle.getParcelableArrayList(BUNDLE_SENSOR);
                         GeoPoint point = GPSEngine.getFix(items);
-                        long session = bundle.getLong(BUNDLE_SESSION);
+                        String session = bundle.getString(BUNDLE_SESSION);
                         int markId = bundle.getInt(BUNDLE_ID);
                         String name = bundle.getString(BUNDLE_NAME);
                         long time = bundle.getLong(BUNDLE_TIME);
-                        long newMarkId = BaseEngine.saveMark(session, markId, name, time, point);
+                        String newMarkId = BaseEngine.saveMark(mUri, session, markId, name, time, point);
 
                         items = bundle.getParcelableArrayList(BUNDLE_CELL);
                         mGsmEngine.saveData(items, newMarkId);

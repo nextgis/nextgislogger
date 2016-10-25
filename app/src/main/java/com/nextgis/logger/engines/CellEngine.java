@@ -23,6 +23,7 @@
 package com.nextgis.logger.engines;
 
 import android.annotation.TargetApi;
+import android.content.ContentValues;
 import android.content.Context;
 import android.os.Build;
 import android.os.SystemClock;
@@ -45,12 +46,12 @@ import android.text.TextUtils;
 import com.nextgis.logger.LoggerApplication;
 import com.nextgis.logger.R;
 import com.nextgis.logger.util.LoggerConstants;
-import com.nextgis.maplib.datasource.Feature;
 import com.nextgis.maplib.datasource.GeoPoint;
 import com.nextgis.maplib.map.MapBase;
 import com.nextgis.maplib.map.NGWVectorLayer;
 import com.nextgis.maplib.util.Constants;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -78,6 +79,7 @@ public class CellEngine extends BaseEngine {
 		super(context);
 		mTelephonyManager = (TelephonyManager) mContext.getSystemService(Context.TELEPHONY_SERVICE);
 		mSignalListener = new GSMPhoneStateListener();
+        mUri = mUri.buildUpon().appendPath(LoggerApplication.TABLE_CELL).build();
 	}
 
     @Override
@@ -116,29 +118,34 @@ public class CellEngine extends BaseEngine {
     }
 
 	@Override
-	public void saveData(long markId) {
+	public void saveData(String markId) {
 		saveData(getData(), markId);
 	}
 
 	@Override
-	public void saveData(ArrayList<InfoItem> items, long markId) {
+	public void saveData(ArrayList<InfoItem> items, String markId) {
 		NGWVectorLayer cellLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_CELL);
 		if (cellLayer != null) {
-			Feature mark;
+			ContentValues cv = new ContentValues();
 			for (InfoItem item : items) {
-				mark = new Feature(Constants.NOT_FOUND, cellLayer.getFields());
-				mark.setFieldValue(LoggerApplication.FIELD_MARK, markId);
-				mark.setFieldValue(LoggerConstants.HEADER_GEN, item.getColumn(LoggerConstants.HEADER_GEN).getValue());
-				mark.setFieldValue(LoggerConstants.HEADER_TYPE, item.getColumn(LoggerConstants.HEADER_TYPE).getValue());
-				mark.setFieldValue(LoggerConstants.HEADER_ACTIVE, item.getColumn(LoggerConstants.HEADER_ACTIVE).getValue());
-				mark.setFieldValue(LoggerConstants.HEADER_MCC, item.getColumn(LoggerConstants.HEADER_MCC).getValue());
-				mark.setFieldValue(LoggerConstants.HEADER_MNC, item.getColumn(LoggerConstants.HEADER_MNC).getValue());
-				mark.setFieldValue(LoggerConstants.HEADER_LAC, item.getColumn(LoggerConstants.HEADER_LAC).getValue());
-				mark.setFieldValue(LoggerConstants.HEADER_CID, item.getColumn(LoggerConstants.HEADER_CID).getValue());
-				mark.setFieldValue(LoggerConstants.HEADER_PSC, item.getColumn(LoggerConstants.HEADER_PSC).getValue());
-				mark.setFieldValue(LoggerConstants.HEADER_POWER, item.getColumn(LoggerConstants.HEADER_POWER).getValue());
-				mark.setGeometry(new GeoPoint(0, 0));
-				cellLayer.createFeature(mark);
+				cv.clear();
+				cv.put(LoggerApplication.FIELD_MARK, markId);
+				cv.put(LoggerConstants.HEADER_GEN, (String) item.getColumn(LoggerConstants.HEADER_GEN).getValue());
+				cv.put(LoggerConstants.HEADER_TYPE, (String) item.getColumn(LoggerConstants.HEADER_TYPE).getValue());
+				cv.put(LoggerConstants.HEADER_ACTIVE, (String) item.getColumn(LoggerConstants.HEADER_ACTIVE).getValue());
+				cv.put(LoggerConstants.HEADER_MCC, (String) item.getColumn(LoggerConstants.HEADER_MCC).getValue());
+				cv.put(LoggerConstants.HEADER_MNC, (String) item.getColumn(LoggerConstants.HEADER_MNC).getValue());
+				cv.put(LoggerConstants.HEADER_LAC, (String) item.getColumn(LoggerConstants.HEADER_LAC).getValue());
+				cv.put(LoggerConstants.HEADER_CID, (String) item.getColumn(LoggerConstants.HEADER_CID).getValue());
+				cv.put(LoggerConstants.HEADER_PSC, (String) item.getColumn(LoggerConstants.HEADER_PSC).getValue());
+				cv.put(LoggerConstants.HEADER_POWER, (String) item.getColumn(LoggerConstants.HEADER_POWER).getValue());
+				try {
+					cv.put(Constants.FIELD_GEOM, new GeoPoint(0, 0).toBlob());
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+
+				cellLayer.insert(mUri, cv);
 			}
 		}
 	}

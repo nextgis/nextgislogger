@@ -1,11 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ ******************************************************************************
   ~ Project: NextGIS Logger
   ~ Purpose: Productive data logger for Android
   ~ Author:  Stanislav Petriakov, becomeglory@gmail.com
   ~ ******************************************************************************
-  ~ Copyright © 2014, 2016 NextGIS
+  ~ Copyright © 2016 NextGIS
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -22,19 +21,15 @@
   ~ ******************************************************************************
   -->
 
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical">
 
-    <item
-        android:id="@+id/action_ngw"
-        android:icon="@drawable/ic_cloud_upload_white_24dp"
-        android:showAsAction="ifRoom"
-        android:title="@string/app_ngw"/>
-    <item
-        android:id="@+id/action_settings"
-        android:showAsAction="never"
-        android:title="@string/app_settings"/>
-    <item
-        android:id="@+id/action_about"
-        android:showAsAction="never"
-        android:title="@string/app_about"/>
-</menu>
+    <FrameLayout
+        android:id="@+id/login_frame"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:layout="@layout/fragment_ngw_login"/>
+</LinearLayout>

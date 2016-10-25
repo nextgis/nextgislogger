@@ -23,29 +23,36 @@
 
 package com.nextgis.logger.engines;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.preference.PreferenceManager;
 
 import com.nextgis.logger.LoggerApplication;
 import com.nextgis.logger.util.LoggerConstants;
-import com.nextgis.maplib.datasource.Feature;
+import com.nextgis.maplib.api.IGISApplication;
 import com.nextgis.maplib.datasource.GeoPoint;
 import com.nextgis.maplib.map.MapBase;
 import com.nextgis.maplib.map.NGWVectorLayer;
 import com.nextgis.maplib.util.Constants;
 
+import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
+
+import static com.nextgis.maplib.util.Constants.FIELD_GEOM;
 
 public abstract class BaseEngine {
-    protected int mLocks;
-    protected Context mContext;
-    protected ArrayList<InfoItem> mItems;
-    protected List<EngineListener> mListeners;
+    private int mLocks;
+    Context mContext;
+    ArrayList<InfoItem> mItems;
+    private List<EngineListener> mListeners;
+    Uri mUri;
 
     public interface EngineListener {
         void onInfoChanged(String sourceEngine);
@@ -59,6 +66,7 @@ public abstract class BaseEngine {
         mContext = context;
         mItems = new ArrayList<>();
         mListeners = new ArrayList<>();
+        mUri = Uri.parse("content://" + ((IGISApplication) context.getApplicationContext()).getAuthority());
     }
 
     public void addListener(EngineListener listener) {
@@ -94,25 +102,33 @@ public abstract class BaseEngine {
         return --mLocks <= 0;
     }
 
-    public static long saveMark(long session, int id, String name, long timestamp, GeoPoint point) {
+    public static String saveMark(Uri uri, String session, int id, String name, long timestamp, GeoPoint point) {
         NGWVectorLayer markLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_MARK);
         if (markLayer != null) {
-            Feature mark = new Feature(Constants.NOT_FOUND, markLayer.getFields());
-            mark.setFieldValue(LoggerApplication.FIELD_SESSION, session);
-            mark.setFieldValue(LoggerApplication.FIELD_MARK_ID, id);
-            mark.setFieldValue(LoggerApplication.FIELD_NAME, name);
-            mark.setFieldValue(LoggerApplication.FIELD_TIMESTAMP, timestamp * 1d);
-            mark.setFieldValue(LoggerApplication.FIELD_DATETIME, timestamp);
-            mark.setGeometry(point);
-            return markLayer.createFeature(mark);
+            String uniqueId = UUID.randomUUID().toString();
+            ContentValues cv = new ContentValues();
+            cv.put(LoggerApplication.FIELD_UNIQUE_ID, uniqueId);
+            cv.put(LoggerApplication.FIELD_SESSION, session);
+            cv.put(LoggerApplication.FIELD_MARK_ID, id);
+            cv.put(LoggerApplication.FIELD_NAME, name);
+            cv.put(LoggerApplication.FIELD_TIMESTAMP, timestamp * 1d);
+            cv.put(LoggerApplication.FIELD_DATETIME, timestamp);
+            try {
+                cv.put(FIELD_GEOM, point.toBlob());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            markLayer.insert(uri, cv);
+            return uniqueId;
         }
 
-        return Constants.NOT_FOUND;
+        return null;
     }
 
-    public abstract void saveData(long markId);
+    public abstract void saveData(String markId);
 
-    public abstract void saveData(ArrayList<InfoItem> items, long markId);
+    public abstract void saveData(ArrayList<InfoItem> items, String markId);
 
 //    TODO
 //    public void saveToCSV throws FileNotFoundException {

@@ -26,6 +26,7 @@
 <resources>
     <string name="app_settings">Настройки</string>
     <string name="app_about">О программе</string>
+    <string name="app_ngw">Отправить в облако</string>
     <string name="title_activity_sessions">Сессии</string>
     <string name="title_activity_info">Данные в реальном времени</string>
     
@@ -160,7 +161,22 @@
     <string name="info_expand">раскрыть</string>
     <string name="info_collapse">свернуть</string>
 
+    <string name="unique_id">Уникальный ID</string>
     <string name="user_name">Пользователь</string>
     <string name="timestamp">Временная метка</string>
     <string name="device_info">Устройство</string>
+
+    <string name="ngw_from_my_nextgis">Еще нет своей Веб ГИС? Создайте на nextgis.com!</string>
+    <string name="instance_name">Имя ГИС</string>
+    <string name="password">Пароль</string>
+    <string name="login">Войти</string>
+    <string name="click_here">Нажмите сюда!</string>
+    <string name="manual_tip">Есть свой собственный NextGIS Web?</string>
+    <string name="field_not_filled">Некоторые поля пустые</string>
+    <string name="error_invalid_url">Неправильный URL</string>
+    <string name="error_login">Ошибка входа</string>
+    <string name="nextgis_com">Обратно к входу через nextgis.com</string>
+    <string name="ngw_url">NextGIS Web URL</string>
+    <string name="ngw_edit">Изменить аккаунт</string>
+    <string name="ngw_add">Добавить аккаунт</string>
 </resources>

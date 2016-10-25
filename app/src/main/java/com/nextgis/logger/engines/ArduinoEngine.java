@@ -27,6 +27,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -36,7 +37,6 @@ import android.text.TextUtils;
 
 import com.nextgis.logger.LoggerApplication;
 import com.nextgis.logger.util.LoggerConstants;
-import com.nextgis.maplib.datasource.Feature;
 import com.nextgis.maplib.datasource.GeoPoint;
 import com.nextgis.maplib.map.MapBase;
 import com.nextgis.maplib.map.NGWVectorLayer;
@@ -95,6 +95,7 @@ public class ArduinoEngine extends BaseEngine {
         String nameWithMAC = PreferenceManager.getDefaultSharedPreferences(context).getString(LoggerConstants.PREF_EXTERNAL_DEVICE, "");
         mDeviceMAC = splitDeviceMAC(nameWithMAC);
         mDeviceName = splitDeviceName(nameWithMAC);
+        mUri = mUri.buildUpon().appendPath(LoggerApplication.TABLE_EXTERNAL).build();
 
         final BroadcastReceiver mReceiver = new BroadcastReceiver() {
             @Override
@@ -156,25 +157,29 @@ public class ArduinoEngine extends BaseEngine {
     }
 
     @Override
-    public void saveData(long markId) {
+    public void saveData(String markId) {
         saveData(getData(), markId);
     }
 
     @Override
-    public void saveData(ArrayList<InfoItem> items, long markId) {
+    public void saveData(ArrayList<InfoItem> items, String markId) {
         NGWVectorLayer externalLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_EXTERNAL);
         if (externalLayer != null) {
-            Feature mark;
-            mark = new Feature(Constants.NOT_FOUND, externalLayer.getFields());
-            mark.setFieldValue(LoggerApplication.FIELD_MARK, markId);
+            ContentValues cv = new ContentValues();
+            cv.put(LoggerApplication.FIELD_MARK, markId);
 
             String data = "";
             for (InfoItem item : items)
                 data += item.getColumns().get(0).getValue();
 
-            mark.setFieldValue(LoggerApplication.FIELD_DATA, data);
-            mark.setGeometry(new GeoPoint(0, 0));
-            externalLayer.createFeature(mark);
+            cv.put(LoggerApplication.FIELD_DATA, data);
+            try {
+                cv.put(Constants.FIELD_GEOM, new GeoPoint(0, 0).toBlob());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            externalLayer.insert(mUri, cv);
         }
     }
 

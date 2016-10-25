@@ -128,6 +128,18 @@
                 android:value="com.nextgis.logger.MainActivity"/>
         </activity>
 
+        <activity
+            android:name=".NGWLoginActivity"
+            android:label="@string/ngw_add"
+            android:parentActivityName=".MainActivity"
+            android:screenOrientation="portrait">
+
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.nextgis.logger.MainActivity"/>
+        </activity>
+
         <service
             android:name=".LoggerService"
             android:enabled="true"

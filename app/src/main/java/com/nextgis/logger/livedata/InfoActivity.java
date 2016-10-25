@@ -4,7 +4,7 @@
  * Purpose: Productive data logger for Android
  * Author:  Stanislav Petriakov, becomeglory@gmail.com
  * *****************************************************************************
- * Copyright © 2015 NextGIS
+ * Copyright © 2015-2016 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,6 +60,12 @@ public class InfoActivity extends ProgressBarActivity {
     }
 
     @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        menu.findItem(R.id.action_ngw).setVisible(false);
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
 
@@ -77,7 +83,7 @@ public class InfoActivity extends ProgressBarActivity {
     }
 
     public class ItemPagerAdapter extends FragmentStatePagerAdapter {
-        public ItemPagerAdapter(FragmentManager fm) {
+        ItemPagerAdapter(FragmentManager fm) {
             super(fm);
         }
 

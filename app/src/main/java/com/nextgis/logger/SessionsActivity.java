@@ -28,6 +28,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.SparseBooleanArray;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -183,13 +184,14 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
                 if (feature == null)
                     continue;
 
+                boolean isCurrentSession = mSessionId != null && mSessionId.equals(feature.getFieldValueAsString(LoggerApplication.FIELD_UNIQUE_ID));
                 // TODO
-                if (mSessionId == id)
+                if (isCurrentSession)
                     continue;
 
                 mSessions.add(feature);
                 String name = feature.getFieldValueAsString(LoggerApplication.FIELD_NAME);
-                mSessionsName.add(id == mSessionId ? name + " *" + getString(R.string.scl_current_session) + "*" : name);
+                mSessionsName.add(isCurrentSession ? name + " *" + getString(R.string.scl_current_session) + "*" : name);
             }
 
             Collections.sort(mSessionsName, Collections.reverseOrder());
@@ -272,9 +274,16 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
     }
 
     private boolean hasCurrentSession(String[] ids) {
-        for (String id : ids)
-            if (id.equals(mSessionId + ""))
-                return true;
+        for (String id : ids) {
+            for (Feature feature : mSessions) {
+                if (feature.getId() == Long.parseLong(id))
+                    continue;
+
+                String uniqueId = feature.getFieldValueAsString(LoggerApplication.FIELD_UNIQUE_ID);
+                if (!TextUtils.isEmpty(uniqueId) && uniqueId.equals(mSessionId))
+                    return true;
+            }
+        }
 
         return false;
     }

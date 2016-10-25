@@ -27,16 +27,20 @@ package com.nextgis.logger;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -48,21 +52,26 @@ import android.widget.Toast;
 import com.nextgis.logger.UI.ProgressBarActivity;
 import com.nextgis.logger.util.FileUtil;
 import com.nextgis.logger.util.LoggerConstants;
+import com.nextgis.maplib.api.IGISApplication;
 import com.nextgis.maplib.datasource.Feature;
 import com.nextgis.maplib.datasource.GeoPoint;
 import com.nextgis.maplib.map.MapBase;
+import com.nextgis.maplib.map.MapContentProviderHelper;
 import com.nextgis.maplib.map.NGWVectorLayer;
 import com.nextgis.maplib.util.Constants;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.UUID;
 
 public class MainActivity extends ProgressBarActivity implements OnClickListener {
 	private BroadcastReceiver mLoggerServiceReceiver;
 	private Button mButtonService, mButtonSession;
 	private TextView mTvSessionName, mTvStartedTime, mTvFinishedTime, mTvRecordsCount, mTvMarksCount;
+    private Uri mUri;
 
     @Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -121,6 +130,9 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 
 		IntentFilter intentFilter = new IntentFilter(LoggerConstants.ACTION_INFO);
 		registerReceiver(mLoggerServiceReceiver, intentFilter);
+
+        mUri = Uri.parse("content://" + ((IGISApplication) getApplicationContext()).getAuthority());
+        mUri = mUri.buildUpon().appendPath(LoggerApplication.TABLE_SESSION).build();
 	}
 
 	@Override
@@ -213,14 +225,14 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
             public void onClick(DialogInterface dialog, int whichButton) {
                 String value = input.getText().toString();
                 if (isCorrectName(value)) { // open session
-                    long id = startSession(value, userName, getDeviceInfo());
-                    if (id == Constants.NOT_FOUND) {
+                    String id = startSession(value, userName, getDeviceInfo());
+                    if (id == null) {
                         Toast.makeText(MainActivity.this, R.string.sessions_start_fail, Toast.LENGTH_SHORT).show();
                         return;
                     }
 
                     mSessionId = id;
-                    mPreferences.edit().putLong(LoggerConstants.PREF_SESSION_ID, id).apply();
+                    mPreferences.edit().putString(LoggerConstants.PREF_SESSION_ID, id).apply();
                     updateInterface();
                 }
             }
@@ -231,18 +243,26 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
         dialog.show();
     }
 
-    private long startSession(String name, String userName, String deviceInfo) {
+    private String startSession(String name, String userName, String deviceInfo) {
 		NGWVectorLayer sessionLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_SESSION);
 		if (sessionLayer != null) {
-			Feature mark = new Feature(Constants.NOT_FOUND, sessionLayer.getFields());
-			mark.setFieldValue(LoggerApplication.FIELD_NAME, name);
-			mark.setFieldValue(LoggerApplication.FIELD_USER, userName);
-			mark.setFieldValue(LoggerApplication.FIELD_DEVICE_INFO, deviceInfo);
-			mark.setGeometry(new GeoPoint(0, 0));
-			return sessionLayer.createFeature(mark);
+            String id = UUID.randomUUID().toString();
+            ContentValues cv = new ContentValues();
+			cv.put(LoggerApplication.FIELD_NAME, name);
+			cv.put(LoggerApplication.FIELD_USER, userName);
+			cv.put(LoggerApplication.FIELD_DEVICE_INFO, deviceInfo);
+            cv.put(LoggerApplication.FIELD_UNIQUE_ID, id);
+            try {
+                cv.put(Constants.FIELD_GEOM, new GeoPoint(0, 0).toBlob());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            sessionLayer.insert(mUri, cv);
+            return id;
 		}
 
-		return -1;
+		return null;
 	}
 
     public void updateFileForMTP(String path) {
@@ -298,8 +318,8 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 	}
 
 	private void updateInterface() {
-        mSessionId = mPreferences.getLong(LoggerConstants.PREF_SESSION_ID, Constants.NOT_FOUND);
-        if (mSessionId == Constants.NOT_FOUND) {
+        mSessionId = mPreferences.getString(LoggerConstants.PREF_SESSION_ID, null);
+        if (TextUtils.isEmpty(mSessionId)) {
             findViewById(R.id.rl_modes).setVisibility(View.GONE);
             mButtonSession.setText(R.string.btn_session_open);
 
@@ -315,9 +335,9 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
             String sessionName;
             NGWVectorLayer sessionLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_SESSION);
             if (sessionLayer != null) {
-                Feature session = sessionLayer.getFeature(mSessionId);
-                if (session != null)
-                    sessionName = session.getFieldValueAsString(LoggerApplication.FIELD_NAME);
+                String session = getSessionName();
+                if (!TextUtils.isEmpty(session))
+                    sessionName = session;
                 else {
                     closeSession();
                     return;
@@ -344,6 +364,22 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 
         if (isServiceRunning)
             mTvFinishedTime.setText(R.string.service_running);
+    }
+
+    private String getSessionName() {
+        String result = null;
+        SQLiteDatabase db = ((MapContentProviderHelper) MapBase.getInstance()).getDatabase(false);
+        Cursor count = db.rawQuery("SELECT " + LoggerApplication.FIELD_NAME + " FROM " + LoggerApplication.TABLE_SESSION + " WHERE " +
+                LoggerApplication.FIELD_UNIQUE_ID + " = ?;", new String[]{mSessionId});
+
+        if (count != null) {
+            if (count.moveToFirst())
+                result = count.getString(0);
+
+            count.close();
+        }
+
+        return result;
     }
 
     private void closeSession() {

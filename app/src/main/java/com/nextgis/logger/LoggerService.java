@@ -30,6 +30,7 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
@@ -42,10 +43,10 @@ import com.nextgis.logger.engines.CellEngine;
 import com.nextgis.logger.engines.GPSEngine;
 import com.nextgis.logger.engines.SensorEngine;
 import com.nextgis.logger.util.LoggerConstants;
+import com.nextgis.maplib.api.IGISApplication;
 import com.nextgis.maplib.datasource.GeoPoint;
 import com.nextgis.maplib.map.MapBase;
 import com.nextgis.maplib.map.MapContentProviderHelper;
-import com.nextgis.maplib.util.Constants;
 
 public class LoggerService extends Service implements ArduinoEngine.ConnectionListener {
     // TODO
@@ -62,7 +63,8 @@ public class LoggerService extends Service implements ArduinoEngine.ConnectionLi
 	private boolean mIsRunning = false;
 	private int mRecordsCount;
 	private int mInterval = 1;
-	private long mSessionId;
+	private String mSessionId;
+	private Uri mUri;
 
 	@Override
 	public void onCreate() {
@@ -71,7 +73,7 @@ public class LoggerService extends Service implements ArduinoEngine.ConnectionLi
         Log.d("LOGGER", "onCreate");
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         mInterval = prefs.getInt(LoggerConstants.PREF_PERIOD_SEC, mInterval);
-        mSessionId = prefs.getLong(LoggerConstants.PREF_SESSION_ID, Constants.NOT_FOUND);
+        mSessionId = prefs.getString(LoggerConstants.PREF_SESSION_ID, null);
 
 		mGsmEngine = LoggerApplication.getApplication().getCellEngine();
 		mGsmEngine.onResume();
@@ -85,6 +87,8 @@ public class LoggerService extends Service implements ArduinoEngine.ConnectionLi
 			mArduinoEngine.onResume();
 		}
 
+		mUri = Uri.parse("content://" + ((IGISApplication) getApplication()).getAuthority());
+		mUri = mUri.buildUpon().appendPath(LoggerApplication.TABLE_MARK).build();
         mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 	}
 
@@ -116,7 +120,7 @@ public class LoggerService extends Service implements ArduinoEngine.ConnectionLi
         int result = 0;
         SQLiteDatabase db = ((MapContentProviderHelper) MapBase.getInstance()).getDatabase(false);
         Cursor count = db.rawQuery("SELECT COUNT(*) FROM " + LoggerApplication.TABLE_MARK + " WHERE " + LoggerApplication.FIELD_MARK_ID + " = -1 AND " +
-                LoggerApplication.FIELD_SESSION + " = ?;", new String[]{mSessionId + ""});
+                LoggerApplication.FIELD_SESSION + " = ?;", new String[]{mSessionId});
 
         if (count != null) {
             if (count.moveToFirst())
@@ -177,7 +181,7 @@ public class LoggerService extends Service implements ArduinoEngine.ConnectionLi
 				while (true) {
 					try {
 						GeoPoint point = GPSEngine.getFix(mSensorEngine.getData());
-						long markId = BaseEngine.saveMark(mSessionId, -1, LoggerConstants.LOG_UID, System.currentTimeMillis(), point);
+						String markId = BaseEngine.saveMark(mUri, mSessionId, -1, LoggerConstants.LOG_UID, System.currentTimeMillis(), point);
 						mGsmEngine.saveData(markId);
 
 						if (mSensorEngine.isEngineEnabled())

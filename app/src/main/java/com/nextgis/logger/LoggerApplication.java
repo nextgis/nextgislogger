@@ -32,6 +32,8 @@ import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -49,6 +51,7 @@ import com.nextgis.maplib.location.GpsEventSource;
 import com.nextgis.maplib.map.LayerFactory;
 import com.nextgis.maplib.map.LayerGroup;
 import com.nextgis.maplib.map.MapBase;
+import com.nextgis.maplib.map.MapContentProviderHelper;
 import com.nextgis.maplib.map.MapDrawable;
 import com.nextgis.maplib.map.NGWVectorLayer;
 import com.nextgis.maplib.util.Constants;
@@ -80,6 +83,7 @@ public class LoggerApplication extends Application implements IGISApplication {
     public static final String FIELD_NAME = "name";
     public static final String FIELD_USER = "user";
     public static final String FIELD_DEVICE_INFO = "device_info";
+    public static final String FIELD_UNIQUE_ID = "uuid";
     public static final String FIELD_SESSION = "session";
     public static final String FIELD_MARK_ID = "mark_id";
     public static final String FIELD_TIMESTAMP = "timestamp";
@@ -108,6 +112,7 @@ public class LoggerApplication extends Application implements IGISApplication {
 
         mGpsEventSource = new GpsEventSource(this);
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        mAccountManager = AccountManager.get(this);
 
         getMap();
         checkLayers();
@@ -200,7 +205,7 @@ public class LoggerApplication extends Application implements IGISApplication {
 
     @Override
     public Account getAccount(String accountName) {
-        if (checkAccountStatus(GET_ACCOUNTS))
+        if (checkAccountStatus(this, mAccountManager, GET_ACCOUNTS))
             return null;
 
         try {
@@ -247,7 +252,7 @@ public class LoggerApplication extends Application implements IGISApplication {
             }
         };
 
-        if (checkAccountStatus(PERMISSION_MANAGE_ACCOUNTS))
+        if (checkAccountStatus(this, mAccountManager, PERMISSION_MANAGE_ACCOUNTS))
             return bool;
 
         try {
@@ -272,7 +277,7 @@ public class LoggerApplication extends Application implements IGISApplication {
 
     @Override
     public String getAccountPassword(Account account) {
-        if (checkAccountStatus(PERMISSION_AUTHENTICATE_ACCOUNTS))
+        if (checkAccountStatus(this, mAccountManager, PERMISSION_AUTHENTICATE_ACCOUNTS))
             return "";
 
         try {
@@ -298,9 +303,10 @@ public class LoggerApplication extends Application implements IGISApplication {
         NGWVectorLayer layer = (NGWVectorLayer) mMap.getLayerByName(TABLE_SESSION);
         if (layer == null) {
             fields.clear();
+            fields.add(new Field(GeoConstants.FTString, FIELD_UNIQUE_ID, getString(R.string.unique_id)));
             fields.add(new Field(GeoConstants.FTString, FIELD_NAME, getString(R.string.mark_name)));
-            fields.add(new Field(GeoConstants.FTString, FIELD_USER, getString(R.string.device_info)));
-            fields.add(new Field(GeoConstants.FTString, FIELD_DEVICE_INFO, getString(R.string.user_name)));
+            fields.add(new Field(GeoConstants.FTString, FIELD_USER, getString(R.string.user_name)));
+            fields.add(new Field(GeoConstants.FTString, FIELD_DEVICE_INFO, getString(R.string.device_info)));
             layer = createEmptyVectorLayer(TABLE_SESSION, fields);
             mMap.addLayer(layer);
             mMap.save();
@@ -309,7 +315,8 @@ public class LoggerApplication extends Application implements IGISApplication {
         layer = (NGWVectorLayer) mMap.getLayerByName(TABLE_MARK);
         if (layer == null) {
             fields.clear();
-            fields.add(new Field(GeoConstants.FTInteger, FIELD_SESSION, getString(R.string.title_activity_sessions)));
+            fields.add(new Field(GeoConstants.FTString, FIELD_UNIQUE_ID, getString(R.string.unique_id)));
+            fields.add(new Field(GeoConstants.FTString, FIELD_SESSION, getString(R.string.title_activity_sessions)));
             fields.add(new Field(GeoConstants.FTInteger, FIELD_MARK_ID, getString(R.string.mark_id)));
             fields.add(new Field(GeoConstants.FTString, FIELD_NAME, getString(R.string.mark_name)));
             fields.add(new Field(GeoConstants.FTReal, FIELD_TIMESTAMP, getString(R.string.timestamp)));
@@ -322,7 +329,7 @@ public class LoggerApplication extends Application implements IGISApplication {
         layer = (NGWVectorLayer) mMap.getLayerByName(TABLE_CELL);
         if (layer == null) {
             fields.clear();
-            fields.add(new Field(GeoConstants.FTInteger, FIELD_MARK, getString(R.string.btn_save_mark)));
+            fields.add(new Field(GeoConstants.FTString, FIELD_MARK, getString(R.string.btn_save_mark)));
             fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_GEN, getString(R.string.info_title_network)));
             fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_TYPE, getString(R.string.network_type)));
             fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_ACTIVE, getString(R.string.info_active)));
@@ -340,7 +347,7 @@ public class LoggerApplication extends Application implements IGISApplication {
         layer = (NGWVectorLayer) mMap.getLayerByName(TABLE_SENSOR);
         if (layer == null) {
             fields.clear();
-            fields.add(new Field(GeoConstants.FTInteger, FIELD_MARK, getString(R.string.btn_save_mark)));
+            fields.add(new Field(GeoConstants.FTString, FIELD_MARK, getString(R.string.btn_save_mark)));
             fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_ACC_X, getString(R.string.info_x)));
             fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_ACC_Y, getString(R.string.info_y)));
             fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_ACC_Z, getString(R.string.info_z)));
@@ -373,7 +380,7 @@ public class LoggerApplication extends Application implements IGISApplication {
         layer = (NGWVectorLayer) mMap.getLayerByName(TABLE_EXTERNAL);
         if (layer == null) {
             fields.clear();
-            fields.add(new Field(GeoConstants.FTInteger, FIELD_MARK, getString(R.string.btn_save_mark)));
+            fields.add(new Field(GeoConstants.FTString, FIELD_MARK, getString(R.string.btn_save_mark)));
             fields.add(new Field(GeoConstants.FTString, FIELD_DATA, getString(R.string.info_title_external)));
             layer = createEmptyVectorLayer(TABLE_EXTERNAL, fields);
             mMap.addLayer(layer);
@@ -390,7 +397,7 @@ public class LoggerApplication extends Application implements IGISApplication {
 
     @Override
     public boolean addAccount(String name, String url, String login, String password, String token) {
-        if (checkAccountStatus(PERMISSION_AUTHENTICATE_ACCOUNTS))
+        if (checkAccountStatus(this, mAccountManager, PERMISSION_AUTHENTICATE_ACCOUNTS))
             return false;
 
         final Account account = new Account(name, Constants.NGW_ACCOUNT_TYPE);
@@ -412,7 +419,7 @@ public class LoggerApplication extends Application implements IGISApplication {
 
     @Override
     public void setPassword(String name, String value) {
-        if (checkAccountStatus(PERMISSION_AUTHENTICATE_ACCOUNTS))
+        if (checkAccountStatus(this, mAccountManager, PERMISSION_AUTHENTICATE_ACCOUNTS))
             return;
 
         Account account = getAccount(name);
@@ -422,7 +429,7 @@ public class LoggerApplication extends Application implements IGISApplication {
 
     @Override
     public void setUserData(String name, String key, String value) {
-        if (checkAccountStatus(PERMISSION_AUTHENTICATE_ACCOUNTS))
+        if (checkAccountStatus(this, mAccountManager, PERMISSION_AUTHENTICATE_ACCOUNTS))
             return;
 
         Account account = getAccount(name);
@@ -432,22 +439,19 @@ public class LoggerApplication extends Application implements IGISApplication {
 
     @Override
     public String getAccountUserData(Account account, String key) {
-        if (checkAccountStatus(PERMISSION_AUTHENTICATE_ACCOUNTS))
+        if (checkAccountStatus(this, mAccountManager, PERMISSION_AUTHENTICATE_ACCOUNTS))
             return "";
 
         String result = mAccountManager.getUserData(account, key);
         return result == null ? "" : result;
     }
 
-    private boolean checkAccountStatus(String permission) {
-        return !PermissionUtil.hasPermission(this, permission) || !isAccountManagerValid();
+    public static boolean checkAccountStatus(Context context, AccountManager accountManager, String permission) {
+        return !PermissionUtil.hasPermission(context, permission) || !isAccountManagerValid(accountManager);
     }
 
-    private boolean isAccountManagerValid() {
-        if (null == mAccountManager)
-            mAccountManager = AccountManager.get(getApplicationContext());
-
-        return null != mAccountManager;
+    public static boolean isAccountManagerValid(AccountManager accountManager) {
+        return null != accountManager;
     }
 
     private void updateFromPrevious() {
@@ -457,7 +461,7 @@ public class LoggerApplication extends Application implements IGISApplication {
 
             switch (savedVersionCode) {
                 case 0:
-                    mSharedPreferences.edit().putLong(LoggerConstants.PREF_SESSION_ID, -1)
+                    mSharedPreferences.edit().putString(LoggerConstants.PREF_SESSION_ID, null)
                             .putInt(LoggerConstants.PREF_MARKS_COUNT, 0)
                             .putInt(LoggerConstants.PREF_RECORDS_COUNT, 0)
                             .putInt(LoggerConstants.PREF_MARK_POS, Integer.MIN_VALUE).apply();

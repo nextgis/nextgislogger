@@ -20,6 +20,7 @@
  *****************************************************************************/
 package com.nextgis.logger.engines;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.hardware.Sensor;
@@ -34,12 +35,12 @@ import android.widget.Toast;
 import com.nextgis.logger.LoggerApplication;
 import com.nextgis.logger.R;
 import com.nextgis.logger.util.LoggerConstants;
-import com.nextgis.maplib.datasource.Feature;
 import com.nextgis.maplib.datasource.GeoPoint;
 import com.nextgis.maplib.map.MapBase;
 import com.nextgis.maplib.map.NGWVectorLayer;
 import com.nextgis.maplib.util.Constants;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class SensorEngine extends BaseEngine implements SensorEventListener {
@@ -62,6 +63,7 @@ public class SensorEngine extends BaseEngine implements SensorEventListener {
         mAudioEngine = new AudioEngine(mContext);
         mGPSEngine = new GPSEngine(mContext);
 		mPreferences = getPreferences();
+        mUri = mUri.buildUpon().appendPath(LoggerApplication.TABLE_SENSOR).build();
 
         mHandler = new Handler(new Handler.Callback() {
             @Override
@@ -98,65 +100,70 @@ public class SensorEngine extends BaseEngine implements SensorEventListener {
     }
 
     @Override
-    public void saveData(long markId) {
+    public void saveData(String markId) {
         saveData(getData(), markId);
     }
 
     @Override
-    public void saveData(ArrayList<InfoItem> items, long markId) {
+    public void saveData(ArrayList<InfoItem> items, String markId) {
         NGWVectorLayer sensorLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_SENSOR);
         if (sensorLayer != null) {
-            Feature mark = new Feature(Constants.NOT_FOUND, sensorLayer.getFields());
-            mark.setFieldValue(LoggerApplication.FIELD_MARK, markId);
+            ContentValues cv = new ContentValues();
+            cv.put(LoggerApplication.FIELD_MARK, markId);
 
             for (InfoItem item : items) {
                 if (item.getColumn(LoggerConstants.HEADER_ACC_X) != null) {
-                    mark.setFieldValue(LoggerConstants.HEADER_ACC_X, item.getColumn(LoggerConstants.HEADER_ACC_X).getValue());
-                    mark.setFieldValue(LoggerConstants.HEADER_ACC_Y, item.getColumn(LoggerConstants.HEADER_ACC_Y).getValue());
-                    mark.setFieldValue(LoggerConstants.HEADER_ACC_Z, item.getColumn(LoggerConstants.HEADER_ACC_Z).getValue());
+                    cv.put(LoggerConstants.HEADER_ACC_X, item.getColumn(LoggerConstants.HEADER_ACC_X).getValue() + "");
+                    cv.put(LoggerConstants.HEADER_ACC_Y, item.getColumn(LoggerConstants.HEADER_ACC_Y).getValue() + "");
+                    cv.put(LoggerConstants.HEADER_ACC_Z, item.getColumn(LoggerConstants.HEADER_ACC_Z).getValue() + "");
                 }
 
                 if (item.getColumn(LoggerConstants.HEADER_LINEAR_X) != null) {
-                    mark.setFieldValue(LoggerConstants.HEADER_LINEAR_X, item.getColumn(LoggerConstants.HEADER_LINEAR_X).getValue());
-                    mark.setFieldValue(LoggerConstants.HEADER_LINEAR_Y, item.getColumn(LoggerConstants.HEADER_LINEAR_Y).getValue());
-                    mark.setFieldValue(LoggerConstants.HEADER_LINEAR_Z, item.getColumn(LoggerConstants.HEADER_LINEAR_Z).getValue());
+                    cv.put(LoggerConstants.HEADER_LINEAR_X, item.getColumn(LoggerConstants.HEADER_LINEAR_X).getValue() + "");
+                    cv.put(LoggerConstants.HEADER_LINEAR_Y, item.getColumn(LoggerConstants.HEADER_LINEAR_Y).getValue() + "");
+                    cv.put(LoggerConstants.HEADER_LINEAR_Z, item.getColumn(LoggerConstants.HEADER_LINEAR_Z).getValue() + "");
                 }
 
                 if (item.getColumn(LoggerConstants.HEADER_AZIMUTH) != null) {
-                    mark.setFieldValue(LoggerConstants.HEADER_AZIMUTH, item.getColumn(LoggerConstants.HEADER_AZIMUTH).getValue());
-                    mark.setFieldValue(LoggerConstants.HEADER_PITCH, item.getColumn(LoggerConstants.HEADER_PITCH).getValue());
-                    mark.setFieldValue(LoggerConstants.HEADER_ROLL, item.getColumn(LoggerConstants.HEADER_ROLL).getValue());
+                    cv.put(LoggerConstants.HEADER_AZIMUTH, item.getColumn(LoggerConstants.HEADER_AZIMUTH).getValue() + "");
+                    cv.put(LoggerConstants.HEADER_PITCH, item.getColumn(LoggerConstants.HEADER_PITCH).getValue() + "");
+                    cv.put(LoggerConstants.HEADER_ROLL, item.getColumn(LoggerConstants.HEADER_ROLL).getValue() + "");
                 }
 
                 if (item.getColumn(LoggerConstants.HEADER_MAGNETIC_X) != null) {
-                    mark.setFieldValue(LoggerConstants.HEADER_MAGNETIC_X, item.getColumn(LoggerConstants.HEADER_MAGNETIC_X).getValue());
-                    mark.setFieldValue(LoggerConstants.HEADER_MAGNETIC_Y, item.getColumn(LoggerConstants.HEADER_MAGNETIC_Y).getValue());
-                    mark.setFieldValue(LoggerConstants.HEADER_MAGNETIC_Z, item.getColumn(LoggerConstants.HEADER_MAGNETIC_Z).getValue());
+                    cv.put(LoggerConstants.HEADER_MAGNETIC_X, item.getColumn(LoggerConstants.HEADER_MAGNETIC_X).getValue() + "");
+                    cv.put(LoggerConstants.HEADER_MAGNETIC_Y, item.getColumn(LoggerConstants.HEADER_MAGNETIC_Y).getValue() + "");
+                    cv.put(LoggerConstants.HEADER_MAGNETIC_Z, item.getColumn(LoggerConstants.HEADER_MAGNETIC_Z).getValue() + "");
                 }
 
                 if (item.getColumn(LoggerConstants.HEADER_GYRO_X) != null) {
-                    mark.setFieldValue(LoggerConstants.HEADER_GYRO_X, item.getColumn(LoggerConstants.HEADER_GYRO_X).getValue());
-                    mark.setFieldValue(LoggerConstants.HEADER_GYRO_Y, item.getColumn(LoggerConstants.HEADER_GYRO_Y).getValue());
-                    mark.setFieldValue(LoggerConstants.HEADER_GYRO_Z, item.getColumn(LoggerConstants.HEADER_GYRO_Z).getValue());
+                    cv.put(LoggerConstants.HEADER_GYRO_X, item.getColumn(LoggerConstants.HEADER_GYRO_X).getValue() + "");
+                    cv.put(LoggerConstants.HEADER_GYRO_Y, item.getColumn(LoggerConstants.HEADER_GYRO_Y).getValue() + "");
+                    cv.put(LoggerConstants.HEADER_GYRO_Z, item.getColumn(LoggerConstants.HEADER_GYRO_Z).getValue() + "");
                 }
 
                 if (item.getColumn(LoggerConstants.HEADER_GPS_LAT) != null) {
-                    mark.setFieldValue(LoggerConstants.HEADER_GPS_LAT, item.getColumn(LoggerConstants.HEADER_GPS_LAT).getValue());
-                    mark.setFieldValue(LoggerConstants.HEADER_GPS_LON, item.getColumn(LoggerConstants.HEADER_GPS_LON).getValue());
-                    mark.setFieldValue(LoggerConstants.HEADER_GPS_ALT, item.getColumn(LoggerConstants.HEADER_GPS_ALT).getValue());
-                    mark.setFieldValue(LoggerConstants.HEADER_GPS_ACC, item.getColumn(LoggerConstants.HEADER_GPS_ACC).getValue());
-                    mark.setFieldValue(LoggerConstants.HEADER_GPS_SP, item.getColumn(LoggerConstants.HEADER_GPS_SP).getValue());
-                    mark.setFieldValue(LoggerConstants.HEADER_GPS_BE, item.getColumn(LoggerConstants.HEADER_GPS_BE).getValue());
-                    mark.setFieldValue(LoggerConstants.HEADER_GPS_SAT, item.getColumn(LoggerConstants.HEADER_GPS_SAT).getValue());
-                    mark.setFieldValue(LoggerConstants.HEADER_GPS_TIME, item.getColumn(LoggerConstants.HEADER_GPS_TIME).getValue());
+                    cv.put(LoggerConstants.HEADER_GPS_LAT, item.getColumn(LoggerConstants.HEADER_GPS_LAT).getValue() + "");
+                    cv.put(LoggerConstants.HEADER_GPS_LON, item.getColumn(LoggerConstants.HEADER_GPS_LON).getValue() + "");
+                    cv.put(LoggerConstants.HEADER_GPS_ALT, item.getColumn(LoggerConstants.HEADER_GPS_ALT).getValue() + "");
+                    cv.put(LoggerConstants.HEADER_GPS_ACC, item.getColumn(LoggerConstants.HEADER_GPS_ACC).getValue() + "");
+                    cv.put(LoggerConstants.HEADER_GPS_SP, item.getColumn(LoggerConstants.HEADER_GPS_SP).getValue() + "");
+                    cv.put(LoggerConstants.HEADER_GPS_BE, item.getColumn(LoggerConstants.HEADER_GPS_BE).getValue() + "");
+                    cv.put(LoggerConstants.HEADER_GPS_SAT, item.getColumn(LoggerConstants.HEADER_GPS_SAT).getValue() + "");
+                    cv.put(LoggerConstants.HEADER_GPS_TIME, item.getColumn(LoggerConstants.HEADER_GPS_TIME).getValue() + "");
                 }
 
                 if (item.getColumn(LoggerConstants.HEADER_AUDIO) != null)
-                    mark.setFieldValue(LoggerConstants.HEADER_AUDIO, item.getColumn(LoggerConstants.HEADER_AUDIO).getValue());
+                    cv.put(LoggerConstants.HEADER_AUDIO, item.getColumn(LoggerConstants.HEADER_AUDIO).getValue() + "");
             }
 
-            mark.setGeometry(new GeoPoint(0, 0));
-            sensorLayer.createFeature(mark);
+            try {
+                cv.put(Constants.FIELD_GEOM, new GeoPoint(0, 0).toBlob());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            sensorLayer.insert(mUri, cv);
         }
     }
 
