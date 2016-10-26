@@ -22,6 +22,7 @@
 
 package com.nextgis.logger.engines;
 
+import android.Manifest;
 import android.annotation.TargetApi;
 import android.content.ContentValues;
 import android.content.Context;
@@ -46,6 +47,7 @@ import android.text.TextUtils;
 import com.nextgis.logger.LoggerApplication;
 import com.nextgis.logger.R;
 import com.nextgis.logger.util.LoggerConstants;
+import com.nextgis.logger.util.UiUtil;
 import com.nextgis.maplib.datasource.GeoPoint;
 import com.nextgis.maplib.map.MapBase;
 import com.nextgis.maplib.map.NGWVectorLayer;
@@ -85,9 +87,11 @@ public class CellEngine extends BaseEngine {
     @Override
 	public boolean onResume() {
         if (super.onResume()) {
+			if (!UiUtil.isPermissionGranted(mContext, Manifest.permission.READ_PHONE_STATE))
+				return false;
+
             int listen = PhoneStateListener.LISTEN_SIGNAL_STRENGTHS | PhoneStateListener.LISTEN_CELL_LOCATION
                     | PhoneStateListener.LISTEN_DATA_CONNECTION_STATE | PhoneStateListener.LISTEN_SERVICE_STATE;
-
             mTelephonyManager.listen(mSignalListener, listen);
         }
 

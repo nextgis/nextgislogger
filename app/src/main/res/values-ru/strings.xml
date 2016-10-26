@@ -180,4 +180,9 @@
     <string name="ngw_url">NextGIS Web URL</string>
     <string name="ngw_edit">Изменить аккаунт</string>
     <string name="ngw_add">Добавить аккаунт</string>
+
+    <string name="permissions_title">Требуется разрешение</string>
+    <string name="permissions_mian">Приложению требуется доступ к местоположению для записи данных с GPS, к статусу телефона для получения информации об
+        окружающих базовых станциях и к микрофону для записи уровня шума.</string>
+    <string name="permissions_acc">Приложению требуется доступ к аккаунтам для создания записи и синхронизации с облаком.</string>
 </resources>

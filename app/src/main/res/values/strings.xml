@@ -205,4 +205,9 @@
     <string name="ngw_url">NextGIS Web URL</string>
     <string name="ngw_edit">Edit account</string>
     <string name="ngw_add">Add account</string>
+
+    <string name="permissions_title">Permissions required</string>
+    <string name="permissions_main">Application needs access to location to record data from GPS, to phone state to get near base radio stations info and to
+        microphone to get noise level.</string>
+    <string name="permissions_acc">Application needs access to accounts to create one and sync with cloud.</string>
 </resources>

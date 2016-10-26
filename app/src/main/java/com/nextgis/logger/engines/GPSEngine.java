@@ -43,7 +43,7 @@ public class GPSEngine extends BaseEngine implements LocationListener {
     private Location mLastFix = null;
     private InfoItem mGPSItem;
 
-    public GPSEngine(Context context) {
+    GPSEngine(Context context) {
         super(context);
         mLocationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
         loadHeader();
@@ -53,10 +53,8 @@ public class GPSEngine extends BaseEngine implements LocationListener {
     public boolean onResume() {
         if (super.onResume() && mLocationManager.getAllProviders().contains(LocationManager.GPS_PROVIDER) && isEngineEnabled()) {
             if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                    && ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                // TODO: Consider calling
+                    && ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
                 return false;
-            }
 
             mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LoggerConstants.MIN_GPS_TIME, LoggerConstants.MIN_GPS_DISTANCE, this);
             mLastFix = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
@@ -70,10 +68,8 @@ public class GPSEngine extends BaseEngine implements LocationListener {
     public boolean onPause() {
         if (super.onPause()) {
             if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                    && ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                // TODO: Consider calling
+                    && ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
                 return false;
-            }
 
             mLocationManager.removeUpdates(this);
             mLastFix = null;
@@ -93,11 +89,11 @@ public class GPSEngine extends BaseEngine implements LocationListener {
 
     }
 
-    public int getSatellites() {
+    private int getSatellites() {
         return mLastFix.getExtras().getInt("satellites", 0);
     }
 
-    public long getTime() {
+    private long getTime() {
         if (mLastFix == null)
             return LoggerConstants.UNDEFINED;
 

@@ -23,10 +23,12 @@
 
 package com.nextgis.logger.UI;
 
+import android.Manifest;
 import android.accounts.Account;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.ActivityManager;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -37,6 +39,8 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.text.TextUtils;
 import android.util.Pair;
@@ -62,10 +66,12 @@ import com.nextgis.maplib.api.IGISApplication;
 import com.nextgis.maplib.api.ILayer;
 import com.nextgis.maplib.map.MapBase;
 import com.nextgis.maplib.map.NGWVectorLayer;
-import com.nextgis.maplib.util.Constants;
 import com.nextgis.maplib.util.NGWUtil;
 
 public class ProgressBarActivity extends FragmentActivity implements View.OnClickListener {
+    private static final int PERMISSION_MAIN = 1;
+    private static final int PERMISSION_ACC = 2;
+
     protected SharedPreferences mPreferences;
     protected FloatingActionButton mFAB;
     protected boolean mHasFAB = true;
@@ -81,6 +87,12 @@ public class ProgressBarActivity extends FragmentActivity implements View.OnClic
             getActionBar().setDisplayHomeAsUpEnabled(true);
 
         setActionBarProgress(isLoggerServiceRunning(this));
+
+        if (!hasPermissions()) {
+            String[] permissions = new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION,
+                                                Manifest.permission.READ_PHONE_STATE, Manifest.permission.RECORD_AUDIO};
+            requestPermissions(this, R.string.permissions_title, R.string.permissions_main, PERMISSION_MAIN, permissions);
+        }
     }
 
     @Override
@@ -155,6 +167,12 @@ public class ProgressBarActivity extends FragmentActivity implements View.OnClic
     }
 
     private void toCloud() {
+        if (!hasAccountPermissions(this)) {
+            String[] permissions = new String[]{Manifest.permission.GET_ACCOUNTS};
+            requestPermissions(this, R.string.permissions_title, R.string.permissions_acc, PERMISSION_ACC, permissions);
+            return;
+        }
+
         IGISApplication app = (IGISApplication) getApplication();
         Account account = app.getAccount(getString(R.string.app_name));
 
@@ -314,5 +332,52 @@ public class ProgressBarActivity extends FragmentActivity implements View.OnClic
         stopService.setAction(LoggerConstants.ACTION_STOP);
         startService(stopService);
         setActionBarProgress(false);
+    }
+
+    protected boolean hasPermissions() {
+        return UiUtil.isPermissionGranted(this, Manifest.permission.ACCESS_FINE_LOCATION) &&
+                UiUtil.isPermissionGranted(this, Manifest.permission.ACCESS_COARSE_LOCATION) &&
+                UiUtil.isPermissionGranted(this, Manifest.permission.READ_PHONE_STATE) &&
+                UiUtil.isPermissionGranted(this, Manifest.permission.RECORD_AUDIO);
+    }
+
+    protected static boolean hasAccountPermissions(Context context) {
+        return UiUtil.isPermissionGranted(context, Manifest.permission.GET_ACCOUNTS);
+    }
+
+    protected static void requestPermissions(final Activity activity, int title, int message, final int requestCode, final String... permissions) {
+        boolean shouldShowDialog = false;
+        for (String permission : permissions) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)) {
+                shouldShowDialog = true;
+                break;
+            }
+        }
+
+        if (shouldShowDialog) {
+            AlertDialog builder = new AlertDialog.Builder(activity).setTitle(title).setMessage(message).setPositiveButton(android.R.string.ok, null).create();
+            builder.setCanceledOnTouchOutside(false);
+            builder.show();
+            builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    ActivityCompat.requestPermissions(activity, permissions, requestCode);
+                }
+            });
+        } else
+            ActivityCompat.requestPermissions(activity, permissions, requestCode);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_MAIN:
+                break;
+            case PERMISSION_ACC:
+                startNGWActivity(this);
+                break;
+            default:
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
     }
 }

@@ -23,6 +23,7 @@
 
 package com.nextgis.logger.engines;
 
+import android.Manifest;
 import android.content.Context;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
@@ -33,6 +34,7 @@ import android.preference.PreferenceManager;
 
 import com.nextgis.logger.R;
 import com.nextgis.logger.util.LoggerConstants;
+import com.nextgis.logger.util.UiUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -73,6 +75,9 @@ public class AudioEngine extends BaseEngine {
     @Override
     public boolean onResume() {
         if (super.onResume() && isEngineEnabled()) {
+            if (!UiUtil.isPermissionGranted(mContext, Manifest.permission.RECORD_AUDIO))
+                return false;
+
             mAudioMeter.startRecording();
             return true;
         }
