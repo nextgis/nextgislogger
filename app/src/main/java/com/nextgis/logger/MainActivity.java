@@ -53,7 +53,6 @@ import com.nextgis.logger.UI.ProgressBarActivity;
 import com.nextgis.logger.util.FileUtil;
 import com.nextgis.logger.util.LoggerConstants;
 import com.nextgis.maplib.api.IGISApplication;
-import com.nextgis.maplib.datasource.Feature;
 import com.nextgis.maplib.datasource.GeoPoint;
 import com.nextgis.maplib.map.MapBase;
 import com.nextgis.maplib.map.MapContentProviderHelper;
@@ -174,10 +173,10 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 		case R.id.btn_service_onoff:
 			// Service can be stopped, but still visible in the system as working,
 			// therefore, we need to use isLoggerServiceRunning()
-			if (isLoggerServiceRunning(this))
-				stopService();
+			if (isLoggerServiceRunning())
+				stopLoggerService();
 			else
-				startService();
+				startLoggerService(LoggerConstants.ACTION_START);
 			break;
 		case R.id.btn_mark:
 			Intent markActivity = new Intent(this, MarkActivity.class);
@@ -193,17 +192,17 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 		}
 	}
 
-    private void startService() {
-        Intent intent = new Intent(getApplicationContext(), LoggerService.class);
-        startService(intent);
+    @Override
+    protected void startLoggerService(String action) {
+        super.startLoggerService(action);
         mButtonService.setText(getString(R.string.btn_service_stop));
         setActionBarProgress(true);
         mButtonSession.setEnabled(false);
     }
 
     @Override
-    protected void stopService() {
-        super.stopService();
+    protected void stopLoggerService() {
+        super.stopLoggerService();
         mButtonService.setText(getString(R.string.btn_service_start));
         mButtonSession.setEnabled(true);
     }
@@ -356,7 +355,7 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
             mTvRecordsCount.setText(mPreferences.getInt(LoggerConstants.PREF_RECORDS_COUNT, 0) + "");
         }
 
-        boolean isServiceRunning = isLoggerServiceRunning(this);
+        boolean isServiceRunning = isLoggerServiceRunning();
         setActionBarProgress(isServiceRunning);
 
         mButtonService.setText(getString(isServiceRunning ? R.string.btn_service_stop : R.string.btn_service_start));

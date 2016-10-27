@@ -82,7 +82,7 @@ public class AudioCalibratePreference extends DialogPreference implements View.O
         super.onBindDialogView(view);
         onSetInitialValue(true, 0);
 
-        mAudioEngine = LoggerApplication.getApplication().getSensorEngine().getAudioEngine();
+//        mAudioEngine = LoggerApplication.getApplication().getSensorEngine().getAudioEngine();
         mAudioEngine.addListener(this);
         mAudioEngine.setDelta(0);
         mAudioEngine.onResume();

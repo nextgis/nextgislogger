@@ -201,31 +201,32 @@ public class PreferencesActivity extends PreferenceActivity {
                 @Override
                 public boolean onPreferenceClick(final Preference preference) {
                     AlertDialog.Builder dialog = new AlertDialog.Builder(getActivity());
-                    final ArduinoEngine engine = LoggerApplication.getApplication().getArduinoEngine();
-
-                    if (!engine.isBTEnabled()) {
-                        dialog.setTitle(R.string.external_goto_settings);
-                        dialog.setMessage(R.string.external_bt_disabled);
-                    } else {
-                        dialog.setTitle(R.string.external_paired);
-                        final ArrayAdapter<String> devicesNames = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_dropdown_item);
-
-                        for (BluetoothDevice device : engine.getPairedDevices())
-                            devicesNames.add(device.getName() + " (" + device.getAddress() + ")");
-
-                        dialog.setAdapter(devicesNames,
-                                new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        String name = devicesNames.getItem(which);
-                                        PreferenceManager.getDefaultSharedPreferences(getActivity()).edit()
-                                                .putString(LoggerConstants.PREF_EXTERNAL_DEVICE, name).commit();
-                                        engine.setDeviceMAC(engine.splitDeviceMAC(name));
-                                        engine.setDeviceName(engine.splitDeviceName(name));
-                                        selectExternalDevice.setSummary(name);
-                                    }
-                                });
-                    }
+                    // TODO preferences tabs
+//                    final ArduinoEngine engine = LoggerApplication.getApplication().getArduinoEngine();
+//
+//                    if (!engine.isBTEnabled()) {
+//                        dialog.setTitle(R.string.external_goto_settings);
+//                        dialog.setMessage(R.string.external_bt_disabled);
+//                    } else {
+//                        dialog.setTitle(R.string.external_paired);
+//                        final ArrayAdapter<String> devicesNames = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_dropdown_item);
+//
+//                        for (BluetoothDevice device : engine.getPairedDevices())
+//                            devicesNames.add(device.getName() + " (" + device.getAddress() + ")");
+//
+//                        dialog.setAdapter(devicesNames,
+//                                new DialogInterface.OnClickListener() {
+//                                    @Override
+//                                    public void onClick(DialogInterface dialog, int which) {
+//                                        String name = devicesNames.getItem(which);
+//                                        PreferenceManager.getDefaultSharedPreferences(getActivity()).edit()
+//                                                .putString(LoggerConstants.PREF_EXTERNAL_DEVICE, name).apply();
+//                                        engine.setDeviceMAC(engine.splitDeviceMAC(name));
+//                                        engine.setDeviceName(engine.splitDeviceName(name));
+//                                        selectExternalDevice.setSummary(name);
+//                                    }
+//                                });
+//                    }
 
                     dialog.setNegativeButton(android.R.string.cancel, null);
                     dialog.setPositiveButton(R.string.app_settings,

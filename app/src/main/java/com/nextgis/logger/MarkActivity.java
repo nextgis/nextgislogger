@@ -53,19 +53,15 @@ import android.widget.SearchView;
 import android.widget.SearchView.OnQueryTextListener;
 import android.widget.Toast;
 
-import com.nextgis.logger.UI.ProgressBarActivity;
-import com.nextgis.logger.engines.ArduinoEngine;
+import com.nextgis.logger.UI.BindActivity;
 import com.nextgis.logger.engines.BaseEngine;
-import com.nextgis.logger.engines.CellEngine;
 import com.nextgis.logger.engines.GPSEngine;
 import com.nextgis.logger.engines.InfoItem;
-import com.nextgis.logger.engines.SensorEngine;
-import com.nextgis.logger.util.LoggerConstants;
 import com.nextgis.logger.util.FileUtil;
+import com.nextgis.logger.util.LoggerConstants;
 import com.nextgis.logger.util.MarkName;
 import com.nextgis.maplib.api.IGISApplication;
 import com.nextgis.maplib.datasource.GeoPoint;
-import com.nextgis.maplib.util.Constants;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -74,7 +70,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
-public class MarkActivity extends ProgressBarActivity implements View.OnClickListener, ArduinoEngine.ConnectionListener {
+public class MarkActivity extends BindActivity implements View.OnClickListener {
 	private static final int DELAY = 4000;
 
 	private static final int MARK_SAVE = 0;
@@ -88,22 +84,16 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 	private static final String BUNDLE_ID       = "mark_id";
 	private static final String BUNDLE_NAME     = "mark_name";
 
-    private static int mMarksCount = 0;
-    private boolean mIsHot, mIsVolumeControlEnabled, mIsActive, mLastConnection;
-
     private SearchView mSearchView;
     private MenuItem mSearchBox, mBtRetry;
     private ListView mLvCategories;
-	private MarkArrayAdapter mMarksAdapter;
+    private MarkArrayAdapter mMarksAdapter;
+    private MarksHandler mMarksHandler;
 
-	private static CellEngine mGsmEngine;
-	private static SensorEngine mSensorEngine;
-	private static ArduinoEngine mArduinoEngine;
-//	private WiFiEngine wifiEngine;
-
-    private static MarksHandler mMarksHandler;
-    private static int mSavedMarkPosition;
-    private static Uri mUri;
+    private boolean mIsHot, mIsVolumeControlEnabled, mIsActive, mLastConnection;
+    private int mSavedMarkPosition;
+    private int mMarksCount = 0;
+    private Uri mUri;
 
     @Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -117,12 +107,6 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 		setContentView(R.layout.mark_activity);
 
         mFAB.setOnClickListener(this);
-
-		mGsmEngine = LoggerApplication.getApplication().getCellEngine();
-		mSensorEngine = LoggerApplication.getApplication().getSensorEngine();
-        mArduinoEngine = LoggerApplication.getApplication().getArduinoEngine();
-        mArduinoEngine.addConnectionListener(this);
-//		wifiEngine = new WiFiEngine(this);
 
         mSavedMarkPosition = mPreferences.getInt(LoggerConstants.PREF_MARK_POS, Integer.MIN_VALUE);
         mMarksCount = mPreferences.getInt(LoggerConstants.PREF_MARKS_COUNT, 0);
@@ -211,37 +195,14 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 	protected void onResume() {
 		super.onResume();
         mIsActive = true;
-
-		mGsmEngine.onResume();
-
-        if (mSensorEngine.isEngineEnabled())
-		    mSensorEngine.onResume();
-
-        if (mArduinoEngine.isEngineEnabled())
-            mArduinoEngine.onResume();
-//		wifiEngine.onResume();
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
         mIsActive = false;
-
-		mGsmEngine.onPause();
-		mSensorEngine.onPause();
-        mArduinoEngine.onPause();
-//		wifiEngine.onPause();
-
 		mPreferences.edit().putInt(LoggerConstants.PREF_MARKS_COUNT, mMarksCount).apply();
 	}
-
-    @Override
-    protected void onDestroy() {
-        mArduinoEngine.removeConnectionListener(this);
-        mArduinoEngine.onPause();
-
-        super.onDestroy();
-    }
 
     @Override
     public boolean onCreateOptionsMenu(final Menu menu) {
@@ -296,7 +257,10 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        mBtRetry.setVisible(mArduinoEngine.isEngineEnabled() && !(mArduinoEngine.isConnected() && mArduinoEngine.isDeviceAvailable()));
+        boolean isArduinoAvailable = mArduinoEngine != null;
+        boolean isEngineActive = isArduinoAvailable && mArduinoEngine.isEngineEnabled();
+        boolean isEngineOk = isArduinoAvailable && mArduinoEngine.isConnected() && mArduinoEngine.isDeviceAvailable();
+        mBtRetry.setVisible(isEngineActive && !isEngineOk);
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -304,10 +268,8 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.bt_lost:
-                if (mArduinoEngine.isDeviceAvailable() && mArduinoEngine.isConnected())
+                if (mArduinoEngine != null && mArduinoEngine.isDeviceAvailable() && mArduinoEngine.isConnected())
                     mBtRetry.setVisible(false);
-                else
-                    mArduinoEngine.onResume();
                 return true;
             case R.id.new_mark:
                 final AlertDialog.Builder newMarkDialog = new AlertDialog.Builder(this);
@@ -422,14 +384,15 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
         data.putInt(BUNDLE_ID, mark.getID());
         data.putString(BUNDLE_NAME, mark.getCAT());
         data.putLong(BUNDLE_TIME, System.currentTimeMillis());
-        data.putParcelableArrayList(BUNDLE_CELL, new ArrayList<>(mGsmEngine.getData()));
+        ArrayList<InfoItem> infoArray = mCellEngine != null ? mCellEngine.getData() : new ArrayList<InfoItem>();
+        data.putParcelableArrayList(BUNDLE_CELL, infoArray);
 
         // checking sensors state
-        if (mSensorEngine.isEngineEnabled())
+        if (mSensorEngine != null && mSensorEngine.isEngineEnabled())
             data.putParcelableArrayList(BUNDLE_SENSOR, new ArrayList<>(mSensorEngine.getData()));
 
         // checking external state
-        if (mArduinoEngine.isEngineEnabled())
+        if (mArduinoEngine != null && mArduinoEngine.isEngineEnabled())
             data.putParcelableArrayList(BUNDLE_EXTERNAL, new ArrayList<>(mArduinoEngine.getData()));
 
         Vibrator vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
@@ -479,8 +442,9 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
     }
 
     private void showExternalStatus(final boolean isConnected) {
-        final String info = isConnected ? String.format(getString(R.string.external_connected), mArduinoEngine.getDeviceName()) :
-                String.format(getString(R.string.external_not_found), mArduinoEngine.getDeviceName());
+        String deviceName = mArduinoEngine != null ? mArduinoEngine.getDeviceName() : getString(R.string.external_device_name);
+        final String info = isConnected ? String.format(getString(R.string.external_connected), deviceName) :
+                String.format(getString(R.string.external_not_found), deviceName);
 
         runOnUiThread(new Runnable() {
             @Override
@@ -488,7 +452,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
                 if (mIsActive && mLastConnection != isConnected)
                     Toast.makeText(MarkActivity.this, info, Toast.LENGTH_SHORT).show();
 
-                if (mBtRetry != null && mArduinoEngine.isEngineEnabled())
+                if (mBtRetry != null && mArduinoEngine != null && mArduinoEngine.isEngineEnabled())
                     mBtRetry.setVisible(!isConnected);
 
                 mLastConnection = isConnected;
@@ -501,13 +465,14 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 		private List<MarkName> mMatchedMarks = new ArrayList<>();
 		private final SubstringFilter mFilter = new SubstringFilter();
 
-		public MarkArrayAdapter(final Context context, final List<MarkName> objects) {
+		MarkArrayAdapter(final Context context, final List<MarkName> objects) {
 			super(context, android.R.layout.simple_list_item_activated_1, android.R.id.text1);
 			this.mMarks = objects;
 			mFilter.filter("");
 		}
 
-		@Override
+		@NonNull
+        @Override
 		public Filter getFilter() {
 			return mFilter;
 		}
@@ -517,7 +482,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 			return mMatchedMarks.size();
 		}
 
-		public int getTotalCount() {
+		int getTotalCount() {
 			return mMarks.size();
 		}
 
@@ -526,38 +491,39 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 			return mMatchedMarks.get(position).getCAT();
 		}
 
-        public int getMarkPosition(MarkName item) {
+        int getMarkPosition(MarkName item) {
             return mMarks.indexOf(item);
         }
 
-        public int getMatchedMarkPosition(MarkName item) {
+        int getMatchedMarkPosition(MarkName item) {
             return mMatchedMarks.indexOf(item);
         }
 
-		public MarkName getMatchedMarkItem(int position) {
+		MarkName getMatchedMarkItem(int position) {
             if (position >= 0 && position < mMatchedMarks.size())
 			    return mMatchedMarks.get(position);
             else
                 return new MarkName(-1, "null");
 		}
 
-		public MarkName getMarkItem(int position) {
+		MarkName getMarkItem(int position) {
             if (hasItem(position))
 			    return mMarks.get(position);
             else
                 return new MarkName(-1, "null");
 		}
 
-		@Override
-		public View getView(int position, View convertView, ViewGroup parent) {
+		@NonNull
+        @Override
+		public View getView(int position, View convertView, @NonNull ViewGroup parent) {
 			return super.getView(position, convertView, parent);
 		}
 
-        public boolean hasItem(int position) {
+        boolean hasItem(int position) {
             return position >= 0 && position < mMarks.size();
         }
 
-        public void addMark(MarkName mark) {
+        void addMark(MarkName mark) {
             mMarks.add(mark);
             notifyDataSetChanged();
         }
@@ -597,17 +563,17 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
 					notifyDataSetInvalidated();
 			}
 
-			public String getUpperString(String str) {
+			String getUpperString(String str) {
 				return str.toUpperCase(Locale.getDefault());
 			}
 		}
 	}
 
-    private static class MarksHandler extends Handler {
+    private class MarksHandler extends Handler {
         private long mUndoTimeStamp = 0;
         private MarkActivity mParent;
 
-        public MarksHandler(MarkActivity parent) {
+        MarksHandler(MarkActivity parent) {
             mParent = parent;
         }
 
@@ -625,7 +591,7 @@ public class MarkActivity extends ProgressBarActivity implements View.OnClickLis
                         String newMarkId = BaseEngine.saveMark(mUri, session, markId, name, time, point);
 
                         items = bundle.getParcelableArrayList(BUNDLE_CELL);
-                        mGsmEngine.saveData(items, newMarkId);
+                        mCellEngine.saveData(items, newMarkId); // TODO
 
                         items = bundle.getParcelableArrayList(BUNDLE_SENSOR);
                         if (items != null)

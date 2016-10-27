@@ -106,6 +106,7 @@ public interface LoggerConstants {
     String PREF_EXTERNAL_HEADER = "external_header";
     String PREF_TIME_START = "time_start";
     String PREF_TIME_FINISH = "time_finish";
+    String PREF_MEASURING = "service_measuring";
 
     String DEFAULT_USERNAME = "User1";
     String LOG_UID = "ServiceLog";
@@ -114,6 +115,7 @@ public interface LoggerConstants {
     String ACTION_INFO = "com.nextgis.logger.SERVICE_INFO";
     String ACTION_START = "com.nextgis.logger.SERVICE_START";
     String ACTION_STOP = "com.nextgis.logger.SERVICE_STOP";
+    String ACTION_DESTROY = "com.nextgis.logger.SERVICE_DESTROY";
 
     String GEN_2G = "2G";
     String GEN_3G = "3G";

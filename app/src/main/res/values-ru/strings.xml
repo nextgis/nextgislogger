@@ -109,6 +109,7 @@
     <string name="external_bt_disabled">Bluetooth выключен</string>
     <string name="external_goto_settings">Настройки</string>
     <string name="external_not_found">Не удалось подключиться к %s. Устройство не найдено или превышено время ожидания.</string>
+    <string name="external_device_name">внешнему устройству</string>
     <string name="external_connecting">Подключение к %s…</string>
     <string name="external_connected">Подключено к %s</string>
     <string name="external_retry">Повторить</string>

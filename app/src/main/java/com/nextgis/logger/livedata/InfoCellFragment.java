@@ -25,7 +25,6 @@ package com.nextgis.logger.livedata;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,7 +32,6 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
-import com.nextgis.logger.LoggerApplication;
 import com.nextgis.logger.R;
 import com.nextgis.logger.engines.BaseEngine;
 import com.nextgis.logger.engines.CellEngine;
@@ -45,7 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class InfoCellFragment extends Fragment {
+public class InfoCellFragment extends InfoFragment {
     private static final String CELL_ID         = "id";
     private static final String CELL_ACTIVE     = "active";
     private static final String CELL_GEN        = "generation";
@@ -57,25 +55,8 @@ public class InfoCellFragment extends Fragment {
     private static final String CELL_PSC        = "psc";
     private static final String CELL_POWER      = "power";
 
-    private CellEngine mGsmEngine;
-    private BaseEngine.EngineListener mCellListener;
-
     private ListView mLvNeighbours;
     private TextView mTvNeighbours, mTvActive;
-
-    @Override
-    public void onPause() {
-        super.onPause();
-
-        mGsmEngine.onPause();
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        mGsmEngine.onResume();
-    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -85,30 +66,19 @@ public class InfoCellFragment extends Fragment {
         mTvNeighbours = (TextView) rootView.findViewById(R.id.tv_network_neighbours);
         mTvActive = (TextView) rootView.findViewById(R.id.tv_network_active);
 
-        mCellListener = new BaseEngine.EngineListener() {
+        mListener = new BaseEngine.EngineListener() {
             @Override
             public void onInfoChanged(String source) {
                 if (isAdded())
                     fillTextViews();
             }
         };
-        mGsmEngine = LoggerApplication.getApplication().getCellEngine();
-        mGsmEngine.addListener(mCellListener);
-
-        fillTextViews();
 
         return rootView;
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-
-        mGsmEngine.removeListener(mCellListener);
-    }
-
     private void fillTextViews() {
-        ArrayList<InfoItem> infoItemGSMArray = mGsmEngine.getData();
+        ArrayList<InfoItem> infoItemGSMArray = getData();
         ArrayList<Map<String, Object>> neighboursData = new ArrayList<>();
         Map<String, Object> itemData;
         final String na = getString(R.string.info_na);
@@ -162,6 +132,12 @@ public class InfoCellFragment extends Fragment {
         return data.equals("-1") ? placeholder : data;
     }
 
+    @Override
+    public void setEngine(BaseEngine engine) {
+        super.setEngine(engine);
+        fillTextViews();
+    }
+
     private class CellsAdapter extends SimpleAdapter {
         LayoutInflater mInflater;
 
@@ -181,7 +157,7 @@ public class InfoCellFragment extends Fragment {
          * @param to       The views that should display column in the "from" parameter. These should all be
          *                 TextViews. The first N views in this list are given the values of the first N columns
          */
-        public CellsAdapter(Context context, List<? extends Map<String, ?>> data, int resource, String[] from, int[] to) {
+        CellsAdapter(Context context, List<? extends Map<String, ?>> data, int resource, String[] from, int[] to) {
             super(context, data, resource, from, to);
             mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         }
@@ -196,9 +172,20 @@ public class InfoCellFragment extends Fragment {
             if (!isActive)
                 result = super.getView(position, null, parent);
             else {
+                boolean roaming = false;
+                String operator = LoggerConstants.UNKNOWN;
+
+                if (isConnected()) {
+                    CellEngine cellEngine = (CellEngine) mEngine;
+                    roaming = cellEngine.isRoaming();
+                    boolean sameOperator = item.get(CELL_MNC).equals(cellEngine.getNetworkMNC() + "");
+                    if (sameOperator)
+                        operator = cellEngine.getNetworkOperator();
+                }
+
                 View v = mInflater.inflate(R.layout.info_cell_active_row, parent, false);
                 TextView tvRoaming = (TextView) v.findViewById(R.id.tv_network_roaming);
-                if (mGsmEngine.isRoaming())
+                if (roaming)
                     tvRoaming.setVisibility(View.VISIBLE);
 
                 tvGen = (TextView) v.findViewById(R.id.tv_network_gen);
@@ -211,8 +198,8 @@ public class InfoCellFragment extends Fragment {
                 tvPSC = (TextView) v.findViewById(R.id.tv_network_psc);
                 tvPower = (TextView) v.findViewById(R.id.tv_network_power);
 
-                boolean sameOperatorName = item.get(CELL_MNC).equals(mGsmEngine.getNetworkMNC() + "");
-                tvOperator.setText(sameOperatorName ? mGsmEngine.getNetworkOperator() : LoggerConstants.UNKNOWN);
+
+                tvOperator.setText(operator);
                 tvGen.setText((String) item.get(CELL_GEN));
                 tvType.setText((String) item.get(CELL_TYPE));
                 tvMCC.setText((String) item.get(CELL_MCC));

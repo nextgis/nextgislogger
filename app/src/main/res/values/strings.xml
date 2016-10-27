@@ -113,6 +113,7 @@
     <string name="external_bt_disabled">Bluetooth is disabled.</string>
     <string name="external_goto_settings">Check settings</string>
     <string name="external_not_found">Can not connect to %s. Device not found or connection timeout.</string>
+    <string name="external_device_name">external device</string>
     <string name="external_connecting">Connecting to %s…</string>
     <string name="external_connected">Connected to %s</string>
     <string name="external_retry">Retry</string>

@@ -40,9 +40,6 @@ import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-import com.nextgis.logger.engines.ArduinoEngine;
-import com.nextgis.logger.engines.CellEngine;
-import com.nextgis.logger.engines.SensorEngine;
 import com.nextgis.logger.util.LoggerConstants;
 import com.nextgis.logger.util.LoggerVectorLayer;
 import com.nextgis.maplib.api.IGISApplication;
@@ -51,17 +48,8 @@ import com.nextgis.maplib.datasource.Field;
 import com.nextgis.maplib.location.GpsEventSource;
 import com.nextgis.maplib.map.LayerFactory;
 import com.nextgis.maplib.map.LayerGroup;
-import com.nextgis.maplib.map.LocalTMSLayer;
 import com.nextgis.maplib.map.MapBase;
 import com.nextgis.maplib.map.MapDrawable;
-import com.nextgis.maplib.map.NGWLookupTable;
-import com.nextgis.maplib.map.NGWRasterLayer;
-import com.nextgis.maplib.map.NGWTrackLayer;
-import com.nextgis.maplib.map.NGWVectorLayer;
-import com.nextgis.maplib.map.NGWWebMapLayer;
-import com.nextgis.maplib.map.RemoteTMSLayer;
-import com.nextgis.maplib.map.TrackLayer;
-import com.nextgis.maplib.map.VectorLayer;
 import com.nextgis.maplib.util.Constants;
 import com.nextgis.maplib.util.FileUtil;
 import com.nextgis.maplib.util.GeoConstants;
@@ -80,16 +68,7 @@ import java.util.concurrent.TimeUnit;
 import static android.Manifest.permission.GET_ACCOUNTS;
 import static com.nextgis.maplib.util.Constants.CONFIG;
 import static com.nextgis.maplib.util.Constants.JSON_TYPE_KEY;
-import static com.nextgis.maplib.util.Constants.LAYERTYPE_GROUP;
-import static com.nextgis.maplib.util.Constants.LAYERTYPE_LOCAL_TMS;
-import static com.nextgis.maplib.util.Constants.LAYERTYPE_LOCAL_VECTOR;
-import static com.nextgis.maplib.util.Constants.LAYERTYPE_LOOKUPTABLE;
-import static com.nextgis.maplib.util.Constants.LAYERTYPE_NGW_RASTER;
-import static com.nextgis.maplib.util.Constants.LAYERTYPE_NGW_TRACKS;
 import static com.nextgis.maplib.util.Constants.LAYERTYPE_NGW_VECTOR;
-import static com.nextgis.maplib.util.Constants.LAYERTYPE_NGW_WEBMAP;
-import static com.nextgis.maplib.util.Constants.LAYERTYPE_REMOTE_TMS;
-import static com.nextgis.maplib.util.Constants.LAYERTYPE_TRACKS;
 import static com.nextgis.maplib.util.Constants.MAP_EXT;
 import static com.nextgis.maplib.util.Constants.TAG;
 import static com.nextgis.maplib.util.SettingsConstants.KEY_PREF_MAP;
@@ -116,9 +95,6 @@ public class LoggerApplication extends Application implements IGISApplication {
     public static final String FIELD_MARK = "mark";
     public static final String FIELD_DATA = "data";
 
-    private static ArduinoEngine mArduinoEngine;
-    private static SensorEngine mSensorEngine;
-    private static CellEngine mCellEngine;
     private static LoggerApplication mApplication;
 
     protected MapDrawable mMap;
@@ -131,9 +107,6 @@ public class LoggerApplication extends Application implements IGISApplication {
         super.onCreate();
 
         mApplication = this;
-        mArduinoEngine = new ArduinoEngine(this);
-        mSensorEngine = new SensorEngine(this);
-        mCellEngine = new CellEngine(this);
 
         mGpsEventSource = new GpsEventSource(this);
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -161,18 +134,6 @@ public class LoggerApplication extends Application implements IGISApplication {
 
     public static LoggerApplication getApplication() {
         return mApplication;
-    }
-
-    public ArduinoEngine getArduinoEngine() {
-        return mArduinoEngine;
-    }
-
-    public SensorEngine getSensorEngine() {
-        return mSensorEngine;
-    }
-
-    public CellEngine getCellEngine() {
-        return mCellEngine;
     }
 
     @Override

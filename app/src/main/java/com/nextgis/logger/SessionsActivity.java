@@ -41,7 +41,6 @@ import com.nextgis.maplib.datasource.Feature;
 import com.nextgis.maplib.map.MapBase;
 import com.nextgis.maplib.map.MapContentProviderHelper;
 import com.nextgis.maplib.map.NGWVectorLayer;
-import com.nextgis.maplib.util.Constants;
 import com.nextgis.maplib.util.MapUtil;
 
 import java.util.ArrayList;
@@ -206,7 +205,7 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
             String[] ids = getIdsFromPositions(positions);
 
             if (hasCurrentSession(ids)) {
-                stopService();
+                stopLoggerService();
                 clearSession(); // TODO dialog
             }
 

@@ -23,7 +23,9 @@
 
 package com.nextgis.logger.livedata;
 
+import android.content.ComponentName;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
@@ -32,14 +34,15 @@ import android.view.Menu;
 import android.view.WindowManager;
 
 import com.nextgis.logger.R;
-import com.nextgis.logger.UI.ProgressBarActivity;
+import com.nextgis.logger.UI.BindActivity;
+import com.nextgis.logger.engines.BaseEngine;
 import com.nextgis.logger.util.LoggerConstants;
 
-public class InfoActivity extends ProgressBarActivity {
+public class InfoActivity extends BindActivity implements ViewPager.OnPageChangeListener {
     private static final String PREF_LAST_VISITED = "last_tab";
 
-    ItemPagerAdapter itemAdapter;
-    ViewPager vpScreens;
+    private ItemPagerAdapter mItemAdapter;
+    private ViewPager mVpScreens;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,10 +50,11 @@ public class InfoActivity extends ProgressBarActivity {
         mHasFAB = false;
         setContentView(R.layout.info_activity);
 
-        itemAdapter = new ItemPagerAdapter(getSupportFragmentManager());
-        vpScreens = (ViewPager) findViewById(R.id.vp_tabs);
-        vpScreens.setAdapter(itemAdapter);
-        vpScreens.setCurrentItem(mPreferences.getInt(PREF_LAST_VISITED, 0));
+        mItemAdapter = new ItemPagerAdapter(getSupportFragmentManager());
+        mVpScreens = (ViewPager) findViewById(R.id.vp_tabs);
+        mVpScreens.setAdapter(mItemAdapter);
+        mVpScreens.addOnPageChangeListener(this);
+        mVpScreens.setCurrentItem(mPreferences.getInt(PREF_LAST_VISITED, 0));
     }
 
     @Override
@@ -78,11 +82,70 @@ public class InfoActivity extends ProgressBarActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        mPreferences.edit().putInt(PREF_LAST_VISITED, mVpScreens.getCurrentItem()).apply();
+    }
 
-        mPreferences.edit().putInt(PREF_LAST_VISITED, vpScreens.getCurrentItem()).apply();
+    @Override
+    public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+        super.onServiceConnected(componentName, iBinder);
+        setEngine(0);
+        setEngine(1);
+        setEngine(2);
+    }
+
+    @Override
+    public void onServiceDisconnected(ComponentName componentName) {
+        super.onServiceDisconnected(componentName);
+        InfoExternalsFragment externalFragment = (InfoExternalsFragment) mItemAdapter.getFragment(2);
+        mArduinoEngine.removeConnectionListener(externalFragment);
+
+        ((InfoFragment) mItemAdapter.getFragment(0)).setEngine(null);
+        ((InfoFragment) mItemAdapter.getFragment(1)).setEngine(null);
+        ((InfoFragment) mItemAdapter.getFragment(2)).setEngine(null);
+    }
+
+    @Override
+    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+    }
+
+    @Override
+    public void onPageSelected(int position) {
+        setEngine(position);
+    }
+
+    @Override
+    public void onPageScrollStateChanged(int state) {
+
+    }
+
+    private void setEngine(int position) {
+        InfoFragment fragment = (InfoFragment) mItemAdapter.getFragment(position);
+        BaseEngine engine = null;
+        switch (position) {
+            case 0:
+                engine = mCellEngine;
+                break;
+            case 1:
+                engine = mSensorEngine;
+                break;
+            case 2:
+                if (fragment != null) {
+                    InfoExternalsFragment externalFragment = (InfoExternalsFragment) fragment;
+                    mArduinoEngine.addConnectionListener(externalFragment);
+                }
+
+                engine = mArduinoEngine;
+                break;
+        }
+
+        if (fragment != null)
+            fragment.setEngine(engine);
     }
 
     public class ItemPagerAdapter extends FragmentStatePagerAdapter {
+        private Fragment[] mFragments = new Fragment[3];
+
         ItemPagerAdapter(FragmentManager fm) {
             super(fm);
         }
@@ -91,11 +154,14 @@ public class InfoActivity extends ProgressBarActivity {
         public Fragment getItem(int i) {
             switch (i) {
                 case 0:
-                    return new InfoCellFragment();
+                    mFragments[0] = new InfoCellFragment();
+                    return mFragments[0];
                 case 1:
-                    return new InfoSensorsFragment();
+                    mFragments[1] = new InfoSensorsFragment();
+                    return mFragments[1];
                 case 2:
-                    return new InfoExternalsFragment();
+                    mFragments[2] = new InfoExternalsFragment();
+                    return mFragments[2];
             }
 
             return new Fragment();
@@ -118,6 +184,10 @@ public class InfoActivity extends ProgressBarActivity {
             }
 
             return "";
+        }
+
+        Fragment getFragment(int position) {
+            return mFragments[position];
         }
     }
 }

@@ -26,7 +26,6 @@ package com.nextgis.logger.livedata;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,19 +35,19 @@ import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-import com.nextgis.logger.LoggerApplication;
 import com.nextgis.logger.PreferencesActivity;
 import com.nextgis.logger.R;
 import com.nextgis.logger.engines.ArduinoEngine;
 import com.nextgis.logger.engines.BaseEngine;
+import com.nextgis.logger.engines.InfoItem;
 
-public class InfoExternalsFragment extends Fragment implements View.OnClickListener, ArduinoEngine.ConnectionListener {
+import java.util.ArrayList;
+
+public class InfoExternalsFragment extends InfoFragment implements View.OnClickListener, ArduinoEngine.ConnectionListener {
     private enum EXTERNAL_STATUS {DISABLED, BT_DISABLED, NOT_FOUND, CONNECTING, CONNECTED}
 
-    private ArduinoEngine mArduinoEngine;
-    private BaseEngine.EngineListener mArduinoListener;
     private TextView mTvInfo;
-    private LinearLayout mLlError, mLlData;
+    private LinearLayout mLayoutError, mLayoutData;
     private ScrollView mSvData;
     private Button mBtnSettings;
     private ProgressBar mPbConnecting;
@@ -57,84 +56,16 @@ public class InfoExternalsFragment extends Fragment implements View.OnClickListe
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.info_external_fragment, container, false);
-        mLlError = (LinearLayout) rootView.findViewById(R.id.ll_error);
+        mLayoutError = (LinearLayout) rootView.findViewById(R.id.ll_error);
         mSvData = (ScrollView) rootView.findViewById(R.id.sv_data);
-        mLlData = (LinearLayout) rootView.findViewById(R.id.ll_data);
+        mLayoutData = (LinearLayout) rootView.findViewById(R.id.ll_data);
         mTvInfo = (TextView) rootView.findViewById(R.id.tv_info);
         mBtnSettings = (Button) rootView.findViewById(R.id.btn_settings);
         mPbConnecting = (ProgressBar) rootView.findViewById(R.id.pb_connecting);
         mBtnSettings.setOnClickListener(this);
 
         mHandler = new Handler();
-        mArduinoEngine = LoggerApplication.getApplication().getArduinoEngine();
-        mArduinoEngine.addConnectionListener(this);
-
-        return rootView;
-    }
-
-    private void createTextViews() {
-        if (mLlData.getChildCount() != mArduinoEngine.getSensorsCount()) {
-            mLlData.removeAllViews();
-
-            for (int i = 0; i < mArduinoEngine.getSensorsCount(); i++) {
-                View item = View.inflate(getActivity(), R.layout.info_external_row, null);
-                ((TextView) item.findViewById(R.id.tv_title)).setText(mArduinoEngine.getData().get(i).getTitle());
-                mLlData.addView(item);
-            }
-        }
-    }
-
-    private void fillTextViews() {
-        if (mLlData.getChildCount() > 0)
-            for (int i = 0; i < mArduinoEngine.getSensorsCount(); i++)
-                ((TextView) mLlData.getChildAt(i).findViewById(R.id.tv_data)).setText(mArduinoEngine.getData().get(i).getColumns().get(0).getValueWithUnit());
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        if (mArduinoEngine.isEngineEnabled()) {
-            if (mArduinoEngine.isBTEnabled())
-                connect();
-            else
-                setInterface(EXTERNAL_STATUS.BT_DISABLED);
-        } else
-            setInterface(EXTERNAL_STATUS.DISABLED);
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-
-        mArduinoEngine.onPause();
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-
-        if (mArduinoListener != null)
-            mArduinoEngine.removeListener(mArduinoListener);
-
-        mArduinoEngine.removeConnectionListener(this);
-        mArduinoEngine.onPause();
-    }
-
-    private void connect() {
-        setInterface(EXTERNAL_STATUS.CONNECTING);
-
-        if (mArduinoListener == null)
-            initializeArduino();
-
-        if (mArduinoEngine.isDeviceAvailable() && mArduinoEngine.isConnected())
-            setInterface(EXTERNAL_STATUS.CONNECTED);
-        else
-            mArduinoEngine.onResume();
-    }
-
-    private void initializeArduino() {
-        mArduinoListener = new BaseEngine.EngineListener() {
+        mListener = new BaseEngine.EngineListener() {
             @Override
             public void onInfoChanged(String source) {
                 mHandler.post(new Runnable() {
@@ -146,12 +77,57 @@ public class InfoExternalsFragment extends Fragment implements View.OnClickListe
                 });
             }
         };
-        mArduinoEngine.addListener(mArduinoListener);
+
+        return rootView;
+    }
+
+    private void createTextViews() {
+        if (mLayoutData.getChildCount() != getSensorsCount()) {
+            mLayoutData.removeAllViews();
+
+            ArrayList<InfoItem> infoArray = getData();
+            for (int i = 0; i < getSensorsCount(); i++) {
+                View item = View.inflate(getActivity(), R.layout.info_external_row, null);
+                ((TextView) item.findViewById(R.id.tv_title)).setText(infoArray.get(i).getTitle());
+                mLayoutData.addView(item);
+            }
+        }
+    }
+
+    private void fillTextViews() {
+        if (mLayoutData.getChildCount() > 0) {
+            ArrayList<InfoItem> infoArray = getData();
+            for (int i = 0; i < getSensorsCount(); i++)
+                ((TextView) mLayoutData.getChildAt(i).findViewById(R.id.tv_data)).setText(infoArray.get(i).getColumns().get(0).getValueWithUnit());
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if (isConnected() && mEngine.isEngineEnabled()) {
+            if (((ArduinoEngine) mEngine).isBTEnabled())
+                connect();
+            else
+                setInterface(EXTERNAL_STATUS.BT_DISABLED);
+        } else
+            setInterface(EXTERNAL_STATUS.DISABLED);
+    }
+
+    private int getSensorsCount() {
+        return isConnected() ? ((ArduinoEngine) mEngine).getSensorsCount() : 0;
+    }
+
+    private void connect() {
+        if (isConnected() && ((ArduinoEngine) mEngine).isDeviceAvailable() && ((ArduinoEngine) mEngine).isConnected())
+            setInterface(EXTERNAL_STATUS.CONNECTED);
+        else
+            setInterface(EXTERNAL_STATUS.CONNECTING);
     }
 
     @Override
     public void onTimeoutOrFailure() {
-        mArduinoEngine.onPause();
         mHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -174,7 +150,6 @@ public class InfoExternalsFragment extends Fragment implements View.OnClickListe
 
     @Override
     public void onConnectionLost() {
-        mArduinoEngine.onPause();
         mHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -185,6 +160,7 @@ public class InfoExternalsFragment extends Fragment implements View.OnClickListe
     }
 
     private void setInterface(EXTERNAL_STATUS status) {
+        String name = isConnected() ? ((ArduinoEngine) mEngine).getDeviceName() : getString(R.string.external_device_name);
         switch (status) {
             case DISABLED:
                 mTvInfo.setText(getString(R.string.external_disabled));
@@ -197,19 +173,19 @@ public class InfoExternalsFragment extends Fragment implements View.OnClickListe
                 showButton();
                 break;
             case NOT_FOUND:
-                mTvInfo.setText(String.format(getString(R.string.external_not_found), mArduinoEngine.getDeviceName()));
+                mTvInfo.setText(String.format(getString(R.string.external_not_found), name));
                 mBtnSettings.setText(R.string.external_retry);
                 showButton();
                 break;
             case CONNECTING:
-                mTvInfo.setText(String.format(getString(R.string.external_connecting), mArduinoEngine.getDeviceName()));
+                mTvInfo.setText(String.format(getString(R.string.external_connecting), name));
                 mPbConnecting.setVisibility(View.VISIBLE);
                 mBtnSettings.setVisibility(View.GONE);
-                mLlError.setVisibility(View.VISIBLE);
+                mLayoutError.setVisibility(View.VISIBLE);
                 mSvData.setVisibility(View.GONE);
                 break;
             case CONNECTED:
-                mLlError.setVisibility(View.GONE);
+                mLayoutError.setVisibility(View.GONE);
                 mSvData.setVisibility(View.VISIBLE);
                 createTextViews();
                 fillTextViews();
@@ -220,7 +196,7 @@ public class InfoExternalsFragment extends Fragment implements View.OnClickListe
     private void showButton() {
         mPbConnecting.setVisibility(View.GONE);
         mBtnSettings.setVisibility(View.VISIBLE);
-        mLlError.setVisibility(View.VISIBLE);
+        mLayoutError.setVisibility(View.VISIBLE);
         mSvData.setVisibility(View.GONE);
     }
 
@@ -230,9 +206,9 @@ public class InfoExternalsFragment extends Fragment implements View.OnClickListe
             case R.id.btn_settings:
                 Intent preferencesActivity = new Intent();
 
-                if (!mArduinoEngine.isEngineEnabled())
+                if (!isConnected() || !mEngine.isEngineEnabled())
                     preferencesActivity.setClass(getActivity(), PreferencesActivity.class);
-                else if (!mArduinoEngine.isBTEnabled())
+                else if (!((ArduinoEngine) mEngine).isBTEnabled())
                     preferencesActivity.setAction(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS);
                 else {
                     connect();

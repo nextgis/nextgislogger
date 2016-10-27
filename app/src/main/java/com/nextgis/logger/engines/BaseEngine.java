@@ -35,7 +35,6 @@ import com.nextgis.maplib.api.IGISApplication;
 import com.nextgis.maplib.datasource.GeoPoint;
 import com.nextgis.maplib.map.MapBase;
 import com.nextgis.maplib.map.NGWVectorLayer;
-import com.nextgis.maplib.util.Constants;
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -77,11 +76,11 @@ public abstract class BaseEngine {
         return mListeners.remove(listener);
     }
 
-    public int getListenersCount() {
+    int getListenersCount() {
         return mListeners.size();
     }
 
-    protected void notifyListeners(String source) {
+    void notifyListeners(String source) {
         for (EngineListener listener : mListeners)
             listener.onInfoChanged(source);
     }
@@ -185,7 +184,7 @@ public abstract class BaseEngine {
                 + timeStamp + LoggerConstants.CSV_SEPARATOR + DateFormat.getDateTimeInstance().format(new Date(timeStamp));
     }
 
-    protected SharedPreferences getPreferences() {
+    SharedPreferences getPreferences() {
         return PreferenceManager.getDefaultSharedPreferences(mContext);
     }
 }

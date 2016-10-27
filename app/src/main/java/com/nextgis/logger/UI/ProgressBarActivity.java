@@ -27,7 +27,6 @@ import android.Manifest;
 import android.accounts.Account;
 import android.app.ActionBar;
 import android.app.Activity;
-import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -86,7 +85,7 @@ public class ProgressBarActivity extends FragmentActivity implements View.OnClic
         if (getActionBar() != null)
             getActionBar().setDisplayHomeAsUpEnabled(true);
 
-        setActionBarProgress(isLoggerServiceRunning(this));
+        setActionBarProgress(isLoggerServiceRunning());
 
         if (!hasPermissions()) {
             String[] permissions = new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION,
@@ -308,14 +307,8 @@ public class ProgressBarActivity extends FragmentActivity implements View.OnClic
         }
     }
 
-    public static boolean isLoggerServiceRunning(Context context) {
-        ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (LoggerService.class.getName().equals(service.service.getClassName())) {
-                return true;
-            }
-        }
-        return false;
+    public boolean isLoggerServiceRunning() {
+        return mPreferences.getBoolean(LoggerConstants.PREF_MEASURING, false);
     }
 
     protected boolean isSessionClosed() {
@@ -327,7 +320,14 @@ public class ProgressBarActivity extends FragmentActivity implements View.OnClic
                     .remove(LoggerConstants.PREF_TIME_START).remove(LoggerConstants.PREF_TIME_FINISH).remove(LoggerConstants.PREF_MARK_POS).apply();
     }
 
-    protected void stopService() {
+    protected void startLoggerService(String action) {
+        Intent startService = new Intent(getApplicationContext(), LoggerService.class);
+        if (action != null)
+            startService.setAction(action);
+        startService(startService);
+    }
+
+    protected void stopLoggerService() {
         Intent stopService = new Intent(getApplicationContext(), LoggerService.class);
         stopService.setAction(LoggerConstants.ACTION_STOP);
         startService(stopService);

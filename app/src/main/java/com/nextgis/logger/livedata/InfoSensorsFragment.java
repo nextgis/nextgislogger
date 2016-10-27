@@ -25,7 +25,6 @@ package com.nextgis.logger.livedata;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayout;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -35,31 +34,27 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-import com.nextgis.logger.LoggerApplication;
 import com.nextgis.logger.PreferencesActivity;
 import com.nextgis.logger.R;
 import com.nextgis.logger.engines.BaseEngine;
 import com.nextgis.logger.engines.InfoColumn;
 import com.nextgis.logger.engines.InfoItem;
-import com.nextgis.logger.engines.SensorEngine;
 
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Locale;
 
-public class InfoSensorsFragment extends Fragment implements View.OnClickListener {
-    private static SensorEngine mSensorEngine;
-    private BaseEngine.EngineListener mSensorListener;
-
-    private ScrollView svData;
-    private LinearLayout llError, llData;
+public class InfoSensorsFragment extends InfoFragment implements View.OnClickListener {
+    private ScrollView mSvData;
+    private LinearLayout mLayoutError, mLayoutData;
 
     @SuppressWarnings("deprecation")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.info_sensors_fragment, container, false);
 
-        mSensorEngine = LoggerApplication.getApplication().getSensorEngine();
-        mSensorListener = new BaseEngine.EngineListener() {
+        mListener = new BaseEngine.EngineListener() {
             @Override
             public void onInfoChanged(String source) {
                 if (isAdded())
@@ -67,28 +62,29 @@ public class InfoSensorsFragment extends Fragment implements View.OnClickListene
             }
         };
 
-        llError = (LinearLayout) rootView.findViewById(R.id.ll_error);
-        llData = (LinearLayout) rootView.findViewById(R.id.ll_data);
-        svData = (ScrollView) rootView.findViewById(R.id.sv_data);
+        mLayoutError = (LinearLayout) rootView.findViewById(R.id.ll_error);
+        mLayoutData = (LinearLayout) rootView.findViewById(R.id.ll_data);
+        mSvData = (ScrollView) rootView.findViewById(R.id.sv_data);
         rootView.findViewById(R.id.btn_settings).setOnClickListener(this);
 
         return rootView;
     }
 
     private void setInterface() {
-        if (mSensorEngine.isEngineEnabled()) {
-            llError.setVisibility(View.GONE);
-            svData.setVisibility(View.VISIBLE);
+        if (isConnected() && mEngine.isEngineEnabled()) {
+            mLayoutError.setVisibility(View.GONE);
+            mSvData.setVisibility(View.VISIBLE);
         } else {
-            llError.setVisibility(View.VISIBLE);
-            svData.setVisibility(View.GONE);
+            mLayoutError.setVisibility(View.VISIBLE);
+            mSvData.setVisibility(View.GONE);
         }
     }
 
     private void createTextViews() {
-        llData.removeAllViews();
+        mLayoutData.removeAllViews();
 
-        for (InfoItem item : mSensorEngine.getData()) {
+        ArrayList<InfoItem> infoItemArray = getData();
+        for (InfoItem item : infoItemArray) {
             LinearLayout itemLayout = (LinearLayout) View.inflate(getActivity(), R.layout.info_item, null);
 
             if (!TextUtils.isEmpty(item.getTitle())) {
@@ -120,18 +116,19 @@ public class InfoSensorsFragment extends Fragment implements View.OnClickListene
                 parent.addView(data);
             }
 
-            llData.addView(itemLayout);
+            mLayoutData.addView(itemLayout);
         }
     }
 
     private void fillSensorsTextViews(String source) {
-        for (int i = 0; i < llData.getChildCount(); i++) {
-            InfoItem item = mSensorEngine.getData().get(i);
+        ArrayList<InfoItem> infoItemArray = getData();
+        for (int i = 0; i < mLayoutData.getChildCount(); i++) {
+            InfoItem item = infoItemArray.get(i);
 
             if (!item.getTitle().equals(source))
                 continue;
 
-            LinearLayout layout = (LinearLayout) llData.getChildAt(i);
+            LinearLayout layout = (LinearLayout) mLayoutData.getChildAt(i);
             GridLayout values = (GridLayout) layout.findViewById(R.id.gl_values);
 
             for (int j = 0; j < item.size(); j++) {
@@ -163,7 +160,7 @@ public class InfoSensorsFragment extends Fragment implements View.OnClickListene
         String formatted = "" + value;
 
         if (value instanceof Float)
-            formatted = String.format("%.2f %s", (float) value * 3600 / 1000, unit);
+            formatted = String.format(Locale.getDefault(), "%.2f %s", (float) value * 3600 / 1000, unit);
         else if (value instanceof Long) {
             DateFormat simpleDateFormat = DateFormat.getTimeInstance();
             formatted = String.format("%s", simpleDateFormat.format(new Date((long) value)));
@@ -172,20 +169,11 @@ public class InfoSensorsFragment extends Fragment implements View.OnClickListene
         return formatted;
     }
 
-    @Override
-    public void onPause() {
-        super.onPause();
-        mSensorEngine.removeListener(mSensorListener);
-        mSensorEngine.onPause();
-    }
-
     @SuppressWarnings("deprecation")
     @Override
     public void onResume() {
         super.onResume();
-        mSensorEngine.onResume();
         createTextViews();
-        mSensorEngine.addListener(mSensorListener);
         setInterface();
     }
 
@@ -193,5 +181,11 @@ public class InfoSensorsFragment extends Fragment implements View.OnClickListene
     public void onClick(View v) {
         Intent preferencesActivity = new Intent(getActivity(), PreferencesActivity.class);
         startActivity(preferencesActivity);
+    }
+
+    @Override
+    public void setEngine(BaseEngine engine) {
+        super.setEngine(engine);
+        onResume();
     }
 }

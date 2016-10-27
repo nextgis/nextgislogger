@@ -31,6 +31,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Binder;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
@@ -49,39 +50,54 @@ import com.nextgis.maplib.map.MapBase;
 import com.nextgis.maplib.map.MapContentProviderHelper;
 
 public class LoggerService extends Service implements ArduinoEngine.ConnectionListener {
-    // TODO
-    // 1. move engines to service
-    // 2. run while app active
-    // 3. separate process
+    private static final int ID_MEASURING = 1;
 
-    private static ArduinoEngine mArduinoEngine;
-    private static SensorEngine mSensorEngine;
-    private static CellEngine mGsmEngine;
+    private ArduinoEngine mArduinoEngine;
+    private SensorEngine mSensorEngine;
+    private CellEngine mGsmEngine;
 	private Thread mThread = null;
     private NotificationManager mNotificationManager;
+    private SharedPreferences mPreferences;
 
 	private boolean mIsRunning = false;
 	private int mRecordsCount;
 	private int mInterval = 1;
+	private int mBinders;
 	private String mSessionId;
 	private Uri mUri;
+
+    private LocalBinder mLocalBinder = new LocalBinder();
+
+    public class LocalBinder extends Binder {
+        public CellEngine getCellEngine() {
+            return mGsmEngine;
+        }
+
+        public SensorEngine getSensorEngine() {
+            return mSensorEngine;
+        }
+
+        public ArduinoEngine getArduinoEngine() {
+            return mArduinoEngine;
+        }
+    }
 
 	@Override
 	public void onCreate() {
 		super.onCreate();
 
         Log.d("LOGGER", "onCreate");
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        mInterval = prefs.getInt(LoggerConstants.PREF_PERIOD_SEC, mInterval);
-        mSessionId = prefs.getString(LoggerConstants.PREF_SESSION_ID, null);
+        mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        mInterval = mPreferences.getInt(LoggerConstants.PREF_PERIOD_SEC, mInterval);
+        mSessionId = mPreferences.getString(LoggerConstants.PREF_SESSION_ID, null);
 
-		mGsmEngine = LoggerApplication.getApplication().getCellEngine();
+		mGsmEngine = new CellEngine(this);
 		mGsmEngine.onResume();
 
-		mSensorEngine = LoggerApplication.getApplication().getSensorEngine();
+		mSensorEngine = new SensorEngine(this);
         mSensorEngine.onResume();
 
-        mArduinoEngine = LoggerApplication.getApplication().getArduinoEngine();
+        mArduinoEngine = new ArduinoEngine(this);
 		if (mArduinoEngine.isEngineEnabled()) {
 			mArduinoEngine.addConnectionListener(this);
 			mArduinoEngine.onResume();
@@ -98,21 +114,32 @@ public class LoggerService extends Service implements ArduinoEngine.ConnectionLi
         Log.d("LOGGER", "onStartCommand: " + action);
         switch (action) {
             case LoggerConstants.ACTION_STOP:
+                mPreferences.edit().putBoolean(LoggerConstants.PREF_MEASURING, false).apply();
+                stopForeground(true);
+
                 Log.d("LOGGER", "mThread: " + mThread);
                 if (mThread != null)
                     mThread.interrupt();
 
-                stopSelf();
-                return START_NOT_STICKY;
+                if (--mBinders == 0) {
+                    stopSelf();
+                    return START_NOT_STICKY;
+                }
+
+                return START_REDELIVER_INTENT;
             case LoggerConstants.ACTION_START:
-            default:
                 if (!mIsRunning) {
                     mIsRunning = true;
                     mRecordsCount = getRecordsCount();
                     sendNotification();
                     startMeasuring();
                 }
-                return START_STICKY;
+                return START_REDELIVER_INTENT;
+            case LoggerConstants.ACTION_DESTROY:
+                stopSelf();
+                return START_NOT_STICKY;
+            default:
+                return START_REDELIVER_INTENT;
         }
 	}
 
@@ -144,10 +171,19 @@ public class LoggerService extends Service implements ArduinoEngine.ConnectionLi
 
 	@Override
 	public IBinder onBind(Intent intent) {
-		return null;
+        mBinders++;
+		return mLocalBinder;
 	}
 
-	private void sendNotification() {
+    @Override
+    public boolean onUnbind(Intent intent) {
+        if (--mBinders == 0 && !mIsRunning)
+            stopSelf();
+
+        return super.onUnbind(intent);
+    }
+
+    private void sendNotification() {
 		Intent intentNotification = new Intent(this, MainActivity.class);
 		PendingIntent pIntent = PendingIntent.getActivity(this, 0, intentNotification, 0);
 
@@ -162,11 +198,12 @@ public class LoggerService extends Service implements ArduinoEngine.ConnectionLi
                 .setContentText(getString(R.string.service_notif_text));
 
         Notification notification = builder.build();
-        mNotificationManager.notify(1, notification);
-		startForeground(1, notification);
+        mNotificationManager.notify(ID_MEASURING, notification);
+		startForeground(ID_MEASURING, notification);
 	}
 
 	private void startMeasuring() {
+        mPreferences.edit().putBoolean(LoggerConstants.PREF_MEASURING, true).apply();
 		mThread = new Thread(new Runnable() {
 			public void run() {
 				Intent intentStatus = new Intent(LoggerConstants.ACTION_INFO);
@@ -200,10 +237,11 @@ public class LoggerService extends Service implements ArduinoEngine.ConnectionLi
 						break;
 					}
 
-					if (Thread.currentThread().isInterrupted())
+					if (mThread.isInterrupted())
 						break;
 				}
 
+                mIsRunning = false;
                 Log.d("LOGGER", "end while");
                 intentStatus.putExtra(LoggerConstants.SERVICE_STATUS, LoggerConstants.STATUS_FINISHED)
                         .putExtra(LoggerConstants.PREF_TIME_FINISH, System.currentTimeMillis());
@@ -213,12 +251,13 @@ public class LoggerService extends Service implements ArduinoEngine.ConnectionLi
 			}
 		});
 
+        Log.d("LOGGER", "mThread: " + mThread);
 		mThread.start();
 	}
 
     @Override
     public void onTimeoutOrFailure() {
-
+        mArduinoEngine.onResume();
     }
 
     @Override
@@ -228,6 +267,6 @@ public class LoggerService extends Service implements ArduinoEngine.ConnectionLi
 
     @Override
     public void onConnectionLost() {
-
+        mArduinoEngine.onResume();
     }
 }
