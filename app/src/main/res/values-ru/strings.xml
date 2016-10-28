@@ -39,6 +39,8 @@
     <string name="settings_sensors">Сенсоры</string>
     <string name="settings_main">Основное</string>
     <string name="settings_external">Внешние</string>
+    <string name="settings_account">NextGIS Облако</string>
+    <string name="settings_internal">Внутренние</string>
 
     <string name="settings_period">Задать период (сек)</string>
     <string name="settings_period_sum">"Текущий: "</string>
@@ -181,6 +183,7 @@
     <string name="ngw_url">NextGIS Web URL</string>
     <string name="ngw_edit">Изменить аккаунт</string>
     <string name="ngw_add">Добавить аккаунт</string>
+    <string name="confirmation">Вы уверены?</string>
 
     <string name="permissions_title">Требуется разрешение</string>
     <string name="permissions_mian">Приложению требуется доступ к местоположению для записи данных с GPS, к статусу телефона для получения информации об

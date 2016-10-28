@@ -107,6 +107,11 @@ public interface LoggerConstants {
     String PREF_TIME_START = "time_start";
     String PREF_TIME_FINISH = "time_finish";
     String PREF_MEASURING = "service_measuring";
+    String PREF_ACCOUNT_EDIT = "account_edit";
+    String PREF_ACCOUNT_DELETE = "account_delete";
+    String PREF_AUTO_SYNC = "sync_auto";
+    String PREF_AUTO_SYNC_PERIOD = "sync_period";
+    String PREF_SYNC_PERIOD_SEC_LONG = "sync_period_sec_long";
 
     String DEFAULT_USERNAME = "User1";
     String LOG_UID = "ServiceLog";

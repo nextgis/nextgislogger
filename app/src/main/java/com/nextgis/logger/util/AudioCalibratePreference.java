@@ -34,7 +34,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.melnykov.fab.FloatingActionButton;
-import com.nextgis.logger.LoggerApplication;
+import com.nextgis.logger.PreferencesActivity;
 import com.nextgis.logger.R;
 import com.nextgis.logger.engines.AudioEngine;
 import com.nextgis.logger.engines.BaseEngine;
@@ -73,19 +73,15 @@ public class AudioCalibratePreference extends DialogPreference implements View.O
     @Override
     protected void onDialogClosed(boolean positiveResult) {
         super.onDialogClosed(positiveResult);
-        mAudioEngine.removeListener(this);
-        mAudioEngine.onPause();
+
+        if (mAudioEngine != null)
+            mAudioEngine.removeListener(this);
     }
 
     @Override
     protected void onBindDialogView(View view) {
         super.onBindDialogView(view);
         onSetInitialValue(true, 0);
-
-//        mAudioEngine = LoggerApplication.getApplication().getSensorEngine().getAudioEngine();
-        mAudioEngine.addListener(this);
-        mAudioEngine.setDelta(0);
-        mAudioEngine.onResume();
 
         mTvTotal = (TextView) view.findViewById(R.id.tv_message);
         mTvDelta = (TextView) view.findViewById(R.id.tv_value);
@@ -101,13 +97,25 @@ public class AudioCalibratePreference extends DialogPreference implements View.O
     }
 
     @Override
+    protected View onCreateDialogView() {
+        mAudioEngine = ((PreferencesActivity) getContext()).getAudioEngine();
+        if (mAudioEngine != null) {
+            mAudioEngine.addListener(this);
+            mAudioEngine.setDelta(0);
+        }
+
+        return super.onCreateDialogView();
+    }
+
+    @Override
     public void onClick(DialogInterface dialog, int which) {
         super.onClick(dialog, which);
 
         if (which == DialogInterface.BUTTON_POSITIVE ) {
             persistInt(mValue);
             callChangeListener(mValue);
-            mAudioEngine.setDelta(mValue);
+            if (mAudioEngine != null)
+                mAudioEngine.setDelta(mValue);
             setSummary();
         }
     }

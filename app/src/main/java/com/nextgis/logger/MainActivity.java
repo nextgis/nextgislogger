@@ -192,9 +192,8 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 		}
 	}
 
-    @Override
     protected void startLoggerService(String action) {
-        super.startLoggerService(action);
+        ProgressBarActivity.startLoggerService(this, action);
         mButtonService.setText(getString(R.string.btn_service_stop));
         setActionBarProgress(true);
         mButtonSession.setEnabled(false);

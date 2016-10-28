@@ -74,6 +74,7 @@ public class ArduinoEngine extends BaseEngine {
     private String mLine, mDeviceName, mDeviceMAC;
     private Thread mWorkerThread;
     private List<ConnectionListener> mConnectionListeners;
+    private BroadcastReceiver mReceiver;
 
     @Override
     public boolean isEngineEnabled() {
@@ -97,7 +98,7 @@ public class ArduinoEngine extends BaseEngine {
         mDeviceName = splitDeviceName(nameWithMAC);
         mUri = mUri.buildUpon().appendPath(LoggerApplication.TABLE_EXTERNAL).build();
 
-        final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        mReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
@@ -152,6 +153,7 @@ public class ArduinoEngine extends BaseEngine {
         if (hasListeners())
             return false;
 
+        mContext.unregisterReceiver(mReceiver);
         closeConnection();
         return false;
     }

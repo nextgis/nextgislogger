@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~ ******************************************************************************
+  ~ Project: NextGIS Logger
+  ~ Purpose: Productive data logger for Android
+  ~ Author:  Stanislav Petriakov, becomeglory@gmail.com
+  ~ ******************************************************************************
+  ~ Copyright © 2016 NextGIS
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 2 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  ~ ******************************************************************************
+  -->
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+                  android:title="@string/settings_account">
+
+    <Preference
+        android:key="account_edit"
+        android:title="@string/ngw_add"/>
+
+    <Preference
+        android:enabled="false"
+        android:key="account_delete"
+        android:title="@string/ngw_delete"/>
+
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:enabled="false"
+        android:key="sync_auto"
+        android:title="@string/ngw_auto_sync"/>
+
+    <ListPreference
+        android:dependency="sync_auto"
+        android:key="sync_period"
+        android:title="@string/ngw_auto_sync_period"/>
+</PreferenceScreen>

@@ -42,7 +42,7 @@ public class BindActivity extends ProgressBarActivity implements ArduinoEngine.C
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        startLoggerService(null);
+        startLoggerService(this, null);
         Intent connection = new Intent(this, LoggerService.class);
         bindService(connection, this, 0);
     }

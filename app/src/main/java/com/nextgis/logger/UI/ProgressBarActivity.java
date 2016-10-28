@@ -69,7 +69,7 @@ import com.nextgis.maplib.util.NGWUtil;
 
 public class ProgressBarActivity extends FragmentActivity implements View.OnClickListener {
     private static final int PERMISSION_MAIN = 1;
-    private static final int PERMISSION_ACC = 2;
+    public static final int PERMISSION_ACC = 2;
 
     protected SharedPreferences mPreferences;
     protected FloatingActionButton mFAB;
@@ -320,11 +320,11 @@ public class ProgressBarActivity extends FragmentActivity implements View.OnClic
                     .remove(LoggerConstants.PREF_TIME_START).remove(LoggerConstants.PREF_TIME_FINISH).remove(LoggerConstants.PREF_MARK_POS).apply();
     }
 
-    protected void startLoggerService(String action) {
-        Intent startService = new Intent(getApplicationContext(), LoggerService.class);
+    public static void startLoggerService(Context context, String action) {
+        Intent startService = new Intent(context.getApplicationContext(), LoggerService.class);
         if (action != null)
             startService.setAction(action);
-        startService(startService);
+        context.startService(startService);
     }
 
     protected void stopLoggerService() {
@@ -341,11 +341,11 @@ public class ProgressBarActivity extends FragmentActivity implements View.OnClic
                 UiUtil.isPermissionGranted(this, Manifest.permission.RECORD_AUDIO);
     }
 
-    protected static boolean hasAccountPermissions(Context context) {
+    public static boolean hasAccountPermissions(Context context) {
         return UiUtil.isPermissionGranted(context, Manifest.permission.GET_ACCOUNTS);
     }
 
-    protected static void requestPermissions(final Activity activity, int title, int message, final int requestCode, final String... permissions) {
+    public static void requestPermissions(final Activity activity, int title, int message, final int requestCode, final String... permissions) {
         boolean shouldShowDialog = false;
         for (String permission : permissions) {
             if (ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)) {

@@ -43,6 +43,8 @@
     <string name="settings_sensors">Sensors</string>
     <string name="settings_main">Main</string>
     <string name="settings_external">External</string>
+    <string name="settings_account">NextGIS Cloud</string>
+    <string name="settings_internal">Internal</string>
 
     <string name="settings_period">Set Period (sec)</string>
     <string name="settings_period_sum">"Current is "</string>
@@ -205,7 +207,11 @@
     <string name="nextgis_com">Back to nextgis.com login screen</string>
     <string name="ngw_url">NextGIS Web URL</string>
     <string name="ngw_edit">Edit account</string>
+    <string name="ngw_delete">Delete account</string>
     <string name="ngw_add">Add account</string>
+    <string name="ngw_auto_sync">Auto sync</string>
+    <string name="ngw_auto_sync_period">Sync period</string>
+    <string name="confirmation">Are you sure?</string>
 
     <string name="permissions_title">Permissions required</string>
     <string name="permissions_main">Application needs access to location to record data from GPS, to phone state to get near base radio stations info and to

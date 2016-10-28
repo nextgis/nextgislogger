@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ ******************************************************************************
+  ~ Project: NextGIS Logger
+  ~ Purpose: Productive data logger for Android
+  ~ Author:  Stanislav Petriakov, becomeglory@gmail.com
+  ~ ******************************************************************************
+  ~ Copyright © 2016 NextGIS
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 2 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  ~ ******************************************************************************
+  -->
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+                  android:title="@string/app_settings">
+
+    <PreferenceCategory android:title="@string/general">
+        <EditTextPreference
+            android:defaultValue="User1"
+            android:key="user_name"
+            android:title="@string/settings_user_name"/>
+
+        <com.nextgis.logger.UI.IntEditTextPreference
+            android:defaultValue="1"
+            android:inputType="number"
+            android:key="period_sec"
+            android:numeric="integer"
+            android:title="@string/settings_period"/>
+
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="use_api17"
+            android:summary="@string/settings_cells_api17_sum"
+            android:title="@string/settings_cells_api17"/>
+
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="keep_screen"
+            android:summary="@string/settings_keep_screen_sum"
+            android:title="@string/settings_keep_screen"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/settings_marks">
+        <Preference
+            android:key="cat_path"
+            android:title="@string/settings_cat_path"/>
+
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="use_volume_buttons"
+            android:summary="@string/settings_mark_vol_sum"
+            android:title="@string/settings_mark_vol"/>
+    </PreferenceCategory>
+</PreferenceScreen>

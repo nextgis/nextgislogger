@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ ******************************************************************************
+  ~ Project: NextGIS Logger
+  ~ Purpose: Productive data logger for Android
+  ~ Author:  Stanislav Petriakov, becomeglory@gmail.com
+  ~ ******************************************************************************
+  ~ Copyright © 2016 NextGIS
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 2 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  ~ ******************************************************************************
+  -->
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+                  android:title="@string/settings_sensors">
+
+    <PreferenceCategory android:title="@string/settings_internal">
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="gps"
+            android:title="@string/gps"/>
+
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="sensor_state"
+            android:title="@string/sensor_accelerometer"/>
+
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="sensor_mode"
+            android:summary="@string/settings_sensor_mode_sum"
+            android:title="@string/sensor_linear"/>
+
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="sensor_magnetic_state"
+            android:title="@string/sensor_magnetic"/>
+
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="sensor_orientation_state"
+            android:title="@string/sensor_orientation"/>
+
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="sensor_gyroscope_state"
+            android:title="@string/sensor_gyroscope"/>
+
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="sensor_mic"
+            android:title="@string/mic"/>
+
+        <com.nextgis.logger.util.AudioCalibratePreference
+            android:defaultValue="0"
+            android:dependency="sensor_mic"
+            android:dialogLayout="@layout/audio_calibrate_dialog"
+            android:key="sensor_mic_delta"
+            android:negativeButtonText="@android:string/cancel"
+            android:positiveButtonText="@android:string/ok"
+            android:title="@string/mic_delta"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/settings_external">
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="external_data"
+            android:summary="@string/external_data_sum"
+            android:title="@string/external_data"/>
+
+        <Preference
+            android:dependency="external_data"
+            android:key="external_device"
+            android:title="@string/external_device"/>
+    </PreferenceCategory>
+</PreferenceScreen>
