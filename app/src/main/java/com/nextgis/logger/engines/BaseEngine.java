@@ -125,6 +125,13 @@ public abstract class BaseEngine {
         return null;
     }
 
+    public static void deleteMark(Uri uri, String uuid) {
+        NGWVectorLayer markLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_MARK);
+        if (markLayer != null) {
+            markLayer.delete(uri, LoggerApplication.FIELD_UNIQUE_ID + " = ?" , new String[]{uuid});
+        }
+    }
+
     public abstract void saveData(String markId);
 
     public abstract void saveData(ArrayList<InfoItem> items, String markId);

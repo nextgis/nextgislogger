@@ -92,6 +92,7 @@
     <string name="share_sessions_title">Share sessions…</string>
     <string name="sessions_nothing_selected">Nothing is selected</string>
     <string name="sessions_select_all">Select all</string>
+    <string name="sessions_delete_current">Current session will be stopped and deleted too.</string>
 
     <string name="ext_media_unmounted_msg">External Media is NOT MOUNTED</string>
     <string name="fs_error_msg">File system ERROR.</string>

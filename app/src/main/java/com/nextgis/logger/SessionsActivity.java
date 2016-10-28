@@ -23,6 +23,8 @@
 
 package com.nextgis.logger;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
@@ -90,7 +92,7 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
 
             for (int i = 0; i < sbaSelectedItems.size(); i++) {
                 if (sbaSelectedItems.valueAt(i)) {
-//                    String fileName = mLvSessions.getAdapter().getItem(sbaSelectedItems.keyAt(i)).toString();
+                    //                    String fileName = mLvSessions.getAdapter().getItem(sbaSelectedItems.keyAt(i)).toString();
                     result.add(i);
                 }
             }
@@ -98,60 +100,54 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
             if (result.size() > 0)
                 switch (item.getItemId()) {
                     case R.id.action_share:
-//                        ArrayList<Uri> logsZips = new ArrayList<>();
-//
-//                        try {
-//                            byte[] buffer = new byte[1024];
-//
-//                            FileUtil.checkOrCreateDirectory(LoggerConstants.TEMP_PATH);
-//
-//                            for (File file : result) { // for each selected logs directory
-//                                String tempFileName = LoggerConstants.TEMP_PATH + File.separator + file.getName() + ".zip"; // set temp zip file path
-//
-//                                File[] files = file.listFiles(); // get all files in current log directory
-//
-//                                if (files.length == 0) // skip empty directories
-//                                    continue;
-//
-//                                FileOutputStream fos = new FileOutputStream(tempFileName);
-//                                ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(fos));
-//
-//                                for (File file1 : files) { // for each log-file in directory
-//                                    FileInputStream fis = new FileInputStream(file1);
-//                                    zos.putNextEntry(new ZipEntry(file1.getName())); // put it in zip
-//
-//                                    int length;
-//
-//                                    while ((length = fis.read(buffer)) > 0)
-//                                        // write it to zip
-//                                        zos.write(buffer, 0, length);
-//
-//                                    zos.closeEntry();
-//                                    fis.close();
-//                                }
-//
-//                                zos.close();
-//                                logsZips.add(Uri.fromFile(new File(tempFileName))); // add file's uri to share list
-//                            }
-//                        } catch (IOException e) {
-//                            Toast.makeText(this, R.string.fs_error_msg, Toast.LENGTH_SHORT).show();
-//                        }
-//
-//                        Intent shareIntent = new Intent();
-//                        shareIntent.setAction(Intent.ACTION_SEND_MULTIPLE); // multiple sharing
-//                        shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, logsZips); // set data
-//                        shareIntent.setType("application/zip"); //set mime type
-//                        startActivity(Intent.createChooser(shareIntent, getString(R.string.share_sessions_title)));
+                        //                        ArrayList<Uri> logsZips = new ArrayList<>();
+                        //
+                        //                        try {
+                        //                            byte[] buffer = new byte[1024];
+                        //
+                        //                            FileUtil.checkOrCreateDirectory(LoggerConstants.TEMP_PATH);
+                        //
+                        //                            for (File file : result) { // for each selected logs directory
+                        //                                String tempFileName = LoggerConstants.TEMP_PATH + File.separator + file.getName() + ".zip"; // set temp zip file path
+                        //
+                        //                                File[] files = file.listFiles(); // get all files in current log directory
+                        //
+                        //                                if (files.length == 0) // skip empty directories
+                        //                                    continue;
+                        //
+                        //                                FileOutputStream fos = new FileOutputStream(tempFileName);
+                        //                                ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(fos));
+                        //
+                        //                                for (File file1 : files) { // for each log-file in directory
+                        //                                    FileInputStream fis = new FileInputStream(file1);
+                        //                                    zos.putNextEntry(new ZipEntry(file1.getName())); // put it in zip
+                        //
+                        //                                    int length;
+                        //
+                        //                                    while ((length = fis.read(buffer)) > 0)
+                        //                                        // write it to zip
+                        //                                        zos.write(buffer, 0, length);
+                        //
+                        //                                    zos.closeEntry();
+                        //                                    fis.close();
+                        //                                }
+                        //
+                        //                                zos.close();
+                        //                                logsZips.add(Uri.fromFile(new File(tempFileName))); // add file's uri to share list
+                        //                            }
+                        //                        } catch (IOException e) {
+                        //                            Toast.makeText(this, R.string.fs_error_msg, Toast.LENGTH_SHORT).show();
+                        //                        }
+                        //
+                        //                        Intent shareIntent = new Intent();
+                        //                        shareIntent.setAction(Intent.ACTION_SEND_MULTIPLE); // multiple sharing
+                        //                        shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, logsZips); // set data
+                        //                        shareIntent.setType("application/zip"); //set mime type
+                        //                        startActivity(Intent.createChooser(shareIntent, getString(R.string.share_sessions_title)));
                         return true;
                     case R.id.action_delete:
-                        if (deleteSessions(result)) {
-                            Toast.makeText(this, R.string.delete_sessions_done, Toast.LENGTH_SHORT).show();
-                            loadSessions();
-                            mLvSessions.setAdapter(new ArrayAdapter<>(this, LAYOUT, mSessionsName));
-                            return true;
-                        }
-
-                        return false;
+                        deleteSessions(result, true);
+                        return true;
                 }
             else
                 Toast.makeText(this, R.string.sessions_nothing_selected, Toast.LENGTH_SHORT).show();
@@ -183,10 +179,6 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
                     continue;
 
                 boolean isCurrentSession = mSessionId != null && mSessionId.equals(feature.getFieldValueAsString(LoggerApplication.FIELD_UNIQUE_ID));
-                // TODO
-                if (isCurrentSession)
-                    continue;
-
                 mSessions.add(feature);
                 String name = feature.getFieldValueAsString(LoggerApplication.FIELD_NAME);
                 mSessionsName.add(isCurrentSession ? name + " *" + getString(R.string.scl_current_session) + "*" : name);
@@ -196,17 +188,29 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
         }
     }
 
-    private boolean deleteSessions(List<Integer> positions) {
+    private boolean deleteSessions(final List<Integer> positions, boolean ask) {
         boolean result = false;
         String authority = ((LoggerApplication) getApplication()).getAuthority();
         Uri uri;
 
         try {
             String[] ids = getIdsFromPositions(positions);
-
             if (hasCurrentSession(ids)) {
-                stopLoggerService();
-                clearSession(); // TODO dialog
+                if (ask) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setTitle(R.string.delete_sessions_title).setMessage(R.string.sessions_delete_current)
+                                 .setNegativeButton(android.R.string.cancel, null)
+                                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                     @Override
+                                     public void onClick(DialogInterface dialog, int which) {
+                                         deleteSessions(positions, false);
+                                     }
+                                 }).show();
+                    return false;
+                } else {
+                    stopLoggerService();
+                    clearSession();
+                }
             }
 
             NGWVectorLayer layer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_MARK);
@@ -218,7 +222,8 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
                     if (allMarks.moveToFirst()) {
                         do {
                             markIds.add(allMarks.getString(0));
-                        } while (allMarks.moveToNext());
+                        }
+                        while (allMarks.moveToNext());
                     }
 
                     allMarks.close();
@@ -267,6 +272,10 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
         } catch (SQLiteException e) {
             e.printStackTrace();
         }
+
+        Toast.makeText(this, R.string.delete_sessions_done, Toast.LENGTH_SHORT).show();
+        loadSessions();
+        mLvSessions.setAdapter(new ArrayAdapter<>(this, LAYOUT, mSessionsName));
 
         return result;
     }

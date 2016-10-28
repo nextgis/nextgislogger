@@ -67,23 +67,23 @@ import java.util.Locale;
 import java.util.UUID;
 
 public class MainActivity extends ProgressBarActivity implements OnClickListener {
-	private BroadcastReceiver mLoggerServiceReceiver;
-	private Button mButtonService, mButtonSession;
-	private TextView mTvSessionName, mTvStartedTime, mTvFinishedTime, mTvRecordsCount, mTvMarksCount;
+    private BroadcastReceiver mLoggerServiceReceiver;
+    private Button mButtonService, mButtonSession;
+    private TextView mTvSessionName, mTvStartedTime, mTvFinishedTime, mTvRecordsCount, mTvMarksCount;
     private Uri mUri;
 
     @Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
         if (getActionBar() != null)
             getActionBar().setDisplayHomeAsUpEnabled(false);
 
         setContentView(R.layout.main_activity);
-		PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
         FileUtil.deleteFiles(new File(LoggerConstants.TEMP_PATH).listFiles()); // clear cache directory with shared zips
 
-        ((TextView)findViewById(R.id.tv_sessions)).setText(getString(R.string.title_activity_sessions).toUpperCase());
+        ((TextView) findViewById(R.id.tv_sessions)).setText(getString(R.string.title_activity_sessions).toUpperCase());
         findViewById(R.id.btn_sessions).setOnClickListener(this);
 
         mTvSessionName = (TextView) findViewById(R.id.tv_current_session_name);
@@ -101,96 +101,97 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
         mButtonSession.setOnClickListener(this);
 
         mLoggerServiceReceiver = new BroadcastReceiver() {
-			public void onReceive(Context context, Intent intent) {
-				int serviceStatus = intent.getIntExtra(LoggerConstants.SERVICE_STATUS, 0);
+            public void onReceive(Context context, Intent intent) {
+                int serviceStatus = intent.getIntExtra(LoggerConstants.SERVICE_STATUS, 0);
                 int count = intent.getIntExtra(LoggerConstants.PREF_RECORDS_COUNT, 0);
-				long time;
+                long time;
 
-				switch (serviceStatus) {
-				case LoggerConstants.STATUS_STARTED:
-                    time = intent.getLongExtra(LoggerConstants.PREF_TIME_START, 0);
-					mTvStartedTime.setText(millisToDate(time));
-					mTvFinishedTime.setText(R.string.service_running);
-					mPreferences.edit().putLong(LoggerConstants.PREF_TIME_START, time).apply();
-					break;
-				case LoggerConstants.STATUS_RUNNING:
-					mTvRecordsCount.setText(count + "");
-					mTvFinishedTime.setText(R.string.service_running);
-					break;
-				case LoggerConstants.STATUS_FINISHED:
-                    time = intent.getLongExtra(LoggerConstants.PREF_TIME_FINISH, 0);
-					mTvFinishedTime.setText(millisToDate(time));
-					mPreferences.edit().putLong(LoggerConstants.PREF_TIME_FINISH, time)
-							.putInt(LoggerConstants.PREF_RECORDS_COUNT, count).apply();
-					break;
-				}
-			}
-		};
+                switch (serviceStatus) {
+                    case LoggerConstants.STATUS_STARTED:
+                        time = intent.getLongExtra(LoggerConstants.PREF_TIME_START, 0);
+                        mTvStartedTime.setText(millisToDate(time));
+                        mTvFinishedTime.setText(R.string.service_running);
+                        mPreferences.edit().putLong(LoggerConstants.PREF_TIME_START, time).apply();
+                        break;
+                    case LoggerConstants.STATUS_RUNNING:
+                        mTvRecordsCount.setText(count + "");
+                        mTvFinishedTime.setText(R.string.service_running);
+                        break;
+                    case LoggerConstants.STATUS_FINISHED:
+                        time = intent.getLongExtra(LoggerConstants.PREF_TIME_FINISH, 0);
+                        mTvFinishedTime.setText(millisToDate(time));
 
-		IntentFilter intentFilter = new IntentFilter(LoggerConstants.ACTION_INFO);
-		registerReceiver(mLoggerServiceReceiver, intentFilter);
+                        if (mPreferences.getString(LoggerConstants.PREF_SESSION_ID, null) != null)
+                            mPreferences.edit().putLong(LoggerConstants.PREF_TIME_FINISH, time).putInt(LoggerConstants.PREF_RECORDS_COUNT, count).apply();
+                        break;
+                }
+            }
+        };
+
+        IntentFilter intentFilter = new IntentFilter(LoggerConstants.ACTION_INFO);
+        registerReceiver(mLoggerServiceReceiver, intentFilter);
 
         mUri = Uri.parse("content://" + ((IGISApplication) getApplicationContext()).getAuthority());
         mUri = mUri.buildUpon().appendPath(LoggerApplication.TABLE_SESSION).build();
-	}
+    }
 
-	@Override
-	protected void onResume() {
-		super.onResume();
+    @Override
+    protected void onResume() {
+        super.onResume();
         updateInterface();
 
-		int marksCount = mPreferences.getInt(LoggerConstants.PREF_MARKS_COUNT, 0);
-		if (marksCount > 0)
+        int marksCount = mPreferences.getInt(LoggerConstants.PREF_MARKS_COUNT, 0);
+        if (marksCount > 0)
             mTvMarksCount.setText(marksCount + "");
-	}
+    }
 
-	@Override
-	protected void onPause() {
-		super.onPause();
-	}
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
 
-	@Override
-	protected void onDestroy() {
-		unregisterReceiver(mLoggerServiceReceiver);
-		super.onDestroy();
-	}
+    @Override
+    protected void onDestroy() {
+        unregisterReceiver(mLoggerServiceReceiver);
+        super.onDestroy();
+    }
 
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		getMenuInflater().inflate(R.menu.main, menu);
-		return true;
-	}
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
 
-	@Override
-	public void onClick(View view) {
-		switch (view.getId()) {
-		case R.id.btn_session:
-			if (isSessionClosed())
-				showSessionNameDialog();
-			else // close session
-				closeSession();
-			break;
-		case R.id.btn_service_onoff:
-			// Service can be stopped, but still visible in the system as working,
-			// therefore, we need to use isLoggerServiceRunning()
-			if (isLoggerServiceRunning())
-				stopLoggerService();
-			else
-				startLoggerService(LoggerConstants.ACTION_START);
-			break;
-		case R.id.btn_mark:
-			Intent markActivity = new Intent(this, MarkActivity.class);
-			startActivity(markActivity);
-			break;
-        case R.id.btn_sessions:
-            Intent sessionsActivity = new Intent(this, SessionsActivity.class);
-            startActivity(sessionsActivity);
-            break;
-        default:
-            super.onClick(view);
-            break;
-		}
-	}
+    @Override
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.btn_session:
+                if (isSessionClosed())
+                    showSessionNameDialog();
+                else // close session
+                    closeSession();
+                break;
+            case R.id.btn_service_onoff:
+                // Service can be stopped, but still visible in the system as working,
+                // therefore, we need to use isLoggerServiceRunning()
+                if (isLoggerServiceRunning())
+                    stopLoggerService();
+                else
+                    startLoggerService(LoggerConstants.ACTION_START);
+                break;
+            case R.id.btn_mark:
+                Intent markActivity = new Intent(this, MarkActivity.class);
+                startActivity(markActivity);
+                break;
+            case R.id.btn_sessions:
+                Intent sessionsActivity = new Intent(this, SessionsActivity.class);
+                startActivity(sessionsActivity);
+                break;
+            default:
+                super.onClick(view);
+                break;
+        }
+    }
 
     protected void startLoggerService(String action) {
         ProgressBarActivity.startLoggerService(this, action);
@@ -237,18 +238,17 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
         });
 
         AlertDialog dialog = alert.create();
-//				dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE); // show keyboard
         dialog.show();
     }
 
     private String startSession(String name, String userName, String deviceInfo) {
-		NGWVectorLayer sessionLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_SESSION);
-		if (sessionLayer != null) {
+        NGWVectorLayer sessionLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_SESSION);
+        if (sessionLayer != null) {
             String id = UUID.randomUUID().toString();
             ContentValues cv = new ContentValues();
-			cv.put(LoggerApplication.FIELD_NAME, name);
-			cv.put(LoggerApplication.FIELD_USER, userName);
-			cv.put(LoggerApplication.FIELD_DEVICE_INFO, deviceInfo);
+            cv.put(LoggerApplication.FIELD_NAME, name);
+            cv.put(LoggerApplication.FIELD_USER, userName);
+            cv.put(LoggerApplication.FIELD_DEVICE_INFO, deviceInfo);
             cv.put(LoggerApplication.FIELD_UNIQUE_ID, id);
             try {
                 cv.put(Constants.FIELD_GEOM, new GeoPoint(0, 0).toBlob());
@@ -258,53 +258,53 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 
             sessionLayer.insert(mUri, cv);
             return id;
-		}
+        }
 
-		return null;
-	}
+        return null;
+    }
 
     public void updateFileForMTP(String path) {
         Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.parse(path));
-        sendBroadcast(intent);	// update media for MTP
+        sendBroadcast(intent);    // update media for MTP
     }
 
-	@SuppressWarnings("deprecation")
-	@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-	private String getDeviceInfo() {
-		StringBuilder result = new StringBuilder();
+    @SuppressWarnings("deprecation")
+    @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+    private String getDeviceInfo() {
+        StringBuilder result = new StringBuilder();
 
-		result.append("Manufacturer:\t").append(Build.MANUFACTURER).append("\r\n");
-		result.append("Brand:\t").append(Build.BRAND).append("\r\n");
-		result.append("Model:\t").append(Build.MODEL).append("\r\n");
-		result.append("Product:\t").append(Build.PRODUCT).append("\r\n");
-		result.append("Android:\t").append(Build.VERSION.RELEASE).append("\r\n");
-		result.append("API:\t").append(Build.VERSION.SDK_INT).append("\r\n");
+        result.append("Manufacturer:\t").append(Build.MANUFACTURER).append("\r\n");
+        result.append("Brand:\t").append(Build.BRAND).append("\r\n");
+        result.append("Model:\t").append(Build.MODEL).append("\r\n");
+        result.append("Product:\t").append(Build.PRODUCT).append("\r\n");
+        result.append("Android:\t").append(Build.VERSION.RELEASE).append("\r\n");
+        result.append("API:\t").append(Build.VERSION.SDK_INT).append("\r\n");
 
-		result.append("Kernel version:\t").append(System.getProperty("os.version")).append("\r\n");
+        result.append("Kernel version:\t").append(System.getProperty("os.version")).append("\r\n");
 
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-			result.append("Radio firmware:\t").append(Build.getRadioVersion()).append("\r\n");
-		else
-			result.append("Radio firmware:\t").append(Build.RADIO).append("\r\n");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+            result.append("Radio firmware:\t").append(Build.getRadioVersion()).append("\r\n");
+        else
+            result.append("Radio firmware:\t").append(Build.RADIO).append("\r\n");
 
         try {
-			PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+            PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
             result.append("Logger version name:\t").append(packageInfo.versionName).append("\r\n");
             result.append("Logger version code:\t").append(packageInfo.versionCode).append("\r\n");
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
 
-		return result.toString();
-	}
+        return result.toString();
+    }
 
-	private boolean isCorrectName(String value) {
-		final char[] ILLEGAL_CHARACTERS = { '/', '\n', '\r', '\t', '\0', '\f', '`', '?', '*', '\\', '<', '>', '|', '\"', ':' };
+    private boolean isCorrectName(String value) {
+        final char[] ILLEGAL_CHARACTERS = {'/', '\n', '\r', '\t', '\0', '\f', '`', '?', '*', '\\', '<', '>', '|', '\"', ':'};
 
-		if (value == null || value.length() == 0) {
-			Toast.makeText(this, R.string.session_null_name, Toast.LENGTH_SHORT).show();
-			return false;
-		}
+        if (value == null || value.length() == 0) {
+            Toast.makeText(this, R.string.session_null_name, Toast.LENGTH_SHORT).show();
+            return false;
+        }
 
         for (char ILLEGAL_CHARACTER : ILLEGAL_CHARACTERS)
             if (value.contains(String.valueOf(ILLEGAL_CHARACTER))) {
@@ -312,10 +312,10 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
                 return false;
             }
 
-		return true;
-	}
+        return true;
+    }
 
-	private void updateInterface() {
+    private void updateInterface() {
         mSessionId = mPreferences.getString(LoggerConstants.PREF_SESSION_ID, null);
         if (TextUtils.isEmpty(mSessionId)) {
             findViewById(R.id.rl_modes).setVisibility(View.GONE);
@@ -368,7 +368,7 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
         String result = null;
         SQLiteDatabase db = ((MapContentProviderHelper) MapBase.getInstance()).getDatabase(true);
         Cursor count = db.rawQuery("SELECT " + LoggerApplication.FIELD_NAME + " FROM " + LoggerApplication.TABLE_SESSION + " WHERE " +
-                LoggerApplication.FIELD_UNIQUE_ID + " = ?;", new String[]{mSessionId});
+                                           LoggerApplication.FIELD_UNIQUE_ID + " = ?;", new String[]{mSessionId});
 
         if (count != null) {
             if (count.moveToFirst())
@@ -389,24 +389,22 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
         return millisToDate(milliSeconds, "dd.MM.yyyy HH:mm:ss");
     }
 
-	/**
-	 * Return date in specified format.
-	 *
-	 * @param milliSeconds
-	 *            Date in milliseconds
-	 * @param dateFormat
-	 *            Date format
-	 * @return String representing date in specified format
-	 */
-	public static String millisToDate(long milliSeconds, String dateFormat) {
-		// dateFormat example: "dd/MM/yyyy hh:mm:ss.SSS"
-		// Create a DateFormatter object for displaying date in specified format.
-		SimpleDateFormat formatter = new SimpleDateFormat(dateFormat, Locale.getDefault());
+    /**
+     * Return date in specified format.
+     *
+     * @param milliSeconds Date in milliseconds
+     * @param dateFormat   Date format
+     * @return String representing date in specified format
+     */
+    public static String millisToDate(long milliSeconds, String dateFormat) {
+        // dateFormat example: "dd/MM/yyyy hh:mm:ss.SSS"
+        // Create a DateFormatter object for displaying date in specified format.
+        SimpleDateFormat formatter = new SimpleDateFormat(dateFormat, Locale.getDefault());
 
-		// Create a calendar object that will convert
-		// the date and time value in milliseconds to date.
-		Calendar calendar = Calendar.getInstance();
-		calendar.setTimeInMillis(milliSeconds);
-		return formatter.format(calendar.getTime());
-	}
+        // Create a calendar object that will convert
+        // the date and time value in milliseconds to date.
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(milliSeconds);
+        return formatter.format(calendar.getTime());
+    }
 }

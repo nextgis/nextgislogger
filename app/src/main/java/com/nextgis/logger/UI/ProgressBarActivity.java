@@ -27,6 +27,7 @@ import android.Manifest;
 import android.accounts.Account;
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -308,7 +309,15 @@ public class ProgressBarActivity extends FragmentActivity implements View.OnClic
     }
 
     public boolean isLoggerServiceRunning() {
-        return mPreferences.getBoolean(LoggerConstants.PREF_MEASURING, false);
+        boolean isServiceRunning = false;
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE))
+            if (LoggerService.class.getName().equals(service.service.getClassName())) {
+                isServiceRunning = true;
+                break;
+            }
+
+        return isServiceRunning && mPreferences.getBoolean(LoggerConstants.PREF_MEASURING, false);
     }
 
     protected boolean isSessionClosed() {
