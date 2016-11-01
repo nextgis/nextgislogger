@@ -23,28 +23,22 @@
 
 package com.nextgis.logger.util;
 
-import android.os.Environment;
-
-import java.io.File;
-
 public interface LoggerConstants {
     String AUTHORITY = "com.nextgis.logger.provider";
 
     String CSV_SEPARATOR = ";";
-    String CSV_LOG_CELL = "cell_time_log.csv";
-    String CSV_LOG_SENSOR = "sensor_time_log.csv";
-    String CSV_LOG_EXTERNAL = "external_time_log.csv";
-    String CSV_MARK_CELL = "cell_time_marks.csv";
-    String CSV_MARK_SENSOR = "sensor_time_marks.csv";
-    String CSV_MARK_EXTERNAL = "external_time_marks.csv";
+    String CELL = "cell";
+    String SENSOR = "sensor";
+    String EXTERNAL = "external";
+    String LOG = "log";
+    String MARK = "mark";
     String CATEGORIES = "categories.csv";
     String DEVICE_INFO = "device_info.txt";
     String TEMP_PATH = ".temp";
+    String CSV_EXT = ".csv";
+    String ZIP_EXT = ".zip";
 
     String CSV_HEADER_PREAMBLE = "ID" + CSV_SEPARATOR + "Name" + CSV_SEPARATOR + "User" + CSV_SEPARATOR + "TimeStamp" + CSV_SEPARATOR + "DateTime";
-
-    String CSV_HEADER_CELL = CSV_SEPARATOR + "NetworkGen" + CSV_SEPARATOR + "NetworkType" + CSV_SEPARATOR + "Active" + CSV_SEPARATOR
-            + "MCC" + CSV_SEPARATOR + "MNC" + CSV_SEPARATOR + "LAC" + CSV_SEPARATOR + "CID" + CSV_SEPARATOR + "PSC" + CSV_SEPARATOR + "Power";
 
     String HEADER_GEN = "NetworkGen";
     String HEADER_TYPE = "NetworkType";
@@ -52,9 +46,14 @@ public interface LoggerConstants {
     String HEADER_MCC = "MCC";
     String HEADER_MNC = "MNC";
     String HEADER_LAC = "LAC";
+    String HEADER_TAC = "TAC";
     String HEADER_CID = "CID";
+    String HEADER_PCI = "PCI";
     String HEADER_PSC = "PSC";
+    String HEADER_CI = "CI";
     String HEADER_POWER = "Power";
+    String HEADER_RSSI = "RSSI";
+    String HEADER_RSCP = "RSCP";
 
     String HEADER_ACC_X = "Accel_X";
     String HEADER_ACC_Y = "Accel_Y";

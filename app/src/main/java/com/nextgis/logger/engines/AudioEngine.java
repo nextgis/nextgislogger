@@ -25,6 +25,7 @@ package com.nextgis.logger.engines;
 
 import android.Manifest;
 import android.content.Context;
+import android.database.Cursor;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder.AudioSource;
@@ -37,8 +38,6 @@ import com.nextgis.logger.util.LoggerConstants;
 import com.nextgis.logger.util.UiUtil;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 public class AudioEngine extends BaseEngine {
     private AudioMeter mAudioMeter;
@@ -48,7 +47,7 @@ public class AudioEngine extends BaseEngine {
     public AudioEngine(Context context) {
         super(context);
         mAudioMeter = new AudioMeter();
-        loadHeader();
+        loadEngine();
         mDelta = PreferenceManager.getDefaultSharedPreferences(context).getInt(LoggerConstants.PREF_MIC_DELTA, 0);
     }
 
@@ -86,20 +85,10 @@ public class AudioEngine extends BaseEngine {
     }
 
     @Override
-    protected void loadHeader() {
+    protected void loadEngine() {
         mAudioItem = new InfoItem(mContext.getString(R.string.mic));
         mAudioItem.addColumn(LoggerConstants.HEADER_AUDIO, null, mContext.getString(R.string.info_db));
         mItems.add(mAudioItem);
-    }
-
-    @Override
-    public String getHeader() {
-        return LoggerConstants.CSV_SEPARATOR + LoggerConstants.HEADER_AUDIO;
-    }
-
-    @Override
-    public List<String> getDataAsStringList(String preamble) {
-        return Collections.singletonList(LoggerConstants.CSV_SEPARATOR + mAudioItem.getColumn(LoggerConstants.HEADER_AUDIO).getValue());
     }
 
     public int getDb() {
@@ -117,6 +106,14 @@ public class AudioEngine extends BaseEngine {
 
     public boolean isRecording() {
         return mAudioMeter.mLocks > 0;
+    }
+
+    public static String getHeader() {
+        return LoggerConstants.HEADER_AUDIO;
+    }
+
+    public static String getDataFromCursor(Cursor cursor) {
+        return cursor.getString(cursor.getColumnIndex(LoggerConstants.HEADER_AUDIO));
     }
 
     // http://michaelpardo.com/android/2012/03/recording-audio-streams/

@@ -25,6 +25,7 @@ package com.nextgis.logger.engines;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -38,6 +39,8 @@ import com.nextgis.maplib.util.GeoConstants;
 
 import java.util.ArrayList;
 
+import static com.nextgis.logger.util.LoggerConstants.*;
+
 public class GPSEngine extends BaseEngine implements LocationListener {
     private final LocationManager mLocationManager;
     private Location mLastFix = null;
@@ -46,7 +49,7 @@ public class GPSEngine extends BaseEngine implements LocationListener {
     GPSEngine(Context context) {
         super(context);
         mLocationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-        loadHeader();
+        loadEngine();
     }
 
     @Override
@@ -132,7 +135,7 @@ public class GPSEngine extends BaseEngine implements LocationListener {
     }
 
     @Override
-    protected void loadHeader() {
+    protected void loadEngine() {
         mGPSItem = new InfoItem(mContext.getString(R.string.gps));
         mGPSItem.addColumn(LoggerConstants.HEADER_GPS_LAT, mContext.getString(R.string.info_lat), mContext.getString(R.string.info_degree), "%.6f")
                 .addColumn(LoggerConstants.HEADER_GPS_LON, mContext.getString(R.string.info_lon), mContext.getString(R.string.info_degree), "%.6f")
@@ -175,4 +178,21 @@ public class GPSEngine extends BaseEngine implements LocationListener {
 
     }
 
+    static String getHeader() {
+        return HEADER_GPS_LAT + CSV_SEPARATOR + HEADER_GPS_LON + CSV_SEPARATOR +
+                HEADER_GPS_ALT + CSV_SEPARATOR + HEADER_GPS_ACC + CSV_SEPARATOR +
+                HEADER_GPS_BE + CSV_SEPARATOR + HEADER_GPS_SP + CSV_SEPARATOR +
+                HEADER_GPS_SAT + CSV_SEPARATOR + HEADER_GPS_TIME;
+    }
+
+    static String getDataFromCursor(Cursor cursor) {
+        return cursor.getString(cursor.getColumnIndex(HEADER_GPS_LAT)) + CSV_SEPARATOR +
+                cursor.getString(cursor.getColumnIndex(HEADER_GPS_LON)) + CSV_SEPARATOR +
+                cursor.getString(cursor.getColumnIndex(HEADER_GPS_ALT)) + CSV_SEPARATOR +
+                cursor.getString(cursor.getColumnIndex(HEADER_GPS_ACC)) + CSV_SEPARATOR +
+                cursor.getString(cursor.getColumnIndex(HEADER_GPS_BE)) + CSV_SEPARATOR +
+                cursor.getString(cursor.getColumnIndex(HEADER_GPS_SP)) + CSV_SEPARATOR +
+                cursor.getString(cursor.getColumnIndex(HEADER_GPS_SAT)) + CSV_SEPARATOR +
+                cursor.getString(cursor.getColumnIndex(HEADER_GPS_TIME));
+    }
 }

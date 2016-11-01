@@ -345,7 +345,7 @@ public class LoggerApplication extends Application implements IGISApplication {
             fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_MNC, getString(R.string.info_mnc)));
             fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_LAC, "LAC/TAC"));
             fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_CID, "CID/PCI"));
-            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_PSC, "PSC/CID"));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_PSC, "PSC/CI"));
             fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_POWER, "RSSI/RSRP"));
             layer = createEmptyVectorLayer(TABLE_CELL, fields);
             layer.setAccountName("");

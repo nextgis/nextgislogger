@@ -39,7 +39,6 @@ import com.nextgis.maplib.map.NGWVectorLayer;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -58,7 +57,7 @@ public abstract class BaseEngine {
     }
 
     public abstract boolean isEngineEnabled();
-    protected abstract void loadHeader();
+    protected abstract void loadEngine();
 
     public BaseEngine(Context context) {
         mLocks = 0;
@@ -136,54 +135,8 @@ public abstract class BaseEngine {
 
     public abstract void saveData(ArrayList<InfoItem> items, String markId);
 
-//    TODO
-//    public void saveToCSV throws FileNotFoundException {
-//        String logPath = MainActivity.dataDirPath + File.separator;
-//        String logHeader = LoggerConstants.CSV_HEADER_PREAMBLE + getHeader();
-//
-//        if (this instanceof CellEngine) {
-//            if (onDemand)
-//                logPath += LoggerConstants.CSV_MARK_CELL;
-//            else
-//                logPath += LoggerConstants.CSV_LOG_CELL;
-//        } else if (this instanceof SensorEngine) {
-//            if (onDemand)
-//                logPath += LoggerConstants.CSV_MARK_SENSOR;
-//            else
-//                logPath += LoggerConstants.CSV_LOG_SENSOR;
-//        } else if (this instanceof ArduinoEngine) {
-//            if (onDemand)
-//                logPath += LoggerConstants.CSV_MARK_EXTERNAL;
-//            else
-//                logPath += LoggerConstants.CSV_LOG_EXTERNAL;
-//        } else
-//            throw new RuntimeException(getClass().getSimpleName() + " is not supported.");
-//
-//        FileUtil.append(logPath, logHeader, data);
-//    }
-
-    public String getHeader() {
-        String result = "";
-
-        for (InfoItem item : mItems)
-            for (String name : item.getShortNames())
-                result += LoggerConstants.CSV_SEPARATOR + name;
-
-        return result;
-    }
-
     public ArrayList<InfoItem> getData() {
         return mItems;
-    }
-
-    public List<String> getDataAsStringList(String preamble) {
-        String result = preamble;
-
-        for (InfoItem item : mItems)
-            for (InfoColumn column : item.getColumns())
-                result += LoggerConstants.CSV_SEPARATOR + column.getValue();
-
-        return Collections.singletonList(result);
     }
 
     public static String getPreamble(String ID, String markName, String userName, long timeStamp) {

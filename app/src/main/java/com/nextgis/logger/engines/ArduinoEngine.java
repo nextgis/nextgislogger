@@ -31,6 +31,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.Cursor;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
@@ -122,7 +123,7 @@ public class ArduinoEngine extends BaseEngine {
         mContext.registerReceiver(mReceiver, filter);
 
         mLine = getPreferences().getString(LoggerConstants.PREF_EXTERNAL_HEADER, "");
-        loadHeader();
+        loadEngine();
         mLine = null;
         clearData();
     }
@@ -238,7 +239,7 @@ public class ArduinoEngine extends BaseEngine {
         mOutputStream.write(GET_HEADER);
         SystemClock.sleep(LoggerConstants.UPDATE_FREQUENCY);
         mLine = readln();
-        loadHeader();
+        loadEngine();
         getPreferences().edit().putString(LoggerConstants.PREF_EXTERNAL_HEADER, mLine).apply();
         mIsFirstConnect = false;
 
@@ -247,7 +248,7 @@ public class ArduinoEngine extends BaseEngine {
     }
 
     @Override
-    protected synchronized void loadHeader() {
+    protected synchronized void loadEngine() {
         try {
             JSONObject json = new JSONObject(mLine);
             mItems.clear();
@@ -415,5 +416,9 @@ public class ArduinoEngine extends BaseEngine {
             return nameWithMAC.substring(0, i - 1);
         else
             return null;
+    }
+
+    public static String getDataFromCursor(Cursor cursor) {
+        return cursor.getString(cursor.getColumnIndex(LoggerApplication.FIELD_DATA));
     }
 }

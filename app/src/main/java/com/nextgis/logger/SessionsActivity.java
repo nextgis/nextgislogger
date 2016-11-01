@@ -25,6 +25,7 @@ package com.nextgis.logger;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
@@ -39,18 +40,38 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.nextgis.logger.UI.ProgressBarActivity;
+import com.nextgis.logger.engines.ArduinoEngine;
+import com.nextgis.logger.engines.BaseEngine;
+import com.nextgis.logger.engines.CellEngine;
+import com.nextgis.logger.engines.SensorEngine;
+import com.nextgis.logger.util.FileUtil;
+import com.nextgis.logger.util.LoggerConstants;
 import com.nextgis.maplib.datasource.Feature;
 import com.nextgis.maplib.map.MapBase;
 import com.nextgis.maplib.map.MapContentProviderHelper;
 import com.nextgis.maplib.map.NGWVectorLayer;
 import com.nextgis.maplib.util.MapUtil;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class SessionsActivity extends ProgressBarActivity implements View.OnClickListener {
+    private static final int SHARE = 1;
     private static int LAYOUT = android.R.layout.simple_list_item_multiple_choice;
+
+    public static final int TYPE_MSTDT = 0; // marks and service together, data together
+    public static final int TYPE_MSTDS = 1; // marks and service together, data separated
+    public static final int TYPE_MSSDT = 2; // marks and service separated, data together
+    public static final int TYPE_MSSDS = 3; // marks and service separated, data separated
 
     private ListView mLvSessions;
     private List<Feature> mSessions;
@@ -97,59 +118,18 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
                 }
             }
 
-            if (result.size() > 0)
+            if (result.size() > 0) {
+                String[] ids = getIdsFromPositions(result);
+
                 switch (item.getItemId()) {
                     case R.id.action_share:
-                        //                        ArrayList<Uri> logsZips = new ArrayList<>();
-                        //
-                        //                        try {
-                        //                            byte[] buffer = new byte[1024];
-                        //
-                        //                            FileUtil.checkOrCreateDirectory(LoggerConstants.TEMP_PATH);
-                        //
-                        //                            for (File file : result) { // for each selected logs directory
-                        //                                String tempFileName = LoggerConstants.TEMP_PATH + File.separator + file.getName() + ".zip"; // set temp zip file path
-                        //
-                        //                                File[] files = file.listFiles(); // get all files in current log directory
-                        //
-                        //                                if (files.length == 0) // skip empty directories
-                        //                                    continue;
-                        //
-                        //                                FileOutputStream fos = new FileOutputStream(tempFileName);
-                        //                                ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(fos));
-                        //
-                        //                                for (File file1 : files) { // for each log-file in directory
-                        //                                    FileInputStream fis = new FileInputStream(file1);
-                        //                                    zos.putNextEntry(new ZipEntry(file1.getName())); // put it in zip
-                        //
-                        //                                    int length;
-                        //
-                        //                                    while ((length = fis.read(buffer)) > 0)
-                        //                                        // write it to zip
-                        //                                        zos.write(buffer, 0, length);
-                        //
-                        //                                    zos.closeEntry();
-                        //                                    fis.close();
-                        //                                }
-                        //
-                        //                                zos.close();
-                        //                                logsZips.add(Uri.fromFile(new File(tempFileName))); // add file's uri to share list
-                        //                            }
-                        //                        } catch (IOException e) {
-                        //                            Toast.makeText(this, R.string.fs_error_msg, Toast.LENGTH_SHORT).show();
-                        //                        }
-                        //
-                        //                        Intent shareIntent = new Intent();
-                        //                        shareIntent.setAction(Intent.ACTION_SEND_MULTIPLE); // multiple sharing
-                        //                        shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, logsZips); // set data
-                        //                        shareIntent.setType("application/zip"); //set mime type
-                        //                        startActivity(Intent.createChooser(shareIntent, getString(R.string.share_sessions_title)));
+                        shareSessions(ids);
                         return true;
                     case R.id.action_delete:
-                        deleteSessions(result, true);
+                        deleteSessions(ids, true);
                         return true;
                 }
-            else
+            } else
                 Toast.makeText(this, R.string.sessions_nothing_selected, Toast.LENGTH_SHORT).show();
         }
 
@@ -188,24 +168,175 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
         }
     }
 
-    private boolean deleteSessions(final List<Integer> positions, boolean ask) {
+    private void shareSessions(String[] ids) {
+        ArrayList<Uri> logsZips = new ArrayList<>();
+
+        try {
+            File temp = new File(getExternalFilesDir(null), LoggerConstants.TEMP_PATH);
+            boolean directoryExists = FileUtil.checkOrCreateDirectory(temp);
+            if (!directoryExists)
+                throw new IOException();
+
+            String in = " IN (" + MapUtil.makePlaceholders(ids.length) + ")";
+            SQLiteDatabase db = ((MapContentProviderHelper) MapBase.getInstance()).getDatabase(false);
+            Cursor sessions = db.query(LoggerApplication.TABLE_SESSION,
+                                       new String[]{LoggerApplication.FIELD_UNIQUE_ID, LoggerApplication.FIELD_NAME, LoggerApplication.FIELD_USER,
+                                                    LoggerApplication.FIELD_DEVICE_INFO}, LoggerApplication.FIELD_UNIQUE_ID + in, ids, null, null, null);
+
+            if (sessions == null)
+                return;
+
+            if (sessions.moveToFirst()) {
+                do {
+                    Cursor marks = db.query(LoggerApplication.TABLE_MARK,
+                                            new String[]{LoggerApplication.FIELD_UNIQUE_ID, LoggerApplication.FIELD_MARK_ID, LoggerApplication.FIELD_NAME,
+                                                         LoggerApplication.FIELD_TIMESTAMP}, LoggerApplication.FIELD_SESSION + " = ?",
+                                            new String[]{sessions.getString(0)}, null, null, LoggerApplication.FIELD_TIMESTAMP);
+
+                    if (marks == null) // skip empty sessions
+                        continue;
+
+                    File path = new File(temp, sessions.getString(1));
+                    directoryExists = FileUtil.checkOrCreateDirectory(path);
+                    if (!directoryExists)
+                        throw new IOException();
+
+                    if (marks.moveToFirst()) {
+                        do {
+                            String preamble = BaseEngine.getPreamble(marks.getString(1), marks.getString(2), sessions.getString(2), marks.getLong(3));
+                            preamble += LoggerConstants.CSV_SEPARATOR;
+                            int savingType = 1;
+                            switch (savingType) {
+                                case TYPE_MSTDT:
+                                    break;
+                                case TYPE_MSTDS:
+                                    writeMSTDS(db, path, preamble, marks.getString(0));
+                                    break;
+                                case TYPE_MSSDT:
+                                    break;
+                                case TYPE_MSSDS:
+                                    break;
+                                default:
+                                    throw new RuntimeException("Type" + savingType + " is not supported.");
+                            }
+                        } while (marks.moveToNext());
+                    }
+
+                    marks.close();
+
+                    File deviceInfoFile = new File(path, LoggerConstants.DEVICE_INFO);
+                    FileUtil.append(deviceInfoFile.getAbsolutePath(), "\r\n\r\n", sessions.getString(3));
+
+                    if (putToZip(path))
+                        logsZips.add(Uri.fromFile(new File(temp, sessions.getString(1) + LoggerConstants.ZIP_EXT))); // add file's uri to share list
+                } while (sessions.moveToNext());
+            }
+
+            sessions.close();
+        } catch (SQLiteException | IOException e) {
+            Toast.makeText(this, R.string.fs_error_msg, Toast.LENGTH_SHORT).show();
+        }
+
+        Intent shareIntent = new Intent();
+        shareIntent.setAction(Intent.ACTION_SEND_MULTIPLE); // multiple sharing
+        shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, logsZips); // set data
+        shareIntent.setType("application/zip"); //set mime type
+        startActivityForResult(Intent.createChooser(shareIntent, getString(R.string.share_sessions_title)), SHARE);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case SHARE:
+                File temp = new File(getExternalFilesDir(null), LoggerConstants.TEMP_PATH);
+                FileUtil.deleteDirectoryOrFile(temp);
+                break;
+            default:
+                super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
+    private void writeMSTDS(SQLiteDatabase db, File path, String preamble, String markId) throws FileNotFoundException {
+        Cursor data = db.query(LoggerApplication.TABLE_CELL, null, LoggerApplication.FIELD_MARK + " = ?", new String[]{markId}, null, null,
+                               LoggerConstants.HEADER_ACTIVE);
+
+        String header = LoggerConstants.CSV_HEADER_PREAMBLE + LoggerConstants.CSV_SEPARATOR;
+        if (data != null) {
+            if (data.moveToFirst()) {
+                List<String> items = new ArrayList<>();
+                do {
+                    items.add(preamble + CellEngine.getDataFromCursor(data));
+                } while (data.moveToNext());
+
+                String filePath = new File(path, LoggerConstants.CELL + LoggerConstants.CSV_EXT).getAbsolutePath();
+                FileUtil.append(filePath, header + CellEngine.getHeader(), items);
+            }
+            data.close();
+        }
+
+        data = db.query(LoggerApplication.TABLE_SENSOR, null, LoggerApplication.FIELD_MARK + " = ?", new String[]{markId}, null, null, null);
+        if (data != null) {
+            if (data.moveToFirst()) {
+                String filePath = new File(path, LoggerConstants.SENSOR + LoggerConstants.CSV_EXT).getAbsolutePath();
+                String item = preamble + SensorEngine.getDataFromCursor(data);
+                FileUtil.append(filePath, header + SensorEngine.getHeader(), item);
+            }
+            data.close();
+        }
+
+        data = db.query(LoggerApplication.TABLE_EXTERNAL, null, LoggerApplication.FIELD_MARK + " = ?", new String[]{markId}, null, null, null);
+        if (data != null) {
+            if (data.moveToFirst()) {
+                String filePath = new File(path, LoggerConstants.EXTERNAL + LoggerConstants.CSV_EXT).getAbsolutePath();
+                String item = preamble + ArduinoEngine.getDataFromCursor(data);
+                FileUtil.append(filePath, header + "data", item);
+            }
+            data.close();
+        }
+    }
+
+    private boolean putToZip(File files) throws IOException {
+        byte[] buffer = new byte[1024];
+        if (!files.exists() || !files.isDirectory())
+            return false;
+
+        FileOutputStream fos = new FileOutputStream(files.getAbsolutePath() + LoggerConstants.ZIP_EXT);
+        ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(fos));
+
+        for (File file : files.listFiles()) { // for each log-file in directory
+            FileInputStream fis = new FileInputStream(file);
+            zos.putNextEntry(new ZipEntry(file.getName())); // put it in zip
+
+            int length;
+            while ((length = fis.read(buffer)) > 0)
+                // write it to zip
+                zos.write(buffer, 0, length);
+
+            zos.closeEntry();
+            fis.close();
+        }
+
+        zos.close();
+        return files.listFiles().length > 0;
+    }
+
+    private boolean deleteSessions(String[] ids, boolean ask) {
         boolean result = false;
         String authority = ((LoggerApplication) getApplication()).getAuthority();
         Uri uri;
 
         try {
-            String[] ids = getIdsFromPositions(positions);
             if (hasCurrentSession(ids)) {
                 if (ask) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    final String[] finalIds = ids;
                     builder.setTitle(R.string.delete_sessions_title).setMessage(R.string.sessions_delete_current)
-                                 .setNegativeButton(android.R.string.cancel, null)
-                                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                                     @Override
-                                     public void onClick(DialogInterface dialog, int which) {
-                                         deleteSessions(positions, false);
-                                     }
-                                 }).show();
+                           .setNegativeButton(android.R.string.cancel, null).setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            deleteSessions(finalIds, false);
+                        }
+                    }).show();
                     return false;
                 } else {
                     stopLoggerService();
@@ -222,8 +353,7 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
                     if (allMarks.moveToFirst()) {
                         do {
                             markIds.add(allMarks.getString(0));
-                        }
-                        while (allMarks.moveToNext());
+                        } while (allMarks.moveToNext());
                     }
 
                     allMarks.close();

@@ -26,8 +26,8 @@ import android.Manifest;
 import android.annotation.TargetApi;
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.os.Build;
-import android.os.SystemClock;
 import android.telephony.CellIdentityGsm;
 import android.telephony.CellIdentityLte;
 import android.telephony.CellIdentityWcdma;
@@ -60,22 +60,22 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import static com.nextgis.logger.util.LoggerConstants.CSV_SEPARATOR;
+
 public class CellEngine extends BaseEngine {
 	private final static String LTE_SIGNAL_STRENGTH = "getLteSignalStrength";
 
     private final static int LOW_BOUND = 0;
     private final static int MAX_MCC_MNC = 999;
-    private final static int MAX_2G_LAC_CID = 65535;
-    private final static int MAX_3G_CID = 268435455;
-    private static final int MAX_PSC = 511;
-    private static final int MAX_PCI = 503;
-
-	public final static int SIGNAL_STRENGTH_NONE = 0;
+    private final static int MAX_2G_LAC_CID_4G_TAC = 65535;
+    private final static int MAX_3G_CID_4G_CI = 268435455;
+    private final static int MAX_PSC = 511;
+    private final static int MAX_PCI = 503;
+	private final static int SIGNAL_STRENGTH_NONE = 0;
 
 	private final TelephonyManager mTelephonyManager;
 	private GSMPhoneStateListener mSignalListener;
 	private int mSignalStrength = SIGNAL_STRENGTH_NONE;
-    private boolean mIsConcurrent;
 
 	public CellEngine(Context context) {
 		super(context);
@@ -104,13 +104,8 @@ public class CellEngine extends BaseEngine {
     }
 
     @Override
-	protected void loadHeader() {
+	protected void loadEngine() {
 
-	}
-
-	@Override
-	public String getHeader() {
-		return LoggerConstants.CSV_HEADER_CELL;
 	}
 
     @Override
@@ -123,7 +118,7 @@ public class CellEngine extends BaseEngine {
 
 	@Override
 	public void saveData(String markId) {
-		saveData(getData(), markId);
+		saveData(new ArrayList<>(getData()), markId);
 	}
 
 	@Override
@@ -154,7 +149,7 @@ public class CellEngine extends BaseEngine {
 		}
 	}
 
-	public void setSignalStrength(int signalStrength) {
+	private void setSignalStrength(int signalStrength) {
         mSignalStrength = signalStrength;
     }
 
@@ -172,7 +167,7 @@ public class CellEngine extends BaseEngine {
 		return 0;
 	}
 
-	public int signalStrengthAsuToDbm(int asu, int networkType) {
+	private int signalStrengthAsuToDbm(int asu, int networkType) {
 		switch (networkType) {
 			// 2G -- GSM network
 			case TelephonyManager.NETWORK_TYPE_GPRS: // API 1+
@@ -203,24 +198,6 @@ public class CellEngine extends BaseEngine {
 		}
 
 		return 0;
-	}
-
-	@Override
-	public List<String> getDataAsStringList(String preamble) {
-        mIsConcurrent = true;
-        ArrayList<String> result = new ArrayList<>();
-
-        for (InfoItem item : mItems) {
-            String line = preamble;
-
-            for (InfoColumn column : item.getColumns())
-                line += LoggerConstants.CSV_SEPARATOR + column.getValue();
-
-            result.add(line);
-        }
-
-        mIsConcurrent = false;
-		return result;
 	}
 
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
@@ -305,7 +282,7 @@ public class CellEngine extends BaseEngine {
 				}
 			}
 
-			List<NeighboringCellInfo> neighbors = mTelephonyManager.getNeighboringCellInfo();
+			@SuppressWarnings("deprecation") List<NeighboringCellInfo> neighbors = mTelephonyManager.getNeighboringCellInfo();
 			for (NeighboringCellInfo neighbor : neighbors) {
 				int nbNetworkType = neighbor.getNetworkType();
 
@@ -317,9 +294,6 @@ public class CellEngine extends BaseEngine {
 		if (temp.size() == 0 || !isRegistered) { // add default record if there is no items in array /-1
 			temp.add(new InfoItemGSM());
 		}
-
-        while (mIsConcurrent)
-            SystemClock.sleep(100);
 
         mItems.clear();
         mItems.addAll(temp);
@@ -343,7 +317,7 @@ public class CellEngine extends BaseEngine {
 	//		return network == TelephonyManager.NETWORK_TYPE_EDGE || network == TelephonyManager.NETWORK_TYPE_GPRS;
 	//	}
 
-	public static String getNetworkGen(int type) {
+	private static String getNetworkGen(int type) {
 		String gen;
 
 		switch (type) {
@@ -369,8 +343,8 @@ public class CellEngine extends BaseEngine {
 		return gen;
 	}
 
-	public static String getNetworkType(int type) {
-		String network;
+	private static String getNetworkType(int type) {
+        String network;
 
 		switch (type) {
 		//		case TelephonyManager.NETWORK_TYPE_CDMA:
@@ -437,6 +411,25 @@ public class CellEngine extends BaseEngine {
         });
     }
 
+	public static String getHeader() {
+		return LoggerConstants.HEADER_GEN + CSV_SEPARATOR + LoggerConstants.HEADER_TYPE + CSV_SEPARATOR + LoggerConstants.HEADER_ACTIVE + CSV_SEPARATOR +
+				LoggerConstants.HEADER_MCC + CSV_SEPARATOR + LoggerConstants.HEADER_MNC + CSV_SEPARATOR + LoggerConstants.HEADER_LAC + "/" +
+				LoggerConstants.HEADER_TAC + CSV_SEPARATOR + LoggerConstants.HEADER_CID + "/" + LoggerConstants.HEADER_PCI + CSV_SEPARATOR +
+				LoggerConstants.HEADER_PSC + "/" + LoggerConstants.HEADER_CI + CSV_SEPARATOR + LoggerConstants.HEADER_RSSI + "/" + LoggerConstants.HEADER_RSCP;
+	}
+
+	public static String getDataFromCursor(Cursor cursor) {
+		return cursor.getString(cursor.getColumnIndex(LoggerConstants.HEADER_GEN)) + CSV_SEPARATOR +
+				cursor.getString(cursor.getColumnIndex(LoggerConstants.HEADER_TYPE)) + CSV_SEPARATOR +
+				cursor.getString(cursor.getColumnIndex(LoggerConstants.HEADER_ACTIVE)) + CSV_SEPARATOR +
+				cursor.getString(cursor.getColumnIndex(LoggerConstants.HEADER_MCC)) + CSV_SEPARATOR +
+				cursor.getString(cursor.getColumnIndex(LoggerConstants.HEADER_MNC)) + CSV_SEPARATOR +
+				cursor.getString(cursor.getColumnIndex(LoggerConstants.HEADER_LAC)) + CSV_SEPARATOR +
+				cursor.getString(cursor.getColumnIndex(LoggerConstants.HEADER_CID)) + CSV_SEPARATOR +
+				cursor.getString(cursor.getColumnIndex(LoggerConstants.HEADER_PSC)) + CSV_SEPARATOR +
+				cursor.getString(cursor.getColumnIndex(LoggerConstants.HEADER_POWER));
+	}
+
     private class GSMPhoneStateListener extends PhoneStateListener {
         @Override
         public void onSignalStrengthsChanged(SignalStrength signal) {
@@ -484,8 +477,8 @@ public class CellEngine extends BaseEngine {
 		notifyListeners("CELL");
 	}
 
-    public class InfoItemGSM extends InfoItem {
-		public InfoItemGSM() {
+    private class InfoItemGSM extends InfoItem {
+		private InfoItemGSM() {
 			super("Cell Info");
             addColumn(LoggerConstants.HEADER_GEN, null, null);
             addColumn(LoggerConstants.HEADER_TYPE, null, null);
@@ -501,13 +494,11 @@ public class CellEngine extends BaseEngine {
             addColumn(LoggerConstants.HEADER_POWER, null, mContext.getString(R.string.info_dbm), SIGNAL_STRENGTH_NONE);
 		}
 
-		public InfoItemGSM(boolean active, int networkType, int mcc, int mnc, int lac, int cid, int psc, int power) {
+		InfoItemGSM(boolean active, int networkType, int mcc, int mnc, int lac, int cid, int psc, int power) {
             this();
             setValue(LoggerConstants.HEADER_ACTIVE, active ? 1 : 0);
             setValue(LoggerConstants.HEADER_GEN, getNetworkGen(networkType));
             setValue(LoggerConstants.HEADER_TYPE, getNetworkType(networkType));
-//            infoItemGSMArray.get(0).getMcc() + "-" + infoItemGSMArray.get(0).getMnc() + "-"
-//                    + infoItemGSMArray.get(0).getLac() + "-" + infoItemGSMArray.get(0).getCid();
 
             boolean outOfBounds = mcc <= LOW_BOUND || mcc >= MAX_MCC_MNC;
             setValue(LoggerConstants.HEADER_MCC, outOfBounds ? LoggerConstants.UNDEFINED : mcc);
@@ -518,10 +509,10 @@ public class CellEngine extends BaseEngine {
             switch (networkType) {
                 case TelephonyManager.NETWORK_TYPE_EDGE:
                 case TelephonyManager.NETWORK_TYPE_GPRS:
-                    if (lac < LOW_BOUND || lac > MAX_2G_LAC_CID)
+                    if (lac < LOW_BOUND || lac > MAX_2G_LAC_CID_4G_TAC)
                         lac = -1;
 
-                    if (cid < LOW_BOUND || cid > MAX_2G_LAC_CID)
+                    if (cid < LOW_BOUND || cid > MAX_2G_LAC_CID_4G_TAC)
                         cid = -1;
                     break;
                 case TelephonyManager.NETWORK_TYPE_UMTS:
@@ -530,18 +521,24 @@ public class CellEngine extends BaseEngine {
                 case TelephonyManager.NETWORK_TYPE_HSUPA:
                 case TelephonyManager.NETWORK_TYPE_HSPAP:
 				default:
-					if (lac < LOW_BOUND || lac > MAX_2G_LAC_CID)
+					if (lac < LOW_BOUND || lac > MAX_2G_LAC_CID_4G_TAC)
                         lac = -1;
 
-					if (cid < LOW_BOUND || cid > MAX_3G_CID)
+					if (cid < LOW_BOUND || cid > MAX_3G_CID_4G_CI)
                         cid = -1;
 
 					if (psc < LOW_BOUND || psc > MAX_PSC)
                         psc = -1;
                     break;
 				case TelephonyManager.NETWORK_TYPE_LTE:
+                    if (lac < LOW_BOUND || lac > MAX_2G_LAC_CID_4G_TAC)
+                        lac = -1;
+
 					if (cid < LOW_BOUND || cid > MAX_PCI)
 						cid = -1;
+
+					if (psc < LOW_BOUND || psc > MAX_3G_CID_4G_CI)
+						psc = -1;
 					break;
             }
 

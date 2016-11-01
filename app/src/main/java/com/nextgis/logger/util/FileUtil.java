@@ -25,7 +25,6 @@ package com.nextgis.logger.util;
 
 import android.content.Context;
 import android.content.Intent;
-import android.os.Environment;
 import android.text.TextUtils;
 import android.widget.Toast;
 
@@ -41,6 +40,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public final class FileUtil {
@@ -91,17 +91,12 @@ public final class FileUtil {
      * @param path Path to directory
      * @return boolean signing success or fail
      */
-    public static boolean checkOrCreateDirectory(String path) {
-        if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-            return false;
-        } else {
-            File dataDir = new File(path);
+    public static boolean checkOrCreateDirectory(File path) {
+        return path.exists() || path.mkdirs();
+    }
 
-            if (!dataDir.exists())
-                return dataDir.mkdirs();
-        }
-
-        return true;
+    public static void append(String path, String header, String item) throws FileNotFoundException, RuntimeException {
+        append(path, header, Collections.singletonList(item));
     }
 
     /**
