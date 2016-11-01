@@ -149,5 +149,33 @@
             android:enabled="true"
             android:exported="false"
             android:icon="@drawable/ic_launcher"/>
+
+        <service
+            android:name=".util.AccountAuthenticator"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.accounts.AccountAuthenticator" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accounts.AccountAuthenticator"
+                android:resource="@xml/authenticator" />
+        </service>
+
+        <service android:name="com.nextgis.maplib.service.NGWSyncService">
+            <intent-filter>
+                <action android:name="android.content.SyncAdapter"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.content.SyncAdapter"
+                android:resource="@xml/syncadapter"/>
+        </service>
+
+        <provider
+            android:name="com.nextgis.maplib.datasource.LayerContentProvider"
+            android:authorities="com.nextgis.logger.provider"
+            android:exported="false"
+            android:syncable="true"/>
+
     </application>
 </manifest>

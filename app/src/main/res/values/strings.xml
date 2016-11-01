@@ -195,6 +195,7 @@
     <string name="timestamp">Timestamp</string>
     <string name="device_info">Device info</string>
 
+    <string name="nextgis" translatable="false">NextGIS</string>
     <string name="ngw_from_my_nextgis">Do you have GIS? Sign up at my.nextgis.com to get your own one!</string>
     <string name="instance_name">Instance name</string>
     <string name="password">Password</string>

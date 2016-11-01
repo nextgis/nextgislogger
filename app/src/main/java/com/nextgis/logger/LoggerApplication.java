@@ -29,6 +29,7 @@ import android.accounts.AccountManagerFuture;
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
 import android.app.Application;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -45,6 +46,7 @@ import com.nextgis.logger.util.LoggerVectorLayer;
 import com.nextgis.maplib.api.IGISApplication;
 import com.nextgis.maplib.api.ILayer;
 import com.nextgis.maplib.datasource.Field;
+import com.nextgis.maplib.datasource.ngw.SyncAdapter;
 import com.nextgis.maplib.location.GpsEventSource;
 import com.nextgis.maplib.map.LayerFactory;
 import com.nextgis.maplib.map.LayerGroup;
@@ -66,6 +68,8 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static android.Manifest.permission.GET_ACCOUNTS;
+import static com.nextgis.logger.util.LoggerConstants.PREF_AUTO_SYNC;
+import static com.nextgis.logger.util.LoggerConstants.PREF_AUTO_SYNC_PERIOD;
 import static com.nextgis.maplib.util.Constants.CONFIG;
 import static com.nextgis.maplib.util.Constants.JSON_TYPE_KEY;
 import static com.nextgis.maplib.util.Constants.LAYERTYPE_NGW_VECTOR;
@@ -116,20 +120,18 @@ public class LoggerApplication extends Application implements IGISApplication {
         checkLayers();
         updateFromPrevious();
 
-        //turn on periodic sync. Can be set for each layer individually, but this is simpler
-        //        if (mSharedPreferences.getBoolean(KEY_PREF_SYNC_PERIODICALLY, true)) {
-        //            long period = mSharedPreferences.getLong(KEY_PREF_SYNC_PERIOD_SEC_LONG, Constants.DEFAULT_SYNC_PERIOD); //1 hour
-        //
-        //            if (-1 == period)
-        //                period = Constants.DEFAULT_SYNC_PERIOD;
-        //
-        //            Bundle params = new Bundle();
-        //            params.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, false);
-        //            params.putBoolean(ContentResolver.SYNC_EXTRAS_DO_NOT_RETRY, false);
-        //            params.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, false);
-        //
-        //            SyncAdapter.setSyncPeriod(this, params, period);
-        //        }
+        if (mSharedPreferences.getBoolean(PREF_AUTO_SYNC, true)) {
+            long period = mSharedPreferences.getLong(PREF_AUTO_SYNC_PERIOD, Constants.DEFAULT_SYNC_PERIOD);
+            if (period == -1)
+                period = Constants.DEFAULT_SYNC_PERIOD;
+
+            Bundle params = new Bundle();
+            params.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, false);
+            params.putBoolean(ContentResolver.SYNC_EXTRAS_DO_NOT_RETRY, false);
+            params.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, false);
+
+            SyncAdapter.setSyncPeriod(this, params, period);
+        }
     }
 
     public static LoggerApplication getApplication() {
@@ -341,8 +343,8 @@ public class LoggerApplication extends Application implements IGISApplication {
             fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_GEN, getString(R.string.info_title_network)));
             fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_TYPE, getString(R.string.network_type)));
             fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_ACTIVE, getString(R.string.info_active)));
-            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_MCC, getString(R.string.info_mcc)));
-            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_MNC, getString(R.string.info_mnc)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_MCC, "MCC"));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_MNC, "MNC"));
             fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_LAC, "LAC/TAC"));
             fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_CID, "CID/PCI"));
             fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_PSC, "PSC/CI"));
