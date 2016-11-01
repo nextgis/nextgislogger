@@ -38,7 +38,6 @@ import android.text.TextUtils;
 
 import com.nextgis.logger.LoggerApplication;
 import com.nextgis.logger.util.LoggerConstants;
-import com.nextgis.maplib.datasource.GeoPoint;
 import com.nextgis.maplib.map.MapBase;
 import com.nextgis.maplib.map.NGWVectorLayer;
 import com.nextgis.maplib.util.Constants;
@@ -176,11 +175,7 @@ public class ArduinoEngine extends BaseEngine {
                 data += item.getColumns().get(0).getValue();
 
             cv.put(LoggerApplication.FIELD_DATA, data);
-            try {
-                cv.put(Constants.FIELD_GEOM, new GeoPoint(0, 0).toBlob());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            cv.put(Constants.FIELD_GEOM, "");
 
             externalLayer.insert(mUri, cv);
         }

@@ -48,12 +48,10 @@ import com.nextgis.logger.LoggerApplication;
 import com.nextgis.logger.R;
 import com.nextgis.logger.util.LoggerConstants;
 import com.nextgis.logger.util.UiUtil;
-import com.nextgis.maplib.datasource.GeoPoint;
 import com.nextgis.maplib.map.MapBase;
 import com.nextgis.maplib.map.NGWVectorLayer;
 import com.nextgis.maplib.util.Constants;
 
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -79,6 +77,7 @@ public class CellEngine extends BaseEngine {
 
 	public CellEngine(Context context) {
 		super(context);
+        mItems = new ArrayList<>();
 		mTelephonyManager = (TelephonyManager) mContext.getSystemService(Context.TELEPHONY_SERVICE);
 		mSignalListener = new GSMPhoneStateListener();
         mUri = mUri.buildUpon().appendPath(LoggerApplication.TABLE_CELL).build();
@@ -138,11 +137,7 @@ public class CellEngine extends BaseEngine {
 				cv.put(LoggerConstants.HEADER_CID, (String) item.getColumn(LoggerConstants.HEADER_CID).getValue());
 				cv.put(LoggerConstants.HEADER_PSC, (String) item.getColumn(LoggerConstants.HEADER_PSC).getValue());
 				cv.put(LoggerConstants.HEADER_POWER, (String) item.getColumn(LoggerConstants.HEADER_POWER).getValue());
-				try {
-					cv.put(Constants.FIELD_GEOM, new GeoPoint(0, 0).toBlob());
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+                cv.put(Constants.FIELD_GEOM, "");
 
 				cellLayer.insert(mUri, cv);
 			}

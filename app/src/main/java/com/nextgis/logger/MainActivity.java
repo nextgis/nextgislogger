@@ -53,14 +53,12 @@ import com.nextgis.logger.UI.ProgressBarActivity;
 import com.nextgis.logger.util.FileUtil;
 import com.nextgis.logger.util.LoggerConstants;
 import com.nextgis.maplib.api.IGISApplication;
-import com.nextgis.maplib.datasource.GeoPoint;
 import com.nextgis.maplib.map.MapBase;
 import com.nextgis.maplib.map.MapContentProviderHelper;
 import com.nextgis.maplib.map.NGWVectorLayer;
 import com.nextgis.maplib.util.Constants;
 
 import java.io.File;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
@@ -250,22 +248,13 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
             cv.put(LoggerApplication.FIELD_USER, userName);
             cv.put(LoggerApplication.FIELD_DEVICE_INFO, deviceInfo);
             cv.put(LoggerApplication.FIELD_UNIQUE_ID, id);
-            try {
-                cv.put(Constants.FIELD_GEOM, new GeoPoint(0, 0).toBlob());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            cv.put(Constants.FIELD_GEOM, "");
 
             sessionLayer.insert(mUri, cv);
             return id;
         }
 
         return null;
-    }
-
-    public void updateFileForMTP(String path) {
-        Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.parse(path));
-        sendBroadcast(intent);    // update media for MTP
     }
 
     @SuppressWarnings("deprecation")

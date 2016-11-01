@@ -35,15 +35,43 @@ import android.widget.Toast;
 
 import com.nextgis.logger.LoggerApplication;
 import com.nextgis.logger.R;
-import com.nextgis.maplib.datasource.GeoPoint;
 import com.nextgis.maplib.map.MapBase;
 import com.nextgis.maplib.map.NGWVectorLayer;
 import com.nextgis.maplib.util.Constants;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
-import static com.nextgis.logger.util.LoggerConstants.*;
+import static com.nextgis.logger.util.LoggerConstants.CSV_SEPARATOR;
+import static com.nextgis.logger.util.LoggerConstants.HEADER_ACC_X;
+import static com.nextgis.logger.util.LoggerConstants.HEADER_ACC_Y;
+import static com.nextgis.logger.util.LoggerConstants.HEADER_ACC_Z;
+import static com.nextgis.logger.util.LoggerConstants.HEADER_AUDIO;
+import static com.nextgis.logger.util.LoggerConstants.HEADER_AZIMUTH;
+import static com.nextgis.logger.util.LoggerConstants.HEADER_GPS_ACC;
+import static com.nextgis.logger.util.LoggerConstants.HEADER_GPS_ALT;
+import static com.nextgis.logger.util.LoggerConstants.HEADER_GPS_BE;
+import static com.nextgis.logger.util.LoggerConstants.HEADER_GPS_LAT;
+import static com.nextgis.logger.util.LoggerConstants.HEADER_GPS_LON;
+import static com.nextgis.logger.util.LoggerConstants.HEADER_GPS_SAT;
+import static com.nextgis.logger.util.LoggerConstants.HEADER_GPS_SP;
+import static com.nextgis.logger.util.LoggerConstants.HEADER_GPS_TIME;
+import static com.nextgis.logger.util.LoggerConstants.HEADER_GYRO_X;
+import static com.nextgis.logger.util.LoggerConstants.HEADER_GYRO_Y;
+import static com.nextgis.logger.util.LoggerConstants.HEADER_GYRO_Z;
+import static com.nextgis.logger.util.LoggerConstants.HEADER_LINEAR_X;
+import static com.nextgis.logger.util.LoggerConstants.HEADER_LINEAR_Y;
+import static com.nextgis.logger.util.LoggerConstants.HEADER_LINEAR_Z;
+import static com.nextgis.logger.util.LoggerConstants.HEADER_MAGNETIC_X;
+import static com.nextgis.logger.util.LoggerConstants.HEADER_MAGNETIC_Y;
+import static com.nextgis.logger.util.LoggerConstants.HEADER_MAGNETIC_Z;
+import static com.nextgis.logger.util.LoggerConstants.HEADER_PITCH;
+import static com.nextgis.logger.util.LoggerConstants.HEADER_ROLL;
+import static com.nextgis.logger.util.LoggerConstants.PREF_SENSOR_GYRO;
+import static com.nextgis.logger.util.LoggerConstants.PREF_SENSOR_MAG;
+import static com.nextgis.logger.util.LoggerConstants.PREF_SENSOR_MODE;
+import static com.nextgis.logger.util.LoggerConstants.PREF_SENSOR_ORIENT;
+import static com.nextgis.logger.util.LoggerConstants.PREF_SENSOR_STATE;
+import static com.nextgis.logger.util.LoggerConstants.UPDATE_FREQUENCY;
 
 public class SensorEngine extends BaseEngine implements SensorEventListener {
     private static final String BUNDLE_SOURCE = "source";
@@ -159,12 +187,7 @@ public class SensorEngine extends BaseEngine implements SensorEventListener {
                     cv.put(HEADER_AUDIO, item.getColumn(HEADER_AUDIO).getValue() + "");
             }
 
-            try {
-                cv.put(Constants.FIELD_GEOM, new GeoPoint(0, 0).toBlob());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
+            cv.put(Constants.FIELD_GEOM, "");
             sensorLayer.insert(mUri, cv);
         }
     }

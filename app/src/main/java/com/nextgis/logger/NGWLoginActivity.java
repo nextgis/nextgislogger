@@ -144,7 +144,7 @@ public class NGWLoginActivity extends ProgressBarActivity implements NGWLoginFra
                 task.cancel(true);
             }
         });
-        mProgress.setMessage(getString(R.string.message_loading));
+        mProgress.setMessage(getString(R.string.sync_progress));
         mProgress.show();
 
         task.execute();
@@ -217,7 +217,7 @@ public class NGWLoginActivity extends ProgressBarActivity implements NGWLoginFra
                 layer.mNgwVersionMajor = mVer.first;
                 layer.mNgwVersionMinor = mVer.second;
                 layer.mNGWLayerType = Connection.NGWResourceTypeVectorLayer;
-                layer.setSyncType(Constants.SYNC_ALL);
+                layer.setSyncType(table.equals(LoggerApplication.TABLE_MARK) ? Constants.SYNC_DATA : Constants.SYNC_ATTRIBUTES);
                 layer.setAccountName(account);
                 layer.setRemoteId(id);
                 layer.save();
@@ -386,9 +386,11 @@ public class NGWLoginActivity extends ProgressBarActivity implements NGWLoginFra
                     Long id = obj.getLong(Constants.JSON_ID_KEY);
 
                     if (mLayer != null) {
-                        ((NGWVectorLayer) mLayer).setSyncType(Constants.SYNC_ALL);
+                        boolean isMarks = mLayer.getName().equals(LoggerApplication.TABLE_MARK);
+                        int syncType = isMarks ? Constants.SYNC_DATA : Constants.SYNC_ATTRIBUTES;
+                        ((NGWVectorLayer) mLayer).setSyncType(syncType);
                         mLayer.save();
-                        mLayer.toNGW(id, mConnection.getName(), mVer);
+                        mLayer.toNGW(id, mConnection.getName(), syncType, mVer);
                         mCounter--;
 
                         if (mCounter == 0) {
