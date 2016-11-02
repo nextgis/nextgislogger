@@ -113,7 +113,6 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
 
             for (int i = 0; i < sbaSelectedItems.size(); i++) {
                 if (sbaSelectedItems.valueAt(i)) {
-                    //                    String fileName = mLvSessions.getAdapter().getItem(sbaSelectedItems.keyAt(i)).toString();
                     result.add(i);
                 }
             }
@@ -421,7 +420,7 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
     private String[] getIdsFromPositions(List<Integer> positions) {
         String[] result = new String[positions.size()];
         for (int i = 0; i < positions.size(); i++)
-            result[i] = mSessions.get(i).getFieldValueAsString(LoggerApplication.FIELD_UNIQUE_ID);
+            result[i] = mSessions.get(mSessions.size() - i - 1).getFieldValueAsString(LoggerApplication.FIELD_UNIQUE_ID);
 
         return result;
     }

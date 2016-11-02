@@ -88,20 +88,7 @@ public class InfoActivity extends BindActivity implements ViewPager.OnPageChange
     @Override
     public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
         super.onServiceConnected(componentName, iBinder);
-        setEngine(0);
-        setEngine(1);
-        setEngine(2);
-    }
-
-    @Override
-    public void onServiceDisconnected(ComponentName componentName) {
-        super.onServiceDisconnected(componentName);
-        InfoExternalsFragment externalFragment = (InfoExternalsFragment) mItemAdapter.getFragment(2);
-        mArduinoEngine.removeConnectionListener(externalFragment);
-
-        ((InfoFragment) mItemAdapter.getFragment(0)).setEngine(null);
-        ((InfoFragment) mItemAdapter.getFragment(1)).setEngine(null);
-        ((InfoFragment) mItemAdapter.getFragment(2)).setEngine(null);
+        onPageSelected(mVpScreens.getCurrentItem());
     }
 
     @Override
@@ -130,7 +117,7 @@ public class InfoActivity extends BindActivity implements ViewPager.OnPageChange
                 engine = mSensorEngine;
                 break;
             case 2:
-                if (fragment != null) {
+                if (fragment != null && mArduinoEngine != null) {
                     InfoExternalsFragment externalFragment = (InfoExternalsFragment) fragment;
                     mArduinoEngine.addConnectionListener(externalFragment);
                 }

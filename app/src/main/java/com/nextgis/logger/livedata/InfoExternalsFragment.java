@@ -26,6 +26,7 @@ package com.nextgis.logger.livedata;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,9 +35,12 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.nextgis.logger.PreferencesActivity;
 import com.nextgis.logger.R;
+import com.nextgis.logger.UI.ProgressBarActivity;
+import com.nextgis.logger.UI.fragment.SensorsPreferenceFragment;
 import com.nextgis.logger.engines.ArduinoEngine;
 import com.nextgis.logger.engines.BaseEngine;
 import com.nextgis.logger.engines.InfoItem;
@@ -206,9 +210,15 @@ public class InfoExternalsFragment extends InfoFragment implements View.OnClickL
             case R.id.btn_settings:
                 Intent preferencesActivity = new Intent();
 
-                if (!isConnected() || !mEngine.isEngineEnabled())
+                if (!isConnected() || !mEngine.isEngineEnabled()) {
+                    if (!((ProgressBarActivity) getActivity()).isSessionClosed()) {
+                        Toast.makeText(getActivity(), R.string.session_close_first, Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
                     preferencesActivity.setClass(getActivity(), PreferencesActivity.class);
-                else if (!((ArduinoEngine) mEngine).isBTEnabled())
+                    preferencesActivity.putExtra(PreferenceActivity.EXTRA_SHOW_FRAGMENT, SensorsPreferenceFragment.class.getName());
+                } else if (!((ArduinoEngine) mEngine).isBTEnabled())
                     preferencesActivity.setAction(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS);
                 else {
                     connect();

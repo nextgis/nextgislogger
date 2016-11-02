@@ -320,7 +320,7 @@ public class ProgressBarActivity extends FragmentActivity implements View.OnClic
         return isServiceRunning && mPreferences.getBoolean(LoggerConstants.PREF_MEASURING, false);
     }
 
-    protected boolean isSessionClosed() {
+    public boolean isSessionClosed() {
         return TextUtils.isEmpty(mPreferences.getString(LoggerConstants.PREF_SESSION_ID, null));
     }
 

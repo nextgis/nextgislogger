@@ -85,6 +85,7 @@
     <string name="btn_session_open">New</string>
     <string name="btn_session_close">Close</string>
     <string name="btn_sessions_manage">Manage</string>
+    <string name="session_close_first">Please close current session first</string>
 
     <string name="scl_current_session">current session</string>
     <string name="delete_sessions_done">Sessions deleted</string>

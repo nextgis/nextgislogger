@@ -35,6 +35,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.PeriodicSync;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
@@ -230,7 +231,12 @@ public class AccountPreferenceFragment extends PreferenceFragment {
     }
 
     private void onDeleteAccount() {
-        initPreferences();
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                initPreferences();
+            }
+        }, 1500);
     }
 
     public static CharSequence[] getPeriodTitles(Context context) {
