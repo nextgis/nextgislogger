@@ -127,12 +127,20 @@ public class LoggerService extends Service implements ArduinoEngine.ConnectionLi
                 if (!mIsRunning) {
                     mInterval = mPreferences.getInt(LoggerConstants.PREF_PERIOD_SEC, mInterval);
                     mSessionId = mPreferences.getString(LoggerConstants.PREF_SESSION_ID, null);
-                    mIsRunning = true;
-                    mRecordsCount = getRecordsCount();
-                    sendNotification();
-                    startMeasuring();
+                    if (mSessionId == null) {
+                        Intent intentStatus = new Intent(LoggerConstants.ACTION_INFO);
+                        intentStatus.putExtra(LoggerConstants.SERVICE_STATUS, LoggerConstants.STATUS_ERROR);
+                        sendBroadcast(intentStatus);
+                        stopSelf();
+                        return START_NOT_STICKY;
+                    } else {
+                        mIsRunning = true;
+                        mRecordsCount = getRecordsCount();
+                        sendNotification();
+                        startMeasuring();
+                        return START_REDELIVER_INTENT;
+                    }
                 }
-                return START_REDELIVER_INTENT;
             case LoggerConstants.ACTION_DESTROY:
                 stopSelf();
                 return START_NOT_STICKY;

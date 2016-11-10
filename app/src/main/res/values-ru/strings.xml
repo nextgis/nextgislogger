@@ -82,6 +82,7 @@
     <string name="btn_session_close">Закрыть</string>
     <string name="btn_sessions_manage">Управление</string>
     <string name="session_close_first">Пожалуйста закройте сначала текущую сессию</string>
+    <string name="session_bad">Неверная сессия. Пожалуйста попробуйте новую.</string>
     
     <string name="scl_current_session">текущая сессия</string>
     <string name="delete_sessions_done">Сессии удалены</string>

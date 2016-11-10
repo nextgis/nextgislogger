@@ -122,6 +122,9 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
                         if (mPreferences.getString(LoggerConstants.PREF_SESSION_ID, null) != null)
                             mPreferences.edit().putLong(LoggerConstants.PREF_TIME_FINISH, time).putInt(LoggerConstants.PREF_RECORDS_COUNT, count).apply();
                         break;
+                    case LoggerConstants.STATUS_ERROR:
+                        Toast.makeText(context, R.string.session_bad, Toast.LENGTH_SHORT).show();
+                        break;
                 }
             }
         };
