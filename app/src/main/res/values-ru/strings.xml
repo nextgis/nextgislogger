@@ -91,10 +91,10 @@
     <string name="sessions_nothing_selected">Ничего не выбрано</string>
     <string name="sessions_select_all">Выбрать все</string>
     <string name="sessions_delete_current">Текущая сессия будет также остановлена и удалена.</string>
-    <string name="mstdt">Метки⚭Сервис; Данные⚭</string>
-    <string name="mstds">Метки⚭Сервис; Данные⚮</string>
-    <string name="mssdt">Метки⚮Сервис; Данные⚭</string>
-    <string name="mssds">Метки⚮Сервис; Данные⚮</string>
+    <string name="mstdt">Всё в один файл (CSV)</string>
+    <string name="mstds">Метки⚭Сервис; Данные⚮ (CSV)</string>
+    <string name="mssdt">Метки⚮Сервис; Данные⚭ (CSV)</string>
+    <string name="mssds">Всё в разные файлы (CSV)</string>
     <string name="gpx">Только GPS-трек (GPX)</string>
 
     <string name="ext_media_unmounted_msg">Нет доступа к внешней памяти</string>

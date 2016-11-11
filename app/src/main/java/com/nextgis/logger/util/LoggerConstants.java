@@ -30,6 +30,7 @@ public interface LoggerConstants {
     String CELL = "cell";
     String SENSOR = "sensor";
     String EXTERNAL = "external";
+    String DATA = "data";
     String LOG = "log";
     String MARK = "mark";
     String CATEGORIES = "categories.csv";
@@ -125,7 +126,7 @@ public interface LoggerConstants {
     String GEN_3G = "3G";
     String GEN_4G = "4G";
     String UNKNOWN = "unknown";
-    String NO_DATA = "NaN";
+    String NO_DATA = "null";
 
     int STATUS_STARTED = 100;
     int STATUS_RUNNING = 101;

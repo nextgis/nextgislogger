@@ -59,6 +59,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import static com.nextgis.logger.util.LoggerConstants.CSV_SEPARATOR;
+import static com.nextgis.logger.util.LoggerConstants.NO_DATA;
 
 public class CellEngine extends BaseEngine {
 	private final static String LTE_SIGNAL_STRENGTH = "getLteSignalStrength";
@@ -411,6 +412,11 @@ public class CellEngine extends BaseEngine {
 				LoggerConstants.HEADER_MCC + CSV_SEPARATOR + LoggerConstants.HEADER_MNC + CSV_SEPARATOR + LoggerConstants.HEADER_LAC + "/" +
 				LoggerConstants.HEADER_TAC + CSV_SEPARATOR + LoggerConstants.HEADER_CID + "/" + LoggerConstants.HEADER_PCI + CSV_SEPARATOR +
 				LoggerConstants.HEADER_PSC + "/" + LoggerConstants.HEADER_CI + CSV_SEPARATOR + LoggerConstants.HEADER_RSSI + "/" + LoggerConstants.HEADER_RSCP;
+	}
+
+	public static String getEmptyRow() {
+        return NO_DATA + CSV_SEPARATOR + NO_DATA + CSV_SEPARATOR + NO_DATA + CSV_SEPARATOR + NO_DATA + CSV_SEPARATOR + NO_DATA + CSV_SEPARATOR + NO_DATA +
+                CSV_SEPARATOR + NO_DATA + CSV_SEPARATOR + NO_DATA + CSV_SEPARATOR + NO_DATA;
 	}
 
 	public static String getDataFromCursor(Cursor cursor) {

@@ -220,16 +220,22 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
                         do {
                             String preamble = BaseEngine.getPreamble(marks.getString(1), marks.getString(2), sessions.getString(2), marks.getLong(3));
                             preamble += LoggerConstants.CSV_SEPARATOR;
+                            String prefix = LoggerConstants.LOG;
+
                             switch (type) {
                                 case TYPE_MSTDT:
+                                    writeDataTogether(LoggerConstants.DATA, db, path, preamble, marks.getString(0));
                                     break;
                                 case TYPE_MSTDS:
                                     writeDataSeparated("", db, path, preamble, marks.getString(0));
                                     break;
                                 case TYPE_MSSDT:
+                                    if (marks.getInt(1) != -1)
+                                        prefix = LoggerConstants.MARK;
+
+                                    writeDataTogether(prefix, db, path, preamble, marks.getString(0));
                                     break;
                                 case TYPE_MSSDS:
-                                    String prefix = LoggerConstants.LOG;
                                     if (marks.getInt(1) != -1)
                                         prefix = LoggerConstants.MARK;
 
@@ -311,6 +317,45 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
                 FileUtil.append(filePath, header + "data", item);
             }
             data.close();
+        }
+    }
+
+    private void writeDataTogether(String prefix, SQLiteDatabase db, File path, String preamble, String markId) throws FileNotFoundException {
+        String row = "";
+        String header = "";
+        Cursor data = db.query(LoggerApplication.TABLE_SENSOR, null, LoggerApplication.FIELD_MARK + " = ?", new String[]{markId}, null, null, null);
+        if (data != null) {
+            if (data.moveToFirst()) {
+                row += LoggerConstants.CSV_SEPARATOR + SensorEngine.getDataFromCursor(data);
+                header += LoggerConstants.CSV_SEPARATOR + SensorEngine.getHeader();
+            }
+            data.close();
+        }
+
+        data = db.query(LoggerApplication.TABLE_EXTERNAL, null, LoggerApplication.FIELD_MARK + " = ?", new String[]{markId}, null, null, null);
+        if (data != null) {
+            if (data.moveToFirst()) {
+                row += LoggerConstants.CSV_SEPARATOR + ArduinoEngine.getDataFromCursor(data);
+                header += LoggerConstants.CSV_SEPARATOR + "data";
+            }
+            data.close();
+        }
+
+        data = db.query(LoggerApplication.TABLE_CELL, null, LoggerApplication.FIELD_MARK + " = ?", new String[]{markId}, null, null,
+                        LoggerConstants.HEADER_ACTIVE);
+        if (data != null) {
+            List<String> items = new ArrayList<>();
+            if (data.moveToFirst()) {
+                do {
+                    items.add(preamble + CellEngine.getDataFromCursor(data) + row);
+                } while (data.moveToNext());
+            } else
+                items.add(preamble + CellEngine.getEmptyRow() + row);
+            data.close();
+
+            String filePath = new File(path, prefix + LoggerConstants.CSV_EXT).getAbsolutePath();
+            header = LoggerConstants.CSV_HEADER_PREAMBLE + LoggerConstants.CSV_SEPARATOR + CellEngine.getHeader() + header;
+            FileUtil.append(filePath, header, items);
         }
     }
 
