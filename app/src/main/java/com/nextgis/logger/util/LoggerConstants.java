@@ -33,6 +33,7 @@ public interface LoggerConstants {
     String DATA = "data";
     String LOG = "log";
     String MARK = "mark";
+    String GPX = "track.gpx";
     String CATEGORIES = "categories.csv";
     String DEVICE_INFO = "device_info.txt";
     String TEMP_PATH = ".temp";

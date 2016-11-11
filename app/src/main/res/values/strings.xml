@@ -100,6 +100,8 @@
     <string name="mssdt">Marks⚮Service; Data⚭ (CSV)</string>
     <string name="mssds">All separated (CSV)</string>
     <string name="gpx">Only GPS-track (GPX)</string>
+    <string name="export">Export</string>
+    <string name="preparing">Preparing data…</string>
 
     <string name="ext_media_unmounted_msg">External Media is NOT MOUNTED</string>
     <string name="fs_error_msg">File system ERROR.</string>

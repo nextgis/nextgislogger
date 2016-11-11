@@ -24,12 +24,14 @@
 package com.nextgis.logger;
 
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.SparseBooleanArray;
 import android.view.Menu;
@@ -58,9 +60,16 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
+import java.util.Formatter;
 import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -68,10 +77,29 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
     private static final int SHARE = 1;
     private static int LAYOUT = android.R.layout.simple_list_item_multiple_choice;
 
+    private static final String XML_VERSION = "<?xml version=\"1.0\"?>";
+    private static final String GPX_VERSION = "1.1";
+    private static final String GPX_TAG =
+            "<gpx version=\"" + GPX_VERSION + "\" creator=\"%s\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.topografix.com/GPX/1/1\" xsi:schemaLocation=\"http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd\">";
+    private static final String GPX_TAG_CLOSE = "</gpx>";
+    private static final String GPX_TAG_TRACK = "<trk>";
+    private static final String GPX_TAG_TRACK_CLOSE = "</trk>";
+    private static final String GPX_TAG_TRACK_SEGMENT = "<trkseg>";
+    private static final String GPX_TAG_TRACK_SEGMENT_CLOSE = "</trkseg>";
+    private static final String GPX_TAG_TRACK_SEGMENT_POINT = "<trkpt lat=\"%s\" lon=\"%s\">";
+    private static final String GPX_TAG_TRACK_SEGMENT_POINT_CLOSE = "</trkpt>";
+    private static final String GPX_TAG_TRACK_SEGMENT_POINT_TIME = "<time>%s</time>";
+    private static final String GPX_TAG_TRACK_SEGMENT_POINT_SAT = "<sat>%s</sat>";
+    private static final String GPX_TAG_TRACK_SEGMENT_POINT_ELE = "<ele>%s</ele>";
+    private static final String GPX_TAG_TRACK_SEGMENT_POINT_SPEED = "<speed>%s</speed>";
+    private static final String GPX_HEADER = XML_VERSION + "\r\n" + String
+            .format(GPX_TAG, "NextGIS Logger v" + BuildConfig.VERSION_NAME) + "\r\n" + GPX_TAG_TRACK + "\r\n" + GPX_TAG_TRACK_SEGMENT;
+
     public static final int TYPE_MSTDT = 0; // marks and service together, data together
     public static final int TYPE_MSTDS = 1; // marks and service together, data separated
     public static final int TYPE_MSSDT = 2; // marks and service separated, data together
     public static final int TYPE_MSSDS = 3; // marks and service separated, data separated
+    public static final int TYPE_GPX = 4; // gpx
 
     private ListView mLvSessions;
     private List<Feature> mSessions;
@@ -179,106 +207,112 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
         }).setPositiveButton(R.string.btn_ok, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                shareSessionsWithOption(ids, selected[0]);
+                new ExportTask(ids, selected[0]).execute();
             }
         }).show();
     }
 
-    private void shareSessionsWithOption(String[] ids, int type) {
-        ArrayList<Uri> logsZips = new ArrayList<>();
-        try {
-            File temp = new File(getExternalFilesDir(null), LoggerConstants.TEMP_PATH);
-            boolean directoryExists = FileUtil.checkOrCreateDirectory(temp);
-            if (!directoryExists)
-                throw new IOException();
+    private ArrayList<Uri> prepareData(String[] ids, int type, ExportTask exportTask) throws SQLiteException, IOException {
+        ArrayList<Uri> result = new ArrayList<>();
+        File temp = new File(getExternalFilesDir(null), LoggerConstants.TEMP_PATH);
+        boolean directoryExists = FileUtil.checkOrCreateDirectory(temp);
+        if (!directoryExists)
+            throw new IOException();
 
-            String in = " IN (" + MapUtil.makePlaceholders(ids.length) + ")";
-            SQLiteDatabase db = ((MapContentProviderHelper) MapBase.getInstance()).getDatabase(false);
-            Cursor sessions = db.query(LoggerApplication.TABLE_SESSION,
-                                       new String[]{LoggerApplication.FIELD_UNIQUE_ID, LoggerApplication.FIELD_NAME, LoggerApplication.FIELD_USER,
-                                                    LoggerApplication.FIELD_DEVICE_INFO}, LoggerApplication.FIELD_UNIQUE_ID + in, ids, null, null, null);
+        String in = " IN (" + MapUtil.makePlaceholders(ids.length) + ")";
+        SQLiteDatabase db = ((MapContentProviderHelper) MapBase.getInstance()).getDatabase(false);
+        Cursor sessions = db.query(LoggerApplication.TABLE_SESSION,
+                                   new String[]{LoggerApplication.FIELD_UNIQUE_ID, LoggerApplication.FIELD_NAME, LoggerApplication.FIELD_USER,
+                                                LoggerApplication.FIELD_DEVICE_INFO}, LoggerApplication.FIELD_UNIQUE_ID + in, ids, null, null, null);
 
-            if (sessions == null)
-                return;
+        if (sessions == null || exportTask.isUserCancelled())
+            return null;
 
-            if (sessions.moveToFirst()) {
-                do {
-                    Cursor marks = db.query(LoggerApplication.TABLE_MARK,
-                                            new String[]{LoggerApplication.FIELD_UNIQUE_ID, LoggerApplication.FIELD_MARK_ID, LoggerApplication.FIELD_NAME,
-                                                         LoggerApplication.FIELD_TIMESTAMP}, LoggerApplication.FIELD_SESSION + " = ?",
-                                            new String[]{sessions.getString(0)}, null, null, LoggerApplication.FIELD_TIMESTAMP);
+        if (sessions.moveToFirst()) {
+            do {
+                Cursor marks = db.query(LoggerApplication.TABLE_MARK,
+                                        new String[]{LoggerApplication.FIELD_UNIQUE_ID, LoggerApplication.FIELD_MARK_ID, LoggerApplication.FIELD_NAME,
+                                                     LoggerApplication.FIELD_TIMESTAMP}, LoggerApplication.FIELD_SESSION + " = ?",
+                                        new String[]{sessions.getString(0)}, null, null, LoggerApplication.FIELD_TIMESTAMP);
 
-                    if (marks == null) // skip empty sessions
-                        continue;
+                if (marks == null) // skip empty sessions
+                    continue;
 
-                    File path = new File(temp, sessions.getString(1));
-                    directoryExists = FileUtil.checkOrCreateDirectory(path);
-                    if (!directoryExists)
-                        throw new IOException();
+                File path = new File(temp, sessions.getString(1));
+                directoryExists = FileUtil.checkOrCreateDirectory(path);
+                if (!directoryExists)
+                    throw new IOException();
 
-                    if (marks.moveToFirst()) {
-                        do {
-                            String preamble = BaseEngine.getPreamble(marks.getString(1), marks.getString(2), sessions.getString(2), marks.getLong(3));
-                            preamble += LoggerConstants.CSV_SEPARATOR;
-                            String prefix = LoggerConstants.LOG;
+                if (marks.moveToFirst()) {
+                    do {
+                        String preamble = BaseEngine.getPreamble(marks.getString(1), marks.getString(2), sessions.getString(2), marks.getLong(3));
+                        preamble += LoggerConstants.CSV_SEPARATOR;
+                        String prefix = LoggerConstants.LOG;
+                        String markId = marks.getString(0);
 
-                            switch (type) {
-                                case TYPE_MSTDT:
-                                    writeDataTogether(LoggerConstants.DATA, db, path, preamble, marks.getString(0));
-                                    break;
-                                case TYPE_MSTDS:
-                                    writeDataSeparated("", db, path, preamble, marks.getString(0));
-                                    break;
-                                case TYPE_MSSDT:
-                                    if (marks.getInt(1) != -1)
-                                        prefix = LoggerConstants.MARK;
+                        switch (type) {
+                            case TYPE_MSTDT:
+                                writeDataTogether(LoggerConstants.DATA, db, path, preamble, markId);
+                                break;
+                            case TYPE_MSTDS:
+                                writeDataSeparated("", db, path, preamble, markId);
+                                break;
+                            case TYPE_MSSDT:
+                                if (marks.getInt(1) != -1)
+                                    prefix = LoggerConstants.MARK;
 
-                                    writeDataTogether(prefix, db, path, preamble, marks.getString(0));
-                                    break;
-                                case TYPE_MSSDS:
-                                    if (marks.getInt(1) != -1)
-                                        prefix = LoggerConstants.MARK;
+                                writeDataTogether(prefix, db, path, preamble, markId);
+                                break;
+                            case TYPE_MSSDS:
+                                if (marks.getInt(1) != -1)
+                                    prefix = LoggerConstants.MARK;
 
-                                    writeDataSeparated(prefix + "_", db, path, preamble, marks.getString(0));
-                                    break;
-                                default:
-                                    throw new RuntimeException("Type" + type + " is not supported.");
-                            }
-                        } while (marks.moveToNext());
+                                writeDataSeparated(prefix + "_", db, path, preamble, markId);
+                                break;
+                            case TYPE_GPX:
+                                writeGPX(LoggerConstants.GPX, db, path, markId);
+                                break;
+                            default:
+                                throw new RuntimeException("Type" + type + " is not supported for export.");
+                        }
+                    } while (marks.moveToNext() && !exportTask.isUserCancelled());
+
+                    if (type == TYPE_GPX) {
+                        FileUtil.append(new File(path, LoggerConstants.GPX).getAbsolutePath(), GPX_HEADER, GPX_TAG_TRACK_SEGMENT_CLOSE + "\r\n" +
+                                GPX_TAG_TRACK_CLOSE + "\r\n" + GPX_TAG_CLOSE);
                     }
+                }
 
-                    marks.close();
+                marks.close();
+                if (exportTask.isUserCancelled())
+                    break;
 
-                    File deviceInfoFile = new File(path, LoggerConstants.DEVICE_INFO);
-                    FileUtil.append(deviceInfoFile.getAbsolutePath(), "\r\n\r\n", sessions.getString(3));
+                File deviceInfoFile = new File(path, LoggerConstants.DEVICE_INFO);
+                FileUtil.append(deviceInfoFile.getAbsolutePath(), "\r\n\r\n", sessions.getString(3));
 
-                    if (putToZip(path))
-                        logsZips.add(Uri.fromFile(new File(temp, sessions.getString(1) + LoggerConstants.ZIP_EXT))); // add file's uri to share list
-                } while (sessions.moveToNext());
-            }
-
-            sessions.close();
-        } catch (SQLiteException | IOException e) {
-            Toast.makeText(this, R.string.fs_error_msg, Toast.LENGTH_SHORT).show();
+                if (putToZip(path))
+                    result.add(Uri.fromFile(new File(temp, sessions.getString(1) + LoggerConstants.ZIP_EXT))); // add file's uri to share list
+            } while (sessions.moveToNext() && !exportTask.isUserCancelled());
         }
 
-        Intent shareIntent = new Intent();
-        shareIntent.setAction(Intent.ACTION_SEND_MULTIPLE); // multiple sharing
-        shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, logsZips); // set data
-        shareIntent.setType("application/zip"); //set mime type
-        startActivityForResult(Intent.createChooser(shareIntent, getString(R.string.share_sessions_title)), SHARE);
+        sessions.close();
+        return result;
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
             case SHARE:
-                File temp = new File(getExternalFilesDir(null), LoggerConstants.TEMP_PATH);
-                FileUtil.deleteDirectoryOrFile(temp);
+                deleteTemp();
                 break;
             default:
                 super.onActivityResult(requestCode, resultCode, data);
         }
+    }
+
+    private void deleteTemp() {
+        File temp = new File(getExternalFilesDir(null), LoggerConstants.TEMP_PATH);
+        FileUtil.deleteDirectoryOrFile(temp);
     }
 
     private void writeDataSeparated(String prefix, SQLiteDatabase db, File path, String preamble, String markId) throws FileNotFoundException {
@@ -356,6 +390,36 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
             String filePath = new File(path, prefix + LoggerConstants.CSV_EXT).getAbsolutePath();
             header = LoggerConstants.CSV_HEADER_PREAMBLE + LoggerConstants.CSV_SEPARATOR + CellEngine.getHeader() + header;
             FileUtil.append(filePath, header, items);
+        }
+    }
+
+    private void writeGPX(String prefix, SQLiteDatabase db, File path, String markId) throws FileNotFoundException {
+        String[] columns =
+                new String[]{LoggerConstants.HEADER_GPS_LAT, LoggerConstants.HEADER_GPS_LON, LoggerConstants.HEADER_GPS_TIME, LoggerConstants.HEADER_GPS_ALT,
+                             LoggerConstants.HEADER_GPS_SAT, LoggerConstants.HEADER_GPS_SP};
+        Cursor data = db.query(LoggerApplication.TABLE_SENSOR, columns, LoggerApplication.FIELD_MARK + " = ?", new String[]{markId}, null, null, null);
+        final StringBuilder sb = new StringBuilder();
+        final Formatter f = new Formatter(sb);
+
+        if (data != null) {
+            if (data.moveToFirst()) {
+                DecimalFormat df = new DecimalFormat("0", new DecimalFormatSymbols(Locale.ENGLISH));
+                df.setMaximumFractionDigits(340); //340 = DecimalFormat.DOUBLE_FRACTION_DIGITS
+
+                String sLat = df.format(data.getDouble(0));
+                String sLon = df.format(data.getDouble(1));
+                f.format(GPX_TAG_TRACK_SEGMENT_POINT, sLat, sLon);
+                f.format(GPX_TAG_TRACK_SEGMENT_POINT_TIME, getTimeStampAsString(data.getLong(2)));
+                f.format(GPX_TAG_TRACK_SEGMENT_POINT_ELE, df.format(data.getDouble(3)));
+                f.format(GPX_TAG_TRACK_SEGMENT_POINT_SAT, data.getInt(4));
+                f.format(GPX_TAG_TRACK_SEGMENT_POINT_SPEED, data.getFloat(5));
+                sb.append(GPX_TAG_TRACK_SEGMENT_POINT_CLOSE);
+
+                File track = new File(path, prefix);
+                FileUtil.append(track.getAbsolutePath(), GPX_HEADER, sb.toString());
+            }
+
+            data.close();
         }
     }
 
@@ -488,5 +552,95 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
             result[i] = mSessions.get(mSessions.size() - i - 1).getFieldValueAsString(LoggerApplication.FIELD_UNIQUE_ID);
 
         return result;
+    }
+
+    protected String getTimeStampAsString(long nTimeStamp) {
+        final SimpleDateFormat utcFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault());
+        utcFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return utcFormat.format(new Date(nTimeStamp));
+    }
+
+    public class ExportTask extends AsyncTask<Void, Void, ArrayList<Uri>> {
+        private AlertDialog.Builder mDialog;
+        private ProgressDialog mProgress;
+        private String[] mIds;
+        private int mType;
+        private boolean mIsCanceled = false;
+
+        ExportTask(String[] ids, int type) {
+            mIds = ids;
+            mType = type;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            if (mIds.length > 1) {
+                mDialog = new AlertDialog.Builder(SessionsActivity.this);
+                mDialog.setTitle(R.string.share_sessions_title).setMessage(R.string.sync_progress).show();
+            }
+        }
+
+        @Override
+        protected ArrayList<Uri> doInBackground(Void... params) {
+            publishProgress();
+
+            try {
+                return prepareData(mIds, mType, this);
+            } catch (SQLiteException | IOException ignored) { }
+
+            return null;
+        }
+
+        @Override
+        protected void onProgressUpdate(Void... values) {
+            super.onProgressUpdate(values);
+
+            mProgress = new ProgressDialog(SessionsActivity.this);
+            mProgress.setTitle(R.string.export);
+            mProgress.setMessage(getString(R.string.preparing));
+            mProgress.setCanceledOnTouchOutside(false);
+            mProgress.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialogInterface) {
+                    mIsCanceled = true;
+                }
+            });
+            mProgress.show();
+        }
+
+        boolean isUserCancelled() {
+            return mIsCanceled;
+        }
+
+        @Override
+        protected void onPostExecute(ArrayList<Uri> result) {
+            super.onPostExecute(result);
+
+            if (mProgress != null)
+                mProgress.dismiss();
+
+            if (mIsCanceled) {
+                deleteTemp();
+                return;
+            }
+
+            if (result == null) {
+                Toast.makeText(SessionsActivity.this, R.string.fs_error_msg, Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            Intent shareIntent = new Intent();
+            if (result.size() > 1) {
+                shareIntent.setAction(Intent.ACTION_SEND_MULTIPLE);
+                shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, result);
+            } else {
+                shareIntent.setAction(Intent.ACTION_SEND);
+                shareIntent.putExtra(Intent.EXTRA_STREAM, result.get(0));
+            }
+
+            shareIntent.setType("application/zip"); //set mime type
+            startActivityForResult(Intent.createChooser(shareIntent, getString(R.string.share_sessions_title)), SHARE);
+        }
     }
 }

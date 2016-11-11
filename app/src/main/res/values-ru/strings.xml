@@ -96,6 +96,8 @@
     <string name="mssdt">Метки⚮Сервис; Данные⚭ (CSV)</string>
     <string name="mssds">Всё в разные файлы (CSV)</string>
     <string name="gpx">Только GPS-трек (GPX)</string>
+    <string name="export">Экспорт</string>
+    <string name="preparing">Подготовка данных…</string>
 
     <string name="ext_media_unmounted_msg">Нет доступа к внешней памяти</string>
     <string name="fs_error_msg">Ошибка файловой системы</string>
