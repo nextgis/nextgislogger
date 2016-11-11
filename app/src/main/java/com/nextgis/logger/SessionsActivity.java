@@ -167,9 +167,25 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
         }
     }
 
-    private void shareSessions(String[] ids) {
-        ArrayList<Uri> logsZips = new ArrayList<>();
+    private void shareSessions(final String[] ids) {
+        AlertDialog.Builder options = new AlertDialog.Builder(this);
+        final int[] selected = new int[1];
+        // TODO save last selected position
+        options.setSingleChoiceItems(R.array.export, 0, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int position) {
+                selected[0] = position;
+            }
+        }).setPositiveButton(R.string.btn_ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                shareSessionsWithOption(ids, selected[0]);
+            }
+        }).show();
+    }
 
+    private void shareSessionsWithOption(String[] ids, int type) {
+        ArrayList<Uri> logsZips = new ArrayList<>();
         try {
             File temp = new File(getExternalFilesDir(null), LoggerConstants.TEMP_PATH);
             boolean directoryExists = FileUtil.checkOrCreateDirectory(temp);
@@ -204,19 +220,23 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
                         do {
                             String preamble = BaseEngine.getPreamble(marks.getString(1), marks.getString(2), sessions.getString(2), marks.getLong(3));
                             preamble += LoggerConstants.CSV_SEPARATOR;
-                            int savingType = 1;
-                            switch (savingType) {
+                            switch (type) {
                                 case TYPE_MSTDT:
                                     break;
                                 case TYPE_MSTDS:
-                                    writeMSTDS(db, path, preamble, marks.getString(0));
+                                    writeDataSeparated("", db, path, preamble, marks.getString(0));
                                     break;
                                 case TYPE_MSSDT:
                                     break;
                                 case TYPE_MSSDS:
+                                    String prefix = LoggerConstants.LOG;
+                                    if (marks.getInt(1) != -1)
+                                        prefix = LoggerConstants.MARK;
+
+                                    writeDataSeparated(prefix + "_", db, path, preamble, marks.getString(0));
                                     break;
                                 default:
-                                    throw new RuntimeException("Type" + savingType + " is not supported.");
+                                    throw new RuntimeException("Type" + type + " is not supported.");
                             }
                         } while (marks.moveToNext());
                     }
@@ -255,7 +275,7 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
         }
     }
 
-    private void writeMSTDS(SQLiteDatabase db, File path, String preamble, String markId) throws FileNotFoundException {
+    private void writeDataSeparated(String prefix, SQLiteDatabase db, File path, String preamble, String markId) throws FileNotFoundException {
         Cursor data = db.query(LoggerApplication.TABLE_CELL, null, LoggerApplication.FIELD_MARK + " = ?", new String[]{markId}, null, null,
                                LoggerConstants.HEADER_ACTIVE);
 
@@ -267,7 +287,7 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
                     items.add(preamble + CellEngine.getDataFromCursor(data));
                 } while (data.moveToNext());
 
-                String filePath = new File(path, LoggerConstants.CELL + LoggerConstants.CSV_EXT).getAbsolutePath();
+                String filePath = new File(path, prefix + LoggerConstants.CELL + LoggerConstants.CSV_EXT).getAbsolutePath();
                 FileUtil.append(filePath, header + CellEngine.getHeader(), items);
             }
             data.close();
@@ -276,7 +296,7 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
         data = db.query(LoggerApplication.TABLE_SENSOR, null, LoggerApplication.FIELD_MARK + " = ?", new String[]{markId}, null, null, null);
         if (data != null) {
             if (data.moveToFirst()) {
-                String filePath = new File(path, LoggerConstants.SENSOR + LoggerConstants.CSV_EXT).getAbsolutePath();
+                String filePath = new File(path, prefix + LoggerConstants.SENSOR + LoggerConstants.CSV_EXT).getAbsolutePath();
                 String item = preamble + SensorEngine.getDataFromCursor(data);
                 FileUtil.append(filePath, header + SensorEngine.getHeader(), item);
             }
@@ -286,7 +306,7 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
         data = db.query(LoggerApplication.TABLE_EXTERNAL, null, LoggerApplication.FIELD_MARK + " = ?", new String[]{markId}, null, null, null);
         if (data != null) {
             if (data.moveToFirst()) {
-                String filePath = new File(path, LoggerConstants.EXTERNAL + LoggerConstants.CSV_EXT).getAbsolutePath();
+                String filePath = new File(path, prefix + LoggerConstants.EXTERNAL + LoggerConstants.CSV_EXT).getAbsolutePath();
                 String item = preamble + ArduinoEngine.getDataFromCursor(data);
                 FileUtil.append(filePath, header + "data", item);
             }
