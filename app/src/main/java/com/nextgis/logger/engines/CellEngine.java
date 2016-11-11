@@ -137,7 +137,7 @@ public class CellEngine extends BaseEngine {
 				cv.put(LoggerConstants.HEADER_CID, (String) item.getColumn(LoggerConstants.HEADER_CID).getValue());
 				cv.put(LoggerConstants.HEADER_PSC, (String) item.getColumn(LoggerConstants.HEADER_PSC).getValue());
 				cv.put(LoggerConstants.HEADER_POWER, (String) item.getColumn(LoggerConstants.HEADER_POWER).getValue());
-                cv.put(Constants.FIELD_GEOM, "");
+                cv.put(Constants.FIELD_GEOM, LoggerApplication.getNullGeometry());
 
 				cellLayer.insert(mUri, cv);
 			}

@@ -175,7 +175,7 @@ public class ArduinoEngine extends BaseEngine {
                 data += item.getColumns().get(0).getValue();
 
             cv.put(LoggerApplication.FIELD_DATA, data);
-            cv.put(Constants.FIELD_GEOM, "");
+            cv.put(Constants.FIELD_GEOM, LoggerApplication.getNullGeometry());
 
             externalLayer.insert(mUri, cv);
         }

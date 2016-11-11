@@ -217,7 +217,7 @@ public class NGWLoginActivity extends ProgressBarActivity implements NGWLoginFra
                 layer.mNgwVersionMajor = mVer.first;
                 layer.mNgwVersionMinor = mVer.second;
                 layer.mNGWLayerType = Connection.NGWResourceTypeVectorLayer;
-                layer.setSyncType(table.equals(LoggerApplication.TABLE_MARK) ? Constants.SYNC_DATA : Constants.SYNC_ATTRIBUTES);
+                layer.setSyncType(Constants.SYNC_DATA);
                 layer.setAccountName(account);
                 layer.setRemoteId(id);
                 layer.save();
@@ -386,11 +386,9 @@ public class NGWLoginActivity extends ProgressBarActivity implements NGWLoginFra
                     Long id = obj.getLong(Constants.JSON_ID_KEY);
 
                     if (mLayer != null) {
-                        boolean isMarks = mLayer.getName().equals(LoggerApplication.TABLE_MARK);
-                        int syncType = isMarks ? Constants.SYNC_DATA : Constants.SYNC_ATTRIBUTES;
-                        ((NGWVectorLayer) mLayer).setSyncType(syncType);
+                        ((NGWVectorLayer) mLayer).setSyncType(Constants.SYNC_DATA);
                         mLayer.save();
-                        mLayer.toNGW(id, mConnection.getName(), syncType, mVer);
+                        mLayer.toNGW(id, mConnection.getName(), Constants.SYNC_DATA, mVer);
                         mCounter--;
 
                         if (mCounter == 0) {

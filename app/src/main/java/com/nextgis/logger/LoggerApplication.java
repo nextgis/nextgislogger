@@ -46,6 +46,7 @@ import com.nextgis.logger.util.LoggerVectorLayer;
 import com.nextgis.maplib.api.IGISApplication;
 import com.nextgis.maplib.api.ILayer;
 import com.nextgis.maplib.datasource.Field;
+import com.nextgis.maplib.datasource.GeoPoint;
 import com.nextgis.maplib.datasource.ngw.SyncAdapter;
 import com.nextgis.maplib.location.GpsEventSource;
 import com.nextgis.maplib.map.LayerFactory;
@@ -81,6 +82,8 @@ public class LoggerApplication extends Application implements IGISApplication {
     private static final String MAP_NAME = "default";
     private static final String PERMISSION_MANAGE_ACCOUNTS = "android.permission.MANAGE_ACCOUNTS";
     private static final String PERMISSION_AUTHENTICATE_ACCOUNTS = "android.permission.AUTHENTICATE_ACCOUNTS";
+
+    private static byte[] GEO_POINT_NULL;
 
     public static final String TABLE_SESSION = "session";
     public static final String TABLE_MARK = "mark";
@@ -132,6 +135,18 @@ public class LoggerApplication extends Application implements IGISApplication {
 
             SyncAdapter.setSyncPeriod(this, params, period);
         }
+    }
+
+    public static byte[] getNullGeometry() {
+        if (GEO_POINT_NULL == null) {
+            try {
+                GEO_POINT_NULL = new GeoPoint(0, 0).toBlob();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return GEO_POINT_NULL;
     }
 
     public static LoggerApplication getApplication() {

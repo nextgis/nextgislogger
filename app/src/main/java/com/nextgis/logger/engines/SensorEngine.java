@@ -187,7 +187,7 @@ public class SensorEngine extends BaseEngine implements SensorEventListener {
                     cv.put(HEADER_AUDIO, item.getColumn(HEADER_AUDIO).getValue() + "");
             }
 
-            cv.put(Constants.FIELD_GEOM, "");
+            cv.put(Constants.FIELD_GEOM, LoggerApplication.getNullGeometry());
             sensorLayer.insert(mUri, cv);
         }
     }

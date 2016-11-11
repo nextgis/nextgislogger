@@ -251,7 +251,7 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
             cv.put(LoggerApplication.FIELD_USER, userName);
             cv.put(LoggerApplication.FIELD_DEVICE_INFO, deviceInfo);
             cv.put(LoggerApplication.FIELD_UNIQUE_ID, id);
-            cv.put(Constants.FIELD_GEOM, "");
+            cv.put(Constants.FIELD_GEOM, LoggerApplication.getNullGeometry());
 
             sessionLayer.insert(mUri, cv);
             return id;
