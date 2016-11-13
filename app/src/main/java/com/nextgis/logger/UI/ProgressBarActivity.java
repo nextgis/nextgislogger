@@ -51,6 +51,7 @@ import android.view.ViewTreeObserver;
 import android.view.animation.AnimationUtils;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.melnykov.fab.FloatingActionButton;
 import com.nextgis.logger.AboutActivity;
@@ -67,6 +68,9 @@ import com.nextgis.maplib.api.ILayer;
 import com.nextgis.maplib.map.MapBase;
 import com.nextgis.maplib.map.NGWVectorLayer;
 import com.nextgis.maplib.util.NGWUtil;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ProgressBarActivity extends FragmentActivity implements View.OnClickListener {
     private static final int PERMISSION_MAIN = 1;
@@ -182,7 +186,8 @@ public class ProgressBarActivity extends FragmentActivity implements View.OnClic
             startNGWActivity(this);
     }
 
-    private void sync() {
+    private List<SyncResult> sync() {
+        List<SyncResult> result = new ArrayList<>();
         IGISApplication application = (IGISApplication) getApplication();
         MapBase map = application.getMap();
         String accountName;
@@ -194,16 +199,19 @@ public class ProgressBarActivity extends FragmentActivity implements View.OnClic
                 accountName = ngwVectorLayer.getAccountName();
                 if (TextUtils.isEmpty(accountName)) {
                     startNGWActivity(this);
-                    return;
+                    return result;
                 }
 
                 Pair<Integer, Integer> ver = NGWUtil.getNgwVersion(this, accountName);
-                ngwVectorLayer.sync(application.getAuthority(), ver, new SyncResult());
+                result.add(new SyncResult());
+                ngwVectorLayer.sync(application.getAuthority(), ver, result.get(result.size() - 1));
             }
         }
+
+        return result;
     }
 
-    public class Sync extends AsyncTask<Void, Void, Void> {
+    public class Sync extends AsyncTask<Void, Void, List<SyncResult>> {
         private ProgressDialog mProgress;
 
         Sync(Activity activity) {
@@ -225,15 +233,39 @@ public class ProgressBarActivity extends FragmentActivity implements View.OnClic
         }
 
         @Override
-        protected Void doInBackground(Void... voids) {
-            sync();
-            return null;
+        protected List<SyncResult> doInBackground(Void... voids) {
+            return sync();
         }
 
         @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
+        protected void onPostExecute(List<SyncResult> result) {
+            super.onPostExecute(result);
             mProgress.dismiss();
+
+            for (SyncResult syncResult : result) {
+                if (syncResult.hasError()) {
+                    String error = "";
+                    if (syncResult.stats.numIoExceptions > 0)
+                        error += getString(com.nextgis.maplib.R.string.sync_error_io);
+                    if (syncResult.stats.numParseExceptions > 0) {
+                        if (error.length() > 0)
+                            error += "\r\n";
+                        error += getString(com.nextgis.maplib.R.string.sync_error_parse);
+                    }
+                    if (syncResult.stats.numAuthExceptions > 0) {
+                        if (error.length() > 0)
+                            error += "\r\n";
+                        error += getString(com.nextgis.maplib.R.string.error_auth);
+                    }
+                    if (syncResult.stats.numConflictDetectedExceptions > 0) {
+                        if (error.length() > 0)
+                            error += "\r\n";
+                        error += getString(com.nextgis.maplib.R.string.sync_error_conflict);
+                    }
+                    Toast.makeText(ProgressBarActivity.this, error, Toast.LENGTH_LONG).show();
+                    break;
+                }
+            }
         }
     }
 
