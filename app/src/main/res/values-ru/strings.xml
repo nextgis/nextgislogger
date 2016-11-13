@@ -90,8 +90,8 @@
     <string name="sessions_select_all">Выбрать все</string>
     <string name="sessions_delete_current">Текущая сессия будет также остановлена и удалена.</string>
     <string name="mstdt">Всё в один файл (CSV)</string>
-    <string name="mstds">Метки⚭Сервис; Данные⚮ (CSV)</string>
-    <string name="mssdt">Метки⚮Сервис; Данные⚭ (CSV)</string>
+    <string name="mstds">Метки вместе с Сервис; Данные раздельно (CSV)</string>
+    <string name="mssdt">Метки отдельно от Сервис; Данные вместе (CSV)</string>
     <string name="mssds">Всё в разные файлы (CSV)</string>
     <string name="gpx">Только GPS-трек (GPX)</string>
     <string name="export">Экспорт</string>

@@ -95,8 +95,8 @@
     <string name="sessions_select_all">Select all</string>
     <string name="sessions_delete_current">Current session will be stopped and deleted too.</string>
     <string name="mstdt">All-In-One (CSV)</string>
-    <string name="mstds">Marks⚭Service; Data⚮ (CSV)</string>
-    <string name="mssdt">Marks⚮Service; Data⚭ (CSV)</string>
+    <string name="mstds">Marks along with Service; Data separated (CSV)</string>
+    <string name="mssdt">Marks separated with Service; Data together (CSV)</string>
     <string name="mssds">All separated (CSV)</string>
     <string name="gpx">Only GPS-track (GPX)</string>
     <string name="export">Export</string>
