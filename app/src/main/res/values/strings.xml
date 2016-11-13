@@ -27,7 +27,7 @@
     <string name="app_name" translatable="false">NextGIS Logger</string>
     <string name="app_settings">Settings</string>
     <string name="app_about">About</string>
-    <string name="app_ngw">Sync with cloud</string>
+    <string name="app_ngw">Sync with nextgis.com</string>
     <string name="title_activity_sessions">Sessions</string>
     <string name="title_activity_info">Live data</string>
 
@@ -43,7 +43,7 @@
     <string name="settings_sensors">Sensors</string>
     <string name="settings_main">Main</string>
     <string name="settings_external">External</string>
-    <string name="settings_account">NextGIS Cloud</string>
+    <string name="settings_account" translatable="false">NextGIS.com</string>
     <string name="settings_internal">Internal</string>
 
     <string name="settings_period">Set Period (sec)</string>
@@ -60,7 +60,6 @@
     <string name="settings_user_name">Identification string (optional)</string>
     <string name="settings_keep_screen">Keep screen on</string>
     <string name="settings_keep_screen_sum">Screen does not turn off automatically at Markers and Live data screens</string>
-
     <string name="settings_sensor_mode_sum">Without gravity of Earth (in all dims)</string>
     <string name="settings_sensor_sum">Sensor is not supported</string>
 

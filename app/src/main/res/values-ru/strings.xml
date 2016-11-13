@@ -26,7 +26,7 @@
 <resources>
     <string name="app_settings">Настройки</string>
     <string name="app_about">О программе</string>
-    <string name="app_ngw">Отправить в облако</string>
+    <string name="app_ngw">Отправить в nextgis.com</string>
     <string name="title_activity_sessions">Сессии</string>
     <string name="title_activity_info">Данные в реальном времени</string>
     
@@ -39,7 +39,6 @@
     <string name="settings_sensors">Сенсоры</string>
     <string name="settings_main">Основное</string>
     <string name="settings_external">Внешние</string>
-    <string name="settings_account">NextGIS Облако</string>
     <string name="settings_internal">Внутренние</string>
 
     <string name="settings_period">Задать период (сек)</string>
@@ -56,7 +55,6 @@
     <string name="settings_user_name">Строка идентификации (дополн.)</string>
     <string name="settings_keep_screen">Не отключать экран</string>
     <string name="settings_keep_screen_sum">Экран в окне Метки и Данные в реальном времени не отключается автоматически</string>
-
     <string name="settings_sensor_mode_sum">Без силы притяжения по всем осям</string>
     <string name="settings_sensor_sum">Сенсор не поддерживается</string>
 
@@ -192,7 +190,10 @@
     <string name="nextgis_com">Обратно к входу через nextgis.com</string>
     <string name="ngw_url">NextGIS Web URL</string>
     <string name="ngw_edit">Изменить аккаунт</string>
+    <string name="ngw_delete">Удалить аккаунт</string>
     <string name="ngw_add">Добавить аккаунт</string>
+    <string name="ngw_auto_sync">Автоматическая синхронизация</string>
+    <string name="ngw_auto_sync_period">Частота синхронизции</string>
     <string name="confirmation">Вы уверены?</string>
 
     <string name="permissions_title">Требуется разрешение</string>
