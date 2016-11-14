@@ -138,6 +138,8 @@
     <string name="mark_undo">Последняя метка удалена</string>
     <string name="mark_no_items">Больше нет меток</string>
     <string name="mark_new">Новая метка</string>
+    <string name="mark_edit">Изменить метку</string>
+    <string name="mark_tap_to_edit">Длинное нажатие для изменения метки</string>
     <string name="mark_id">ID</string>
     <string name="mark_name">Имя</string>
     <string name="mark_save_preset">Сохранить в список</string>

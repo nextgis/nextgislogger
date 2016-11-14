@@ -120,6 +120,13 @@ public class MarkActivity extends BindActivity implements View.OnClickListener {
                 saveMark(match);
             }
         });
+        mLvCategories.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int position, long id) {
+                editMark(mMarksAdapter.getMarkItem(position));
+                return false;
+            }
+        });
 
         mLvCategories.setOnScrollListener(new AbsListView.OnScrollListener() {
             @Override
@@ -154,12 +161,6 @@ public class MarkActivity extends BindActivity implements View.OnClickListener {
 		List<MarkName> markNames = new ArrayList<>();
         File cats = FileUtil.getCategoriesFile(this);
         FileUtil.loadMarksFromPreset(this, cats, markNames);
-        Collections.sort(markNames, new Comparator<MarkName>() {
-            @Override
-            public int compare(MarkName lhs, MarkName rhs) {
-                return lhs.getID() - rhs.getID();
-            }
-        });
 		mMarksAdapter = new MarkArrayAdapter(this, markNames);
 		mLvCategories.setAdapter(mMarksAdapter);
         mLvCategories.setChoiceMode(AbsListView.CHOICE_MODE_SINGLE);
@@ -272,64 +273,82 @@ public class MarkActivity extends BindActivity implements View.OnClickListener {
                     mBtRetry.setVisible(false);
                 return true;
             case R.id.new_mark:
-                final AlertDialog.Builder newMarkDialog = new AlertDialog.Builder(this);
-                newMarkDialog.setTitle(getString(R.string.mark_new));
-                View layout = View.inflate(this, R.layout.dialog_new_mark, null);
-                final EditText etID = (EditText) layout.findViewById(R.id.et_mark_id);
-                etID.setText(mMarksAdapter.getMarkItem(mMarksAdapter.getTotalCount() - 1).getID() + 1 + "");
-                final EditText etName = (EditText) layout.findViewById(R.id.et_mark_name);
-                etName.requestFocus();
-                final CheckBox cbSave = (CheckBox) layout.findViewById(R.id.ctv_save);
-                cbSave.setChecked(true);
-                newMarkDialog.setView(layout);
-
-                newMarkDialog.setPositiveButton(getString(R.string.btn_ok), new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                        Context context = MarkActivity.this;
-                        String sId = etID.getText().toString();
-                        String name = etName.getText().toString();
-                        int info = -1;
-                        MarkName mark;
-
-                        try {
-                            int id = Integer.parseInt(sId);
-                            if (id < 0)
-                                throw new NumberFormatException();
-
-                            if (TextUtils.isEmpty(name) || TextUtils.isEmpty(name.trim()))
-                                throw new NullPointerException();
-
-                            mark = new MarkName(id, name.trim());
-                            saveMark(mark);
-
-                            if (cbSave.isChecked()) {
-                                FileUtil.addMarkToPreset(context, mark);
-                                mMarksAdapter.addMark(mark);
-                                mMarksAdapter.getFilter().filter(mSearchView.getQuery());
-                            }
-                        } catch (NumberFormatException e) {
-                            info = R.string.cat_id_not_int;
-                        } catch (NullPointerException e) {
-                            info = R.string.cat_name_empty;
-                        } finally {
-                            if (info != -1)
-                                Toast.makeText(context, info, Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
-
-                newMarkDialog.setNegativeButton(getString(R.string.btn_cancel), new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                    }
-                });
-
-                AlertDialog dialog = newMarkDialog.create();
-                dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
-                dialog.show();
+                editMark(null);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    private void editMark(final MarkName mark) {
+        final boolean edit = mark != null;
+        AlertDialog.Builder markDialog = new AlertDialog.Builder(this);
+        markDialog.setTitle(getString(edit ? R.string.mark_edit : R.string.mark_new));
+        View layout = View.inflate(this, R.layout.dialog_edit_mark, null);
+
+        final EditText etID = (EditText) layout.findViewById(R.id.et_mark_id);
+        int id = mMarksAdapter.getMarkItem(mMarksAdapter.getTotalCount() - 1).getId() + 1;
+        id = edit ? mark.getId() : id;
+        etID.setText(id + "");
+
+        final EditText etName = (EditText) layout.findViewById(R.id.et_mark_name);
+        etName.setText(edit ? mark.getCat() : "");
+        etName.requestFocus();
+
+        final CheckBox cbSave = (CheckBox) layout.findViewById(R.id.ctv_save);
+        cbSave.setVisibility(edit ? View.GONE : View.VISIBLE);
+        cbSave.setChecked(true);
+        markDialog.setView(layout);
+
+        markDialog.setPositiveButton(getString(R.string.btn_ok), new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                Context context = MarkActivity.this;
+                String sId = etID.getText().toString();
+                String name = etName.getText().toString();
+                int info = edit ? -1 : R.string.mark_tap_to_edit;
+                MarkName newMark;
+
+                try {
+                    int id = Integer.parseInt(sId);
+                    if (id < 0)
+                        throw new NumberFormatException();
+
+                    if (TextUtils.isEmpty(name) || TextUtils.isEmpty(name.trim()))
+                        throw new NullPointerException();
+
+                    newMark = new MarkName(id, name.trim());
+                    saveMark(newMark);
+
+                    if (cbSave.isChecked()) {
+                        FileUtil.addMarkToPreset(context, newMark, mark);
+
+                        if (edit)
+                            mMarksAdapter.replaceMark(mark, newMark);
+                        else
+                            mMarksAdapter.addMark(newMark);
+
+                        mMarksAdapter.getFilter().filter(mSearchView.getQuery());
+                    }
+                } catch (NumberFormatException e) {
+                    info = R.string.cat_id_not_int;
+                } catch (NullPointerException e) {
+                    info = R.string.cat_name_empty;
+                }
+
+                if (info != -1)
+                    Toast.makeText(context, info, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        markDialog.setNegativeButton(getString(R.string.btn_cancel), new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) { }
+        });
+
+        AlertDialog dialog = markDialog.create();
+        if (dialog.getWindow() != null)
+            dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+
+        dialog.show();
     }
 
     @Override
@@ -381,8 +400,8 @@ public class MarkActivity extends BindActivity implements View.OnClickListener {
         final Bundle data = new Bundle();
         data.putInt(LoggerConstants.PREF_MARK_POS, mMarksAdapter.getMarkPosition(mark));
         data.putString(BUNDLE_SESSION, mSessionId);
-        data.putInt(BUNDLE_ID, mark.getID());
-        data.putString(BUNDLE_NAME, mark.getCAT());
+        data.putInt(BUNDLE_ID, mark.getId());
+        data.putString(BUNDLE_NAME, mark.getCat());
         data.putLong(BUNDLE_TIME, System.currentTimeMillis());
         ArrayList<InfoItem> infoArray = mCellEngine != null ? mCellEngine.getData() : new ArrayList<InfoItem>();
         data.putParcelableArrayList(BUNDLE_CELL, infoArray);
@@ -397,7 +416,7 @@ public class MarkActivity extends BindActivity implements View.OnClickListener {
 
         Vibrator vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         vibe.vibrate(100);
-        String info = String.format(getString(R.string.mark_saved), mark.getCAT());
+        String info = String.format(getString(R.string.mark_saved), mark.getCat());
         info += " (" + ++mMarksCount + ")";
         Toast.makeText(this, info, Toast.LENGTH_SHORT).show();
         mIsHot = true;
@@ -467,9 +486,19 @@ public class MarkActivity extends BindActivity implements View.OnClickListener {
 
 		MarkArrayAdapter(final Context context, final List<MarkName> objects) {
 			super(context, android.R.layout.simple_list_item_activated_1, android.R.id.text1);
-			this.mMarks = objects;
+			mMarks = objects;
+            sortById();
 			mFilter.filter("");
 		}
+
+        private void sortById() {
+            Collections.sort(mMarks, new Comparator<MarkName>() {
+                @Override
+                public int compare(MarkName lhs, MarkName rhs) {
+                    return lhs.getId() - rhs.getId();
+                }
+            });
+        }
 
 		@NonNull
         @Override
@@ -488,7 +517,7 @@ public class MarkActivity extends BindActivity implements View.OnClickListener {
 
 		@Override
 		public String getItem(int position) {
-			return mMatchedMarks.get(position).getCAT();
+			return mMatchedMarks.get(position).getCat();
 		}
 
         int getMarkPosition(MarkName item) {
@@ -525,6 +554,15 @@ public class MarkActivity extends BindActivity implements View.OnClickListener {
 
         void addMark(MarkName mark) {
             mMarks.add(mark);
+            sortById();
+            notifyDataSetChanged();
+        }
+
+        void replaceMark(MarkName mark, MarkName newMark) {
+            int position = mMarks.indexOf(mark);
+            mMarks.remove(position);
+            mMarks.add(position, newMark);
+            sortById();
             notifyDataSetChanged();
         }
 
@@ -537,7 +575,7 @@ public class MarkActivity extends BindActivity implements View.OnClickListener {
 					ArrayList<MarkName> resultList = new ArrayList<>();
 
 					for (MarkName item : mMarks) {
-						String CAT = getUpperString(item.getCAT());
+						String CAT = getUpperString(item.getCat());
 						String substr = getUpperString(prefix.toString());
 
 						if (CAT.contains(substr))

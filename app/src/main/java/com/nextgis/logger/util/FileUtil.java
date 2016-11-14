@@ -76,9 +76,8 @@ public final class FileUtil {
 
                 if (f.isDirectory())
                     deleteDirectoryOrFile(f);
-                else
-                    if (!f.delete())
-                        return false;
+                else if (!f.delete())
+                    return false;
             }
         }
 
@@ -102,9 +101,9 @@ public final class FileUtil {
     /**
      * Save item to log.
      *
-     * @param path      File path to save item to
-     * @param header    CSV header if new file
-     * @param items     Strings to save
+     * @param path   File path to save item to
+     * @param header CSV header if new file
+     * @param items  Strings to save
      */
     public static void append(String path, String header, List<String> items) throws FileNotFoundException, RuntimeException {
         File file = new File(path);
@@ -178,10 +177,10 @@ public final class FileUtil {
                 info = R.string.cat_file_empty;
             } catch (Exception e) {
                 info = R.string.cat_file_error;
-            } finally {
-                if (info != -1)
-                    Toast.makeText(context, info, Toast.LENGTH_SHORT).show();
             }
+
+            if (info != -1)
+                Toast.makeText(context, info, Toast.LENGTH_SHORT).show();
         }
 
         return result;
@@ -218,14 +217,26 @@ public final class FileUtil {
             Toast.makeText(context, info, Toast.LENGTH_SHORT).show();
     }
 
-    public static void addMarkToPreset(Context context, MarkName mark) {
+    public static void addMarkToPreset(Context context, MarkName newMark, MarkName mark) {
         File cats = getCategoriesFile(context);
 
         try {
-            PrintWriter pw = new PrintWriter(new FileOutputStream(cats, true));
-            pw.print("\r\n" + mark.getID() + "," + mark.getCAT());
-            pw.close();
-        } catch (IOException ignored) {
-        }
+            if (mark != null) {
+                BufferedReader file = new BufferedReader(new FileReader(cats));
+                String line, data = "";
+                while ((line = file.readLine()) != null)
+                    data += line + '\n';
+                file.close();
+
+                data = data.replace(mark.toString(), newMark.toString());
+                FileOutputStream output = new FileOutputStream(cats);
+                output.write(data.getBytes());
+                output.close();
+            } else {
+                PrintWriter pw = new PrintWriter(new FileOutputStream(cats, true));
+                pw.print("\n" + newMark.toString());
+                pw.close();
+            }
+        } catch (IOException ignored) { }
     }
 }

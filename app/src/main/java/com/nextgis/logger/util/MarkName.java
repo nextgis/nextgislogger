@@ -4,7 +4,7 @@
  * Purpose: Productive data logger for Android
  * Author:  Stanislav Petriakov, becomeglory@gmail.com
  * *****************************************************************************
- * Copyright © 2015 NextGIS
+ * Copyright © 2015-2016 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,19 +24,24 @@
 package com.nextgis.logger.util;
 
 public class MarkName {
-    private int ID = -1;
-    private String CAT = "Mark";
+    private int mId = -1;
+    private String mCat = "Mark";
 
-    public MarkName(int ID, String CAT) {
-        this.ID = ID;
-        this.CAT = CAT;
+    public MarkName(int id, String cat) {
+        mId = id;
+        mCat = cat;
     }
 
-    public int getID() {
-        return ID;
+    public int getId() {
+        return mId;
     }
 
-    public String getCAT() {
-        return CAT;
+    public String getCat() {
+        return mCat;
+    }
+
+    @Override
+    public String toString() {
+        return mId + "," + mCat;
     }
 }
