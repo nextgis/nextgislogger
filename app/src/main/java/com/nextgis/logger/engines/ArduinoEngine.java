@@ -165,7 +165,7 @@ public class ArduinoEngine extends BaseEngine {
 
     @Override
     public void saveData(ArrayList<InfoItem> items, String markId) {
-        NGWVectorLayer externalLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_EXTERNAL);
+        NGWVectorLayer externalLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByPathName(LoggerApplication.TABLE_EXTERNAL);
         if (externalLayer != null) {
             ContentValues cv = new ContentValues();
             cv.put(LoggerApplication.FIELD_MARK, markId);

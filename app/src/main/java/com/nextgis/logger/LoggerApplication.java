@@ -323,20 +323,20 @@ public class LoggerApplication extends Application implements IGISApplication {
 
     protected void checkLayers() {
         ArrayList<Field> fields = new ArrayList<>();
-        LoggerVectorLayer layer = (LoggerVectorLayer) mMap.getLayerByName(TABLE_SESSION);
+        LoggerVectorLayer layer = (LoggerVectorLayer) mMap.getLayerByPathName(TABLE_SESSION);
         if (layer == null) {
             fields.clear();
             fields.add(new Field(GeoConstants.FTString, FIELD_UNIQUE_ID, getString(R.string.unique_id)));
             fields.add(new Field(GeoConstants.FTString, FIELD_NAME, getString(R.string.mark_name)));
             fields.add(new Field(GeoConstants.FTString, FIELD_USER, getString(R.string.user_name)));
             fields.add(new Field(GeoConstants.FTString, FIELD_DEVICE_INFO, getString(R.string.device_info)));
-            layer = createEmptyVectorLayer(TABLE_SESSION, fields);
+            layer = createEmptyVectorLayer(TABLE_SESSION, R.string.title_activity_sessions, fields);
             layer.setAccountName("");
             mMap.addLayer(layer);
             mMap.save();
         }
 
-        layer = (LoggerVectorLayer) mMap.getLayerByName(TABLE_MARK);
+        layer = (LoggerVectorLayer) mMap.getLayerByPathName(TABLE_MARK);
         if (layer == null) {
             fields.clear();
             fields.add(new Field(GeoConstants.FTString, FIELD_UNIQUE_ID, getString(R.string.unique_id)));
@@ -345,13 +345,13 @@ public class LoggerApplication extends Application implements IGISApplication {
             fields.add(new Field(GeoConstants.FTString, FIELD_NAME, getString(R.string.mark_name)));
             fields.add(new Field(GeoConstants.FTReal, FIELD_TIMESTAMP, getString(R.string.timestamp)));
             fields.add(new Field(GeoConstants.FTDateTime, FIELD_DATETIME, getString(R.string.field_type_datetime)));
-            layer = createEmptyVectorLayer(TABLE_MARK, fields);
+            layer = createEmptyVectorLayer(TABLE_MARK, R.string.settings_marks, fields);
             layer.setAccountName("");
             mMap.addLayer(layer);
             mMap.save();
         }
 
-        layer = (LoggerVectorLayer) mMap.getLayerByName(TABLE_CELL);
+        layer = (LoggerVectorLayer) mMap.getLayerByPathName(TABLE_CELL);
         if (layer == null) {
             fields.clear();
             fields.add(new Field(GeoConstants.FTString, FIELD_MARK, getString(R.string.btn_save_mark)));
@@ -364,13 +364,13 @@ public class LoggerApplication extends Application implements IGISApplication {
             fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_CID, "CID/PCI"));
             fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_PSC, "PSC/CI"));
             fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_POWER, "RSSI/RSRP"));
-            layer = createEmptyVectorLayer(TABLE_CELL, fields);
+            layer = createEmptyVectorLayer(TABLE_CELL, R.string.info_title_network, fields);
             layer.setAccountName("");
             mMap.addLayer(layer);
             mMap.save();
         }
 
-        layer = (LoggerVectorLayer) mMap.getLayerByName(TABLE_SENSOR);
+        layer = (LoggerVectorLayer) mMap.getLayerByPathName(TABLE_SENSOR);
         if (layer == null) {
             fields.clear();
             fields.add(new Field(GeoConstants.FTString, FIELD_MARK, getString(R.string.btn_save_mark)));
@@ -398,27 +398,27 @@ public class LoggerApplication extends Application implements IGISApplication {
             fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_GPS_SAT, getString(R.string.info_sat)));
             fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_GPS_TIME, getString(R.string.info_time)));
             fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_AUDIO, getString(R.string.mic)));
-            layer = createEmptyVectorLayer(TABLE_SENSOR, fields);
+            layer = createEmptyVectorLayer(TABLE_SENSOR, R.string.info_title_sensors, fields);
             layer.setAccountName("");
             mMap.addLayer(layer);
             mMap.save();
         }
 
-        layer = (LoggerVectorLayer) mMap.getLayerByName(TABLE_EXTERNAL);
+        layer = (LoggerVectorLayer) mMap.getLayerByPathName(TABLE_EXTERNAL);
         if (layer == null) {
             fields.clear();
             fields.add(new Field(GeoConstants.FTString, FIELD_MARK, getString(R.string.btn_save_mark)));
             fields.add(new Field(GeoConstants.FTString, FIELD_DATA, getString(R.string.info_title_external)));
-            layer = createEmptyVectorLayer(TABLE_EXTERNAL, fields);
+            layer = createEmptyVectorLayer(TABLE_EXTERNAL, R.string.info_title_external, fields);
             layer.setAccountName("");
             mMap.addLayer(layer);
             mMap.save();
         }
     }
 
-    public LoggerVectorLayer createEmptyVectorLayer(String layerName, List<Field> fields) {
-        LoggerVectorLayer layer = new LoggerVectorLayer(this, mMap.createLayerStorage(layerName));
-        layer.setName(layerName);
+    public LoggerVectorLayer createEmptyVectorLayer(String layerPath, int layerName, List<Field> fields) {
+        LoggerVectorLayer layer = new LoggerVectorLayer(this, mMap.createLayerStorage(layerPath));
+        layer.setName(getString(layerName));
         layer.create(GeoConstants.GTPoint, fields);
         return layer;
     }

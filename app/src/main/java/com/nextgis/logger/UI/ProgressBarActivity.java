@@ -62,6 +62,7 @@ import com.nextgis.logger.PreferencesActivity;
 import com.nextgis.logger.R;
 import com.nextgis.logger.livedata.InfoActivity;
 import com.nextgis.logger.util.LoggerConstants;
+import com.nextgis.logger.util.LoggerVectorLayer;
 import com.nextgis.logger.util.UiUtil;
 import com.nextgis.maplib.api.IGISApplication;
 import com.nextgis.maplib.api.ILayer;
@@ -186,16 +187,16 @@ public class ProgressBarActivity extends FragmentActivity implements View.OnClic
             startNGWActivity(this);
     }
 
-    private List<SyncResult> sync() {
+    private List<SyncResult> sync(Sync sync) {
         List<SyncResult> result = new ArrayList<>();
         IGISApplication application = (IGISApplication) getApplication();
         MapBase map = application.getMap();
         String accountName;
-        NGWVectorLayer ngwVectorLayer;
+        LoggerVectorLayer ngwVectorLayer;
         for (int i = 0; i < map.getLayerCount(); i++) {
             ILayer layer = map.getLayer(i);
             if (layer instanceof NGWVectorLayer) {
-                ngwVectorLayer = (NGWVectorLayer) layer;
+                ngwVectorLayer = (LoggerVectorLayer) layer;
                 accountName = ngwVectorLayer.getAccountName();
                 if (TextUtils.isEmpty(accountName)) {
                     startNGWActivity(this);
@@ -204,6 +205,7 @@ public class ProgressBarActivity extends FragmentActivity implements View.OnClic
 
                 Pair<Integer, Integer> ver = NGWUtil.getNgwVersion(this, accountName);
                 result.add(new SyncResult());
+                ngwVectorLayer.sync(sync);
                 ngwVectorLayer.sync(application.getAuthority(), ver, result.get(result.size() - 1));
             }
         }
@@ -211,11 +213,13 @@ public class ProgressBarActivity extends FragmentActivity implements View.OnClic
         return result;
     }
 
-    public class Sync extends AsyncTask<Void, Void, List<SyncResult>> {
+    public class Sync extends AsyncTask<Void, String, List<SyncResult>> {
         private ProgressDialog mProgress;
 
         Sync(Activity activity) {
             mProgress = new ProgressDialog(activity);
+            mProgress.setIndeterminate(true);
+            mProgress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
             mProgress.setCanceledOnTouchOutside(false);
             mProgress.setOnCancelListener(new DialogInterface.OnCancelListener() {
                 @Override
@@ -234,7 +238,20 @@ public class ProgressBarActivity extends FragmentActivity implements View.OnClic
 
         @Override
         protected List<SyncResult> doInBackground(Void... voids) {
-            return sync();
+            return sync(Sync.this);
+        }
+
+        public void publishProgress(int max, int progress, String message) {
+            publishProgress(max + "", progress + "", message);
+        }
+
+        @Override
+        protected void onProgressUpdate(String... values) {
+            super.onProgressUpdate(values);
+            mProgress.setIndeterminate(false);
+            mProgress.setMax(Integer.parseInt(values[0]));
+            mProgress.setProgress(Integer.parseInt(values[1]));
+            mProgress.setMessage(getString(R.string.start_fill_layer) + " " + values[2]);
         }
 
         @Override
@@ -242,30 +259,30 @@ public class ProgressBarActivity extends FragmentActivity implements View.OnClic
             super.onPostExecute(result);
             mProgress.dismiss();
 
+            String info = getString(R.string.sync_finished);
             for (SyncResult syncResult : result) {
                 if (syncResult.hasError()) {
-                    String error = "";
                     if (syncResult.stats.numIoExceptions > 0)
-                        error += getString(com.nextgis.maplib.R.string.sync_error_io);
+                        info += getString(com.nextgis.maplib.R.string.sync_error_io);
                     if (syncResult.stats.numParseExceptions > 0) {
-                        if (error.length() > 0)
-                            error += "\r\n";
-                        error += getString(com.nextgis.maplib.R.string.sync_error_parse);
+                        if (info.length() > 0)
+                            info += "\r\n";
+                        info += getString(com.nextgis.maplib.R.string.sync_error_parse);
                     }
                     if (syncResult.stats.numAuthExceptions > 0) {
-                        if (error.length() > 0)
-                            error += "\r\n";
-                        error += getString(com.nextgis.maplib.R.string.error_auth);
+                        if (info.length() > 0)
+                            info += "\r\n";
+                        info += getString(com.nextgis.maplib.R.string.error_auth);
                     }
                     if (syncResult.stats.numConflictDetectedExceptions > 0) {
-                        if (error.length() > 0)
-                            error += "\r\n";
-                        error += getString(com.nextgis.maplib.R.string.sync_error_conflict);
+                        if (info.length() > 0)
+                            info += "\r\n";
+                        info += getString(com.nextgis.maplib.R.string.sync_error_conflict);
                     }
-                    Toast.makeText(ProgressBarActivity.this, error, Toast.LENGTH_LONG).show();
                     break;
                 }
             }
+            Toast.makeText(ProgressBarActivity.this, info, Toast.LENGTH_LONG).show();
         }
     }
 

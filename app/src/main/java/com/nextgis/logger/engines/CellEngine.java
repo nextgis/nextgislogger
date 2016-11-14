@@ -123,7 +123,7 @@ public class CellEngine extends BaseEngine {
 
 	@Override
 	public void saveData(ArrayList<InfoItem> items, String markId) {
-		NGWVectorLayer cellLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_CELL);
+		NGWVectorLayer cellLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByPathName(LoggerApplication.TABLE_CELL);
 		if (cellLayer != null) {
 			ContentValues cv = new ContentValues();
 			for (InfoItem item : items) {

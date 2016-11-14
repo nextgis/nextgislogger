@@ -136,7 +136,7 @@ public class SensorEngine extends BaseEngine implements SensorEventListener {
 
     @Override
     public void saveData(ArrayList<InfoItem> items, String markId) {
-        NGWVectorLayer sensorLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_SENSOR);
+        NGWVectorLayer sensorLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByPathName(LoggerApplication.TABLE_SENSOR);
         if (sensorLayer != null) {
             ContentValues cv = new ContentValues();
             cv.put(LoggerApplication.FIELD_MARK, markId);

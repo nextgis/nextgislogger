@@ -101,7 +101,7 @@ public abstract class BaseEngine {
     }
 
     public static String saveMark(Uri uri, String session, int id, String name, long timestamp, GeoPoint point) {
-        NGWVectorLayer markLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_MARK);
+        NGWVectorLayer markLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByPathName(LoggerApplication.TABLE_MARK);
         if (markLayer != null) {
             String uniqueId = UUID.randomUUID().toString();
             ContentValues cv = new ContentValues();
@@ -125,7 +125,7 @@ public abstract class BaseEngine {
     }
 
     public static void deleteMark(Uri uri, String uuid) {
-        NGWVectorLayer markLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_MARK);
+        NGWVectorLayer markLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByPathName(LoggerApplication.TABLE_MARK);
         if (markLayer != null) {
             markLayer.delete(uri, LoggerApplication.FIELD_UNIQUE_ID + " = ?" , new String[]{uuid});
         }

@@ -186,7 +186,7 @@ public class NGWLoginActivity extends ProgressBarActivity implements NGWLoginFra
     private void createLayers(HashMap<String, INGWResource> keys) {
         for (String table : keys.keySet()) {
             if (keys.get(table) == null) {
-                NGWVectorLayer layer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(table);
+                NGWVectorLayer layer = (NGWVectorLayer) MapBase.getInstance().getLayerByPathName(table);
                 if (layer != null) {
                     NGWCreateNewResourceTask createLayer = new NGWCreateNewResourceTask(this, mConnection, mGroupId);
                     createLayer.setLayer(layer);
@@ -211,7 +211,7 @@ public class NGWLoginActivity extends ProgressBarActivity implements NGWLoginFra
 
         long id;
         for (String table : TABLES) {
-            NGWVectorLayer layer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(table);
+            NGWVectorLayer layer = (NGWVectorLayer) MapBase.getInstance().getLayerByPathName(table);
             if (layer != null && mVer != null) {
                 id = ((Resource) keys.get(table)).getRemoteId();
                 layer.mNgwVersionMajor = mVer.first;

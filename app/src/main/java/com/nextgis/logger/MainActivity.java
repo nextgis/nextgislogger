@@ -243,7 +243,7 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
     }
 
     private String startSession(String name, String userName, String deviceInfo) {
-        NGWVectorLayer sessionLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_SESSION);
+        NGWVectorLayer sessionLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByPathName(LoggerApplication.TABLE_SESSION);
         if (sessionLayer != null) {
             String id = UUID.randomUUID().toString();
             ContentValues cv = new ContentValues();
@@ -323,7 +323,7 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
             mButtonSession.setText(R.string.btn_session_close);
 
             String sessionName;
-            NGWVectorLayer sessionLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_SESSION);
+            NGWVectorLayer sessionLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByPathName(LoggerApplication.TABLE_SESSION);
             if (sessionLayer != null) {
                 String session = getSessionName();
                 if (!TextUtils.isEmpty(session))

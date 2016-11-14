@@ -177,7 +177,7 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
     private void loadSessions() {
         mSessionsName.clear();
         mSessions.clear();
-        NGWVectorLayer sessionLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_SESSION);
+        NGWVectorLayer sessionLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByPathName(LoggerApplication.TABLE_SESSION);
         if (sessionLayer != null) {
             List<Long> ids = sessionLayer.query(null);
             for (Long id : ids) {
@@ -503,7 +503,7 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
                 }
             }
 
-            NGWVectorLayer layer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_MARK);
+            NGWVectorLayer layer = (NGWVectorLayer) MapBase.getInstance().getLayerByPathName(LoggerApplication.TABLE_MARK);
             String in = " IN (" + MapUtil.makePlaceholders(ids.length) + ")";
             List<String> markIds = new ArrayList<>();
             if (layer != null) {
@@ -523,7 +523,7 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
                 layer.rebuildCache(null);
             }
 
-            layer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_SESSION);
+            layer = (NGWVectorLayer) MapBase.getInstance().getLayerByPathName(LoggerApplication.TABLE_SESSION);
             if (layer != null) {
                 uri = Uri.parse("content://" + authority + "/" + layer.getPath().getName() + "/");
                 layer.delete(uri, LoggerApplication.FIELD_UNIQUE_ID + in, ids);
@@ -532,21 +532,21 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
 
             ids = markIds.toArray(new String[markIds.size()]);
             in = " IN (" + MapUtil.makePlaceholders(ids.length) + ")";
-            layer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_CELL);
+            layer = (NGWVectorLayer) MapBase.getInstance().getLayerByPathName(LoggerApplication.TABLE_CELL);
             if (layer != null) {
                 uri = Uri.parse("content://" + authority + "/" + layer.getPath().getName() + "/");
                 layer.delete(uri, LoggerApplication.FIELD_MARK + in, ids);
                 layer.rebuildCache(null);
             }
 
-            layer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_SENSOR);
+            layer = (NGWVectorLayer) MapBase.getInstance().getLayerByPathName(LoggerApplication.TABLE_SENSOR);
             if (layer != null) {
                 uri = Uri.parse("content://" + authority + "/" + layer.getPath().getName() + "/");
                 layer.delete(uri, LoggerApplication.FIELD_MARK + in, ids);
                 layer.rebuildCache(null);
             }
 
-            layer = (NGWVectorLayer) MapBase.getInstance().getLayerByName(LoggerApplication.TABLE_EXTERNAL);
+            layer = (NGWVectorLayer) MapBase.getInstance().getLayerByPathName(LoggerApplication.TABLE_EXTERNAL);
             if (layer != null) {
                 uri = Uri.parse("content://" + authority + "/" + layer.getPath().getName() + "/");
                 layer.delete(uri, LoggerApplication.FIELD_MARK + in, ids);

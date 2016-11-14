@@ -25,11 +25,15 @@ package com.nextgis.logger.util;
 
 import android.content.Context;
 import android.content.SyncResult;
+import android.os.Handler;
+import android.os.SystemClock;
 
+import com.nextgis.logger.UI.ProgressBarActivity;
 import com.nextgis.maplib.api.IGeometryCache;
 import com.nextgis.maplib.datasource.GeoPoint;
 import com.nextgis.maplib.datasource.GeometryPlainList;
 import com.nextgis.maplib.map.NGWVectorLayer;
+import com.nextgis.maplib.util.FeatureChanges;
 
 import java.io.File;
 
@@ -51,5 +55,22 @@ public class LoggerVectorLayer extends NGWVectorLayer {
     @Override
     public boolean getChangesFromServer(String authority, SyncResult syncResult) {
         return true;
+    }
+
+    public void sync(final ProgressBarActivity.Sync sync) {
+        final long max = FeatureChanges.getChangeCount(getChangeTableName());
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    long current = FeatureChanges.getChangeCount(getChangeTableName());
+                    if (current == 0)
+                        break;
+
+                    sync.publishProgress((int) max, (int) (max - current), mName);
+                    SystemClock.sleep(500);
+                }
+            }
+        }).start();
     }
 }
