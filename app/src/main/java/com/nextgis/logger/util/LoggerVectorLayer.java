@@ -26,6 +26,9 @@ package com.nextgis.logger.util;
 import android.content.Context;
 import android.content.SyncResult;
 
+import com.nextgis.maplib.api.IGeometryCache;
+import com.nextgis.maplib.datasource.GeoPoint;
+import com.nextgis.maplib.datasource.GeometryPlainList;
 import com.nextgis.maplib.map.NGWVectorLayer;
 
 import java.io.File;
@@ -33,6 +36,16 @@ import java.io.File;
 public class LoggerVectorLayer extends NGWVectorLayer {
     public LoggerVectorLayer(Context context, File path) {
         super(context, path);
+    }
+
+    @Override
+    protected IGeometryCache createNewCache() {
+        return new GeometryPlainList();
+    }
+
+    @Override
+    protected boolean checkPointOverlaps(GeoPoint pt, double tolerance) {
+        return false;
     }
 
     @Override
