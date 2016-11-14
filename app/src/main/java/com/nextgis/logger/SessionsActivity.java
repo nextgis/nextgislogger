@@ -406,20 +406,51 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
                 DecimalFormat df = new DecimalFormat("0", new DecimalFormatSymbols(Locale.ENGLISH));
                 df.setMaximumFractionDigits(340); //340 = DecimalFormat.DOUBLE_FRACTION_DIGITS
 
-                String sLat = df.format(data.getDouble(0));
-                String sLon = df.format(data.getDouble(1));
-                f.format(GPX_TAG_TRACK_SEGMENT_POINT, sLat, sLon);
-                f.format(GPX_TAG_TRACK_SEGMENT_POINT_TIME, getTimeStampAsString(data.getLong(2)));
-                f.format(GPX_TAG_TRACK_SEGMENT_POINT_ELE, df.format(data.getDouble(3)));
-                f.format(GPX_TAG_TRACK_SEGMENT_POINT_SAT, data.getInt(4));
-                f.format(GPX_TAG_TRACK_SEGMENT_POINT_SPEED, data.getFloat(5));
-                sb.append(GPX_TAG_TRACK_SEGMENT_POINT_CLOSE);
+                Double lat = getDouble(data.getString(0));
+                Double lon = getDouble(data.getString(1));
+                if (lat != null && lon != null) {
+                    f.format(GPX_TAG_TRACK_SEGMENT_POINT, df.format(lat), df.format(lon));
 
-                File track = new File(path, prefix);
-                FileUtil.append(track.getAbsolutePath(), GPX_HEADER, sb.toString());
+                    Long longValue = getLong(data.getString(2));
+                    if (longValue != null)
+                        f.format(GPX_TAG_TRACK_SEGMENT_POINT_TIME, getTimeStampAsString(longValue));
+
+                    Double doubleValue = getDouble(data.getString(3));
+                    if (doubleValue != null)
+                        f.format(GPX_TAG_TRACK_SEGMENT_POINT_ELE, df.format(doubleValue));
+
+                    longValue = getLong(data.getString(4));
+                    if (longValue != null)
+                        f.format(GPX_TAG_TRACK_SEGMENT_POINT_SAT, longValue);
+
+                    doubleValue = getDouble(data.getString(5));
+                    if (doubleValue != null)
+                        f.format(GPX_TAG_TRACK_SEGMENT_POINT_SPEED, doubleValue);
+
+                    sb.append(GPX_TAG_TRACK_SEGMENT_POINT_CLOSE);
+
+                    File track = new File(path, prefix);
+                    FileUtil.append(track.getAbsolutePath(), GPX_HEADER, sb.toString());
+                }
             }
 
             data.close();
+        }
+    }
+
+    private Double getDouble(String data) {
+        try {
+            return Double.parseDouble(data);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private Long getLong(String data) {
+        try {
+            return Long.parseLong(data);
+        } catch (NumberFormatException e) {
+            return null;
         }
     }
 
