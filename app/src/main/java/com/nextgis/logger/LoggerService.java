@@ -50,6 +50,8 @@ import com.nextgis.maplib.datasource.GeoPoint;
 import com.nextgis.maplib.map.MapBase;
 import com.nextgis.maplib.map.MapContentProviderHelper;
 
+import static com.nextgis.logger.MainActivity.getSessionName;
+
 public class LoggerService extends Service implements ArduinoEngine.ConnectionListener {
     private static final int ID_MEASURING = 1;
 
@@ -193,11 +195,15 @@ public class LoggerService extends Service implements ArduinoEngine.ConnectionLi
         Intent intentNotification = new Intent(this, MainActivity.class);
         PendingIntent pIntent = PendingIntent.getActivity(this, 0, intentNotification, 0);
 
+        Intent stopService = new Intent(getApplicationContext(), LoggerService.class);
+        stopService.setAction(LoggerConstants.ACTION_STOP);
+        PendingIntent stop = PendingIntent.getService(this, 0, stopService, PendingIntent.FLAG_UPDATE_CURRENT);
+
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
         builder.setContentIntent(pIntent).setSmallIcon(R.drawable.ic_status_notification)
-               .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher)).setTicker(getString(R.string.service_notif_title))
-               .setWhen(System.currentTimeMillis()).setAutoCancel(false).setContentTitle(getString(R.string.service_notif_title))
-               .setContentText(getString(R.string.service_notif_text));
+               .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher)).setTicker(getString(R.string.service_notif_text))
+               .setWhen(System.currentTimeMillis()).setAutoCancel(false).setContentTitle(getString(R.string.service_notif_text))
+               .setContentText(getSessionName(mSessionId)).addAction(R.drawable.ic_pause_white_24dp, getString(R.string.btn_service_stop), stop);
 
         Notification notification = builder.build();
         mNotificationManager.notify(ID_MEASURING, notification);

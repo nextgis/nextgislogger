@@ -116,6 +116,7 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
                         mTvFinishedTime.setText(R.string.service_running);
                         break;
                     case LoggerConstants.STATUS_FINISHED:
+                        stopLoggerService();
                         time = intent.getLongExtra(LoggerConstants.PREF_TIME_FINISH, 0);
                         mTvFinishedTime.setText(millisToDate(time));
 
@@ -325,7 +326,7 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
             String sessionName;
             NGWVectorLayer sessionLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByPathName(LoggerApplication.TABLE_SESSION);
             if (sessionLayer != null) {
-                String session = getSessionName();
+                String session = getSessionName(mSessionId);
                 if (!TextUtils.isEmpty(session))
                     sessionName = session;
                 else {
@@ -356,11 +357,11 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
             mTvFinishedTime.setText(R.string.service_running);
     }
 
-    private String getSessionName() {
+    public static String getSessionName(String sessionId) {
         String result = null;
         SQLiteDatabase db = ((MapContentProviderHelper) MapBase.getInstance()).getDatabase(true);
         Cursor count = db.rawQuery("SELECT " + LoggerApplication.FIELD_NAME + " FROM " + LoggerApplication.TABLE_SESSION + " WHERE " +
-                                           LoggerApplication.FIELD_UNIQUE_ID + " = ?;", new String[]{mSessionId});
+                                           LoggerApplication.FIELD_UNIQUE_ID + " = ?;", new String[]{sessionId});
 
         if (count != null) {
             if (count.moveToFirst())

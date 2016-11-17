@@ -30,9 +30,11 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.SyncResult;
 import android.os.AsyncTask;
@@ -77,6 +79,7 @@ public class ProgressBarActivity extends FragmentActivity implements View.OnClic
     private static final int PERMISSION_MAIN = 1;
     public static final int PERMISSION_ACC = 2;
 
+    private BroadcastReceiver mLoggerServiceReceiver;
     protected SharedPreferences mPreferences;
     protected FloatingActionButton mFAB;
     protected boolean mHasFAB = true;
@@ -98,6 +101,26 @@ public class ProgressBarActivity extends FragmentActivity implements View.OnClic
                                                 Manifest.permission.READ_PHONE_STATE, Manifest.permission.RECORD_AUDIO};
             requestPermissions(this, R.string.permissions_title, R.string.permissions_main, PERMISSION_MAIN, permissions);
         }
+
+        mLoggerServiceReceiver = new BroadcastReceiver() {
+            public void onReceive(Context context, Intent intent) {
+                int serviceStatus = intent.getIntExtra(LoggerConstants.SERVICE_STATUS, 0);
+                switch (serviceStatus) {
+                    case LoggerConstants.STATUS_FINISHED:
+                        setActionBarProgress(false);
+                        break;
+                }
+            }
+        };
+
+        IntentFilter intentFilter = new IntentFilter(LoggerConstants.ACTION_INFO);
+        registerReceiver(mLoggerServiceReceiver, intentFilter);
+    }
+
+    @Override
+    protected void onDestroy() {
+        unregisterReceiver(mLoggerServiceReceiver);
+        super.onDestroy();
     }
 
     @Override
@@ -386,9 +409,12 @@ public class ProgressBarActivity extends FragmentActivity implements View.OnClic
     }
 
     protected void stopLoggerService() {
-        Intent stopService = new Intent(getApplicationContext(), LoggerService.class);
-        stopService.setAction(LoggerConstants.ACTION_STOP);
-        startService(stopService);
+        if (isLoggerServiceRunning()) {
+            Intent stopService = new Intent(getApplicationContext(), LoggerService.class);
+            stopService.setAction(LoggerConstants.ACTION_STOP);
+            startService(stopService);
+        }
+
         setActionBarProgress(false);
     }
 
