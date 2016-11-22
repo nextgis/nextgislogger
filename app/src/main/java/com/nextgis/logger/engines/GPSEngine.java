@@ -116,11 +116,11 @@ public class GPSEngine extends BaseEngine implements LocationListener {
         if (gpsItem != null) {
             Object value = gpsItem.getColumn(LoggerConstants.HEADER_GPS_LAT).getValue();
             if (value instanceof Double)
-                x = (double) value;
+                y = (double) value;
 
             value = gpsItem.getColumn(LoggerConstants.HEADER_GPS_LON).getValue();
             if (value instanceof Double)
-                y = (double) value;
+                x = (double) value;
         }
 
         GeoPoint point = new GeoPoint(x, y);
