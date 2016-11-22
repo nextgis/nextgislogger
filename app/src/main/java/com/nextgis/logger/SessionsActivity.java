@@ -628,7 +628,7 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
             super.onProgressUpdate(values);
 
             mProgress = new ProgressDialog(SessionsActivity.this);
-            mProgress.setTitle(R.string.export);
+            mProgress.setTitle(R.string.export_title);
             mProgress.setMessage(getString(R.string.preparing));
             mProgress.setCanceledOnTouchOutside(false);
             mProgress.setOnDismissListener(new DialogInterface.OnDismissListener() {

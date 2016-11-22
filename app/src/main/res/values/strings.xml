@@ -99,7 +99,7 @@
     <string name="mssdt">Marks separated with Service; Data together (CSV)</string>
     <string name="mssds">All separated (CSV)</string>
     <string name="gpx">Only GPS-track (GPX)</string>
-    <string name="export">Export</string>
+    <string name="export_title">Export</string>
     <string name="preparing">Preparing data…</string>
 
     <string name="ext_media_unmounted_msg">External Media is NOT MOUNTED</string>

@@ -94,7 +94,7 @@
     <string name="mssdt">Метки отдельно от Сервис; Данные вместе (CSV)</string>
     <string name="mssds">Всё в разные файлы (CSV)</string>
     <string name="gpx">Только GPS-трек (GPX)</string>
-    <string name="export">Экспорт</string>
+    <string name="export_title">Экспорт</string>
     <string name="preparing">Подготовка данных…</string>
 
     <string name="ext_media_unmounted_msg">Нет доступа к внешней памяти</string>
