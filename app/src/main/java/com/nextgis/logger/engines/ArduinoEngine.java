@@ -81,6 +81,11 @@ public class ArduinoEngine extends BaseEngine {
         return getPreferences().getBoolean(LoggerConstants.PREF_EXTERNAL, false);
     }
 
+    public static String getHeader(Context context) {
+        String header = PreferenceManager.getDefaultSharedPreferences(context).getString(LoggerConstants.PREF_EXTERNAL_HEADER, "data");
+        return header.replace(",", LoggerConstants.CSV_SEPARATOR);
+    }
+
     public interface ConnectionListener {
         void onTimeoutOrFailure();
 
@@ -172,7 +177,7 @@ public class ArduinoEngine extends BaseEngine {
 
             String data = "";
             for (InfoItem item : items)
-                data += item.getColumns().get(0).getValue();
+                data += item.getColumns().get(0).getValue() + LoggerConstants.CSV_SEPARATOR;
 
             cv.put(LoggerApplication.FIELD_DATA, data);
             cv.put(Constants.FIELD_GEOM, LoggerApplication.getNullGeometry());

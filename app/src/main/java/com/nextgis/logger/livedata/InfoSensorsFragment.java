@@ -182,10 +182,4 @@ public class InfoSensorsFragment extends InfoFragment implements View.OnClickLis
         Intent preferencesActivity = new Intent(getActivity(), PreferencesActivity.class);
         startActivity(preferencesActivity);
     }
-
-    @Override
-    public void setEngine(BaseEngine engine) {
-        super.setEngine(engine);
-        onResume();
-    }
 }

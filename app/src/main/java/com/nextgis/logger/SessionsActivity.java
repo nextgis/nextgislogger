@@ -348,7 +348,7 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
             if (data.moveToFirst()) {
                 String filePath = new File(path, prefix + LoggerConstants.EXTERNAL + LoggerConstants.CSV_EXT).getAbsolutePath();
                 String item = preamble + ArduinoEngine.getDataFromCursor(data);
-                FileUtil.append(filePath, header + "data", item);
+                FileUtil.append(filePath, header + ArduinoEngine.getHeader(this), item);
             }
             data.close();
         }
@@ -370,7 +370,7 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
         if (data != null) {
             if (data.moveToFirst()) {
                 row += LoggerConstants.CSV_SEPARATOR + ArduinoEngine.getDataFromCursor(data);
-                header += LoggerConstants.CSV_SEPARATOR + "data";
+                header += LoggerConstants.CSV_SEPARATOR + ArduinoEngine.getHeader(this);
             }
             data.close();
         }

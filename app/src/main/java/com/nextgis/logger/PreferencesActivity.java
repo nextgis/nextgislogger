@@ -103,6 +103,7 @@ public class PreferencesActivity extends PreferenceActivity implements ServiceCo
     protected void onDestroy() {
         super.onDestroy();
         try {
+            onServiceDisconnected(null);
             unbindService(this);
         } catch (IllegalArgumentException ignored) {}
     }

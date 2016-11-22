@@ -49,6 +49,7 @@ public class BindActivity extends ProgressBarActivity implements ArduinoEngine.C
 
     @Override
     protected void onDestroy() {
+        onServiceDisconnected(null);
         unbindService(this);
         super.onDestroy();
     }

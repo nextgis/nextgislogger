@@ -133,8 +133,8 @@ public class InfoCellFragment extends InfoFragment {
     }
 
     @Override
-    public void setEngine(BaseEngine engine) {
-        super.setEngine(engine);
+    public void onResume() {
+        super.onResume();
         fillTextViews();
     }
 

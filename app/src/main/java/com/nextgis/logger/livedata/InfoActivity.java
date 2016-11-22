@@ -92,6 +92,27 @@ public class InfoActivity extends BindActivity implements ViewPager.OnPageChange
     }
 
     @Override
+    public void onServiceDisconnected(ComponentName componentName) {
+        InfoExternalsFragment externalFragment = (InfoExternalsFragment) mItemAdapter.getFragment(2);
+        if (mArduinoEngine != null)
+            mArduinoEngine.removeConnectionListener(externalFragment);
+
+        InfoFragment fragment = (InfoFragment) mItemAdapter.getFragment(0);
+        if (fragment != null)
+            fragment.setEngine(null);
+
+        fragment = (InfoFragment) mItemAdapter.getFragment(1);
+        if (fragment != null)
+            fragment.setEngine(null);
+
+        fragment = (InfoFragment) mItemAdapter.getFragment(2);
+        if (fragment != null)
+            fragment.setEngine(null);
+        
+        super.onServiceDisconnected(componentName);
+    }
+
+    @Override
     public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
 
     }

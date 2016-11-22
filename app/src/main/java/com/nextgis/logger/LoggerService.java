@@ -119,7 +119,8 @@ public class LoggerService extends Service implements ArduinoEngine.ConnectionLi
                 if (mThread != null)
                     mThread.interrupt();
 
-                if (--mBinders == 0) {
+                if (mBinders == 0) {
+                    mThread = null;
                     stopSelf();
                     return START_NOT_STICKY;
                 }

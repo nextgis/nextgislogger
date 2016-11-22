@@ -42,6 +42,9 @@ public class InfoFragment extends Fragment {
 
         if (mEngine != null)
             mEngine.addListener(mListener);
+
+        if (isAdded())
+            onResume();
     }
 
     public boolean isConnected() {
