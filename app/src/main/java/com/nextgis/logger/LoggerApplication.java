@@ -357,7 +357,7 @@ public class LoggerApplication extends Application implements IGISApplication {
             fields.add(new Field(GeoConstants.FTString, FIELD_MARK, getString(R.string.btn_save_mark)));
             fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_GEN, getString(R.string.info_title_network)));
             fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_TYPE, getString(R.string.network_type)));
-            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_ACTIVE, getString(R.string.info_active)));
+            fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_ACTIVE, getString(R.string.active)));
             fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_MCC, "MCC"));
             fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_MNC, "MNC"));
             fields.add(new Field(GeoConstants.FTString, LoggerConstants.HEADER_LAC, "LAC/TAC"));
