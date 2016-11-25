@@ -83,7 +83,20 @@ public class ArduinoEngine extends BaseEngine {
 
     public static String getHeader(Context context) {
         String header = PreferenceManager.getDefaultSharedPreferences(context).getString(LoggerConstants.PREF_EXTERNAL_HEADER, "data");
-        return header.replace(",", LoggerConstants.CSV_SEPARATOR);
+        try {
+            JSONObject info = new JSONObject(header);
+            Iterator<String> sensors = info.keys();
+            header = "";
+            while (sensors.hasNext()) {
+                String key = sensors.next();
+                JSONObject sensor = info.getJSONObject(key);
+                header += sensor.getString("full") + LoggerConstants.CSV_SEPARATOR;
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return header.endsWith(LoggerConstants.CSV_SEPARATOR) ? header.substring(0, header.length() - 1) : header;
     }
 
     public interface ConnectionListener {
