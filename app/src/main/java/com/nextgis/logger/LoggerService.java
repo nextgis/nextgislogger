@@ -263,7 +263,7 @@ public class LoggerService extends Service implements ArduinoEngine.ConnectionLi
             }
 
             private boolean isRunning() {
-                return !mThread.isInterrupted() && mIsRunning;
+                return mThread != null && !mThread.isInterrupted() && mIsRunning;
             }
         });
 
