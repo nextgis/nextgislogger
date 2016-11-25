@@ -92,9 +92,7 @@ public class ArduinoEngine extends BaseEngine {
                 JSONObject sensor = info.getJSONObject(key);
                 header += sensor.getString("full") + LoggerConstants.CSV_SEPARATOR;
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+        } catch (JSONException ignored) { }
 
         return header.endsWith(LoggerConstants.CSV_SEPARATOR) ? header.substring(0, header.length() - 1) : header;
     }
@@ -274,9 +272,7 @@ public class ArduinoEngine extends BaseEngine {
                 item.addColumn(sensor.getString("short"), null, sensor.getString("unit"));
                 mItems.add(item);
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+        } catch (JSONException ignored) { }
     }
 
     private synchronized String readln() throws IOException {
