@@ -306,7 +306,7 @@ public class ArduinoEngine extends BaseEngine {
 
         if (isCorrect)
             for (int i = 0; i < fields.length; i++)
-                mItems.get(i).getColumns().get(0).setValue(fields[i]);
+                mItems.get(i).getColumns().get(0).setValue(fields[i].replace("\r", "").replace("\n", ""));
 
         return isCorrect;
     }
