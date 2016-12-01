@@ -629,14 +629,15 @@ public class MarkActivity extends BindActivity implements View.OnClickListener {
                         String newMarkId = BaseEngine.saveMark(mUri, session, markId, name, time, point);
 
                         items = bundle.getParcelableArrayList(BUNDLE_CELL);
-                        mCellEngine.saveData(items, newMarkId); // TODO
+                        if (mCellEngine != null)
+                            mCellEngine.saveData(items, newMarkId);
 
                         items = bundle.getParcelableArrayList(BUNDLE_SENSOR);
-                        if (items != null)
+                        if (items != null && mSensorEngine != null)
                             mSensorEngine.saveData(items, newMarkId);
 
                         items = bundle.getParcelableArrayList(BUNDLE_EXTERNAL);
-                        if (items != null)
+                        if (items != null && mArduinoEngine != null)
                             mArduinoEngine.saveData(items, newMarkId);
 
                         mSavedMarkPosition = bundle.getInt(LoggerConstants.PREF_MARK_POS);
