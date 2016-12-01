@@ -113,6 +113,7 @@ public interface LoggerConstants {
     String PREF_AUTO_SYNC = "sync_auto";
     String PREF_AUTO_SYNC_PERIOD = "sync_period";
     String PREF_SYNC_PERIOD_SEC_LONG = "sync_period_sec_long";
+    String PREF_LAST_EXPORT = "last_export";
 
     String DEFAULT_USERNAME = "User1";
     String LOG_UID = "ServiceLog";

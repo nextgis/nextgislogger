@@ -197,12 +197,13 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
 
     private void shareSessions(final String[] ids) {
         AlertDialog.Builder options = new AlertDialog.Builder(this);
+        int last = mPreferences.getInt(LoggerConstants.PREF_LAST_EXPORT, 0);
         final int[] selected = new int[1];
-        // TODO save last selected position
-        options.setSingleChoiceItems(R.array.export, 0, new DialogInterface.OnClickListener() {
+        options.setSingleChoiceItems(R.array.export, last, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int position) {
                 selected[0] = position;
+                mPreferences.edit().putInt(LoggerConstants.PREF_LAST_EXPORT, position).apply();
             }
         }).setPositiveButton(R.string.btn_ok, new DialogInterface.OnClickListener() {
             @Override
