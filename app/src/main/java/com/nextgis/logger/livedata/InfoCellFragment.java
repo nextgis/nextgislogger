@@ -4,7 +4,7 @@
  * Purpose: Productive data logger for Android
  * Author:  Stanislav Petriakov, becomeglory@gmail.com
  * *****************************************************************************
- * Copyright © 2015-2016 NextGIS
+ * Copyright © 2015-2017 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,7 +60,7 @@ public class InfoCellFragment extends InfoFragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.info_cell_fragment, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_info_cell, container, false);
 
         mLvNeighbours = (ListView) rootView.findViewById(R.id.lv_neighbours);
         mTvNeighbours = (TextView) rootView.findViewById(R.id.tv_network_neighbours);

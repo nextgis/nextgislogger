@@ -4,7 +4,7 @@
  * Purpose: Productive data logger for Android
  * Author:  Stanislav Petriakov, becomeglory@gmail.com
  * *****************************************************************************
- * Copyright © 2016 NextGIS
+ * Copyright © 2016-2017 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
  * *****************************************************************************
  */
 
-package com.nextgis.logger.UI;
+package com.nextgis.logger.ui.activity;
 
 import android.content.ComponentName;
 import android.content.Intent;
@@ -33,6 +33,7 @@ import com.nextgis.logger.LoggerService;
 import com.nextgis.logger.engines.ArduinoEngine;
 import com.nextgis.logger.engines.CellEngine;
 import com.nextgis.logger.engines.SensorEngine;
+import com.nextgis.logger.ui.activity.ProgressBarActivity;
 
 public class BindActivity extends ProgressBarActivity implements ArduinoEngine.ConnectionListener, ServiceConnection {
     protected CellEngine mCellEngine;

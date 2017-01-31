@@ -4,7 +4,7 @@
  * Purpose: Productive data logger for Android
  * Author:  Stanislav Petriakov, becomeglory@gmail.com
  * *****************************************************************************
- * Copyright © 2016 NextGIS
+ * Copyright © 2016-2017 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
  * *****************************************************************************
  */
 
-package com.nextgis.logger;
+package com.nextgis.logger.ui.activity;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
@@ -36,7 +36,9 @@ import android.os.Bundle;
 import android.util.Pair;
 import android.widget.Toast;
 
-import com.nextgis.logger.UI.ProgressBarActivity;
+import com.nextgis.logger.LoggerApplication;
+import com.nextgis.logger.ui.fragment.NGWLoginFragment;
+import com.nextgis.logger.R;
 import com.nextgis.maplib.api.IGISApplication;
 import com.nextgis.maplib.datasource.ngw.Connection;
 import com.nextgis.maplib.datasource.ngw.INGWResource;
@@ -69,7 +71,7 @@ public class NGWLoginActivity extends ProgressBarActivity implements NGWLoginFra
     public static final String CHANGE_ACCOUNT_LOGIN = "change_account_login";
 
     private static final String[] TABLES = new String[]{LoggerApplication.TABLE_SESSION, LoggerApplication.TABLE_MARK,
-            LoggerApplication.TABLE_CELL, LoggerApplication.TABLE_SENSOR, LoggerApplication.TABLE_EXTERNAL};
+                                                        LoggerApplication.TABLE_CELL, LoggerApplication.TABLE_SENSOR, LoggerApplication.TABLE_EXTERNAL};
 
     protected boolean mForNewAccount = true;
     protected boolean mChangeAccountUrl = mForNewAccount;

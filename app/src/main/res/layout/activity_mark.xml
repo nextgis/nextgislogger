@@ -3,9 +3,9 @@
   ~ ******************************************************************************
   ~ Project: NextGIS Logger
   ~ Purpose: Productive data logger for Android
-  ~ Authors: Stanislav Petriakov, becomeglory@gmail.com
+  ~ Author:  Stanislav Petriakov, becomeglory@gmail.com
   ~ ******************************************************************************
-  ~ Copyright © 2015 NextGIS
+  ~ Copyright © 2014-2015, 2017 NextGIS
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -23,19 +23,13 @@
   -->
 
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:tools="http://schemas.android.com/tools"
              android:layout_width="match_parent"
              android:layout_height="match_parent"
-             android:paddingBottom="@dimen/activity_vertical_margin"
-             android:paddingLeft="@dimen/activity_horizontal_margin"
-             android:paddingRight="@dimen/activity_horizontal_margin"
-             android:paddingTop="@dimen/activity_vertical_margin"
-             tools:context="com.nextgis.logger.SessionsActivity">
+             android:orientation="vertical">
 
     <ListView
-        android:id="@+id/lv_sessions"
+        android:id="@+id/lv_categories"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="start|top"
-        android:choiceMode="multipleChoice"/>
+        android:layout_height="wrap_content"
+        android:windowSoftInputMode="stateVisible"/>
 </FrameLayout>

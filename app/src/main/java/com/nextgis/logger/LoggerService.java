@@ -5,7 +5,7 @@
  * Author:  Nikita Kirin
  * Author:  Stanislav Petriakov, becomeglory@gmail.com
  * *****************************************************************************
- * Copyright © 2014-2016 NextGIS
+ * Copyright © 2014-2017 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,13 +44,14 @@ import com.nextgis.logger.engines.BaseEngine;
 import com.nextgis.logger.engines.CellEngine;
 import com.nextgis.logger.engines.GPSEngine;
 import com.nextgis.logger.engines.SensorEngine;
+import com.nextgis.logger.ui.activity.MainActivity;
 import com.nextgis.logger.util.LoggerConstants;
 import com.nextgis.maplib.api.IGISApplication;
 import com.nextgis.maplib.datasource.GeoPoint;
 import com.nextgis.maplib.map.MapBase;
 import com.nextgis.maplib.map.MapContentProviderHelper;
 
-import static com.nextgis.logger.MainActivity.getSessionName;
+import static com.nextgis.logger.ui.activity.MainActivity.getSessionName;
 
 public class LoggerService extends Service implements ArduinoEngine.ConnectionListener {
     private static final int ID_MEASURING = 1;

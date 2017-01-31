@@ -1,9 +1,10 @@
-/******************************************************************************
+/*
+ * *****************************************************************************
  * Project: NextGIS Logger
  * Purpose: Productive data logger for Android
- * Authors: Stanislav Petriakov
- ******************************************************************************
- * Copyright © 2014 NextGIS
+ * Author:  Stanislav Petriakov, becomeglory@gmail.com
+ * *****************************************************************************
+ * Copyright © 2014-2015, 2017 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,8 +18,9 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *****************************************************************************/
-package com.nextgis.logger;
+ * *****************************************************************************
+ */
+package com.nextgis.logger.ui.activity;
 
 import android.content.Intent;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -29,14 +31,14 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.TextView;
 
-import com.nextgis.logger.UI.ProgressBarActivity;
+import com.nextgis.logger.R;
 
 public class AboutActivity extends ProgressBarActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
         mHasFAB = false;
-		setContentView(R.layout.about_activity);
+		setContentView(R.layout.activity_about);
 
 		String verName, verCode;
 		verName = verCode = "?";

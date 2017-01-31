@@ -2,10 +2,9 @@
  * *****************************************************************************
  * Project: NextGIS Logger
  * Purpose: Productive data logger for Android
- * Author:  Nikita Kirin
  * Author:  Stanislav Petriakov, becomeglory@gmail.com
  * *****************************************************************************
- * Copyright © 2014-2016 NextGIS
+ * Copyright © 2014-2017 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +21,7 @@
  * *****************************************************************************
  */
 
-package com.nextgis.logger;
+package com.nextgis.logger.ui.activity;
 
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
@@ -49,7 +48,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.nextgis.logger.UI.ProgressBarActivity;
+import com.nextgis.logger.LoggerApplication;
+import com.nextgis.logger.R;
 import com.nextgis.logger.util.FileUtil;
 import com.nextgis.logger.util.LoggerConstants;
 import com.nextgis.maplib.api.IGISApplication;
@@ -77,7 +77,7 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
         if (getActionBar() != null)
             getActionBar().setDisplayHomeAsUpEnabled(false);
 
-        setContentView(R.layout.main_activity);
+        setContentView(R.layout.activity_main);
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
         FileUtil.deleteFiles(new File(LoggerConstants.TEMP_PATH).listFiles()); // clear cache directory with shared zips
 

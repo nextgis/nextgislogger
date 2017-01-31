@@ -1,24 +1,26 @@
-/******************************************************************************
+/*
+ * *****************************************************************************
  * Project: NextGIS Logger
  * Purpose: Productive data logger for Android
  * Author:  Stanislav Petriakov, becomeglory@gmail.com
  * *****************************************************************************
- * Copyright © 2014-2016 NextGIS
- * <p>
+ * Copyright © 2014-2017 NextGIS
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 2 of the License, or
  * (at your option) any later version.
- * <p>
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * <p>
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *****************************************************************************/
-package com.nextgis.logger;
+ * *****************************************************************************
+ */
+package com.nextgis.logger.ui.activity;
 
 import android.app.Activity;
 import android.content.ComponentName;
@@ -32,7 +34,8 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.keenfin.sfcdialog.SimpleFileChooser;
-import com.nextgis.logger.UI.ProgressBarActivity;
+import com.nextgis.logger.LoggerService;
+import com.nextgis.logger.R;
 import com.nextgis.logger.engines.ArduinoEngine;
 import com.nextgis.logger.engines.AudioEngine;
 

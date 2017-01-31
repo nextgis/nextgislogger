@@ -4,7 +4,7 @@
  * Purpose: Productive data logger for Android
  * Author:  Stanislav Petriakov, becomeglory@gmail.com
  * *****************************************************************************
- * Copyright © 2015-2016 NextGIS
+ * Copyright © 2015-2017 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-import com.nextgis.logger.PreferencesActivity;
+import com.nextgis.logger.ui.activity.PreferencesActivity;
 import com.nextgis.logger.R;
 import com.nextgis.logger.engines.BaseEngine;
 import com.nextgis.logger.engines.InfoColumn;
@@ -52,7 +52,7 @@ public class InfoSensorsFragment extends InfoFragment implements View.OnClickLis
     @SuppressWarnings("deprecation")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.info_sensors_fragment, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_info_sensors, container, false);
 
         mListener = new BaseEngine.EngineListener() {
             @Override

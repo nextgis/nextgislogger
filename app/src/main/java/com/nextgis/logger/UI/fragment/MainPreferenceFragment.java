@@ -4,7 +4,7 @@
  * Purpose: Productive data logger for Android
  * Author:  Stanislav Petriakov, becomeglory@gmail.com
  * *****************************************************************************
- * Copyright © 2016 NextGIS
+ * Copyright © 2016-2017 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
  * *****************************************************************************
  */
 
-package com.nextgis.logger.UI.fragment;
+package com.nextgis.logger.ui.fragment;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -31,7 +31,7 @@ import android.preference.PreferenceFragment;
 import android.widget.Toast;
 
 import com.nextgis.logger.R;
-import com.nextgis.logger.UI.IntEditTextPreference;
+import com.nextgis.logger.ui.view.IntEditTextPreference;
 import com.nextgis.logger.util.FileUtil;
 import com.nextgis.logger.util.LoggerConstants;
 

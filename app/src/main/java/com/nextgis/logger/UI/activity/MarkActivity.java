@@ -1,9 +1,10 @@
-/******************************************************************************
+/*
+ * *****************************************************************************
  * Project: NextGIS Logger
  * Purpose: Productive data logger for Android
  * Author:  Stanislav Petriakov, becomeglory@gmail.com
- ******************************************************************************
- * Copyright © 2014-2016 NextGIS
+ * *****************************************************************************
+ * Copyright © 2014-2017 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,8 +18,9 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *****************************************************************************/
-package com.nextgis.logger;
+ * *****************************************************************************
+ */
+package com.nextgis.logger.ui.activity;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -53,7 +55,8 @@ import android.widget.SearchView;
 import android.widget.SearchView.OnQueryTextListener;
 import android.widget.Toast;
 
-import com.nextgis.logger.UI.BindActivity;
+import com.nextgis.logger.LoggerApplication;
+import com.nextgis.logger.R;
 import com.nextgis.logger.engines.BaseEngine;
 import com.nextgis.logger.engines.GPSEngine;
 import com.nextgis.logger.engines.InfoItem;
@@ -104,7 +107,7 @@ public class MarkActivity extends BindActivity implements View.OnClickListener {
         if(mPreferences.getBoolean(LoggerConstants.PREF_KEEP_SCREEN, true))
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-		setContentView(R.layout.mark_activity);
+		setContentView(R.layout.activity_mark);
 
         mFAB.setOnClickListener(this);
 

@@ -4,7 +4,7 @@
  * Purpose: Productive data logger for Android
  * Author:  Stanislav Petriakov, becomeglory@gmail.com
  * *****************************************************************************
- * Copyright © 2014-2016 NextGIS
+ * Copyright © 2014-2017 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -114,6 +114,7 @@ public interface LoggerConstants {
     String PREF_AUTO_SYNC_PERIOD = "sync_period";
     String PREF_SYNC_PERIOD_SEC_LONG = "sync_period_sec_long";
     String PREF_LAST_EXPORT = "last_export";
+    String PREF_INTRO = "app_intro";
 
     String DEFAULT_USERNAME = "User1";
     String LOG_UID = "ServiceLog";

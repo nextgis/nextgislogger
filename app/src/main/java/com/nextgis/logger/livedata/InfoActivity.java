@@ -4,7 +4,7 @@
  * Purpose: Productive data logger for Android
  * Author:  Stanislav Petriakov, becomeglory@gmail.com
  * *****************************************************************************
- * Copyright © 2015-2016 NextGIS
+ * Copyright © 2015-2017 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@ import android.view.Menu;
 import android.view.WindowManager;
 
 import com.nextgis.logger.R;
-import com.nextgis.logger.UI.BindActivity;
+import com.nextgis.logger.ui.activity.BindActivity;
 import com.nextgis.logger.engines.BaseEngine;
 import com.nextgis.logger.util.LoggerConstants;
 
@@ -48,7 +48,7 @@ public class InfoActivity extends BindActivity implements ViewPager.OnPageChange
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mHasFAB = false;
-        setContentView(R.layout.info_activity);
+        setContentView(R.layout.activity_info);
 
         mItemAdapter = new ItemPagerAdapter(getSupportFragmentManager());
         mVpScreens = (ViewPager) findViewById(R.id.vp_tabs);

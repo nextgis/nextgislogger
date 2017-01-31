@@ -4,7 +4,7 @@
  * Purpose: Productive data logger for Android
  * Author:  Stanislav Petriakov, becomeglory@gmail.com
  * *****************************************************************************
- * Copyright © 2015-2016 NextGIS
+ * Copyright © 2014-2017 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
  * *****************************************************************************
  */
 
-package com.nextgis.logger;
+package com.nextgis.logger.ui.activity;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -41,7 +41,9 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import com.nextgis.logger.UI.ProgressBarActivity;
+import com.nextgis.logger.BuildConfig;
+import com.nextgis.logger.LoggerApplication;
+import com.nextgis.logger.R;
 import com.nextgis.logger.engines.ArduinoEngine;
 import com.nextgis.logger.engines.BaseEngine;
 import com.nextgis.logger.engines.CellEngine;
@@ -108,7 +110,7 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.sessions_activity);
+        setContentView(R.layout.activity_sessions);
 
         mSessionsName = new ArrayList<>();
         mSessions = new ArrayList<>();

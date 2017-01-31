@@ -5,7 +5,7 @@
   ~ Purpose: Productive data logger for Android
   ~ Author:  Stanislav Petriakov, becomeglory@gmail.com
   ~ ******************************************************************************
-  ~ Copyright © 2014-2016 NextGIS
+  ~ Copyright © 2014-2017 NextGIS
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@
             android:key="user_name"
             android:title="@string/settings_user_name"/>
 
-        <com.nextgis.logger.UI.IntEditTextPreference
+        <com.nextgis.logger.ui.view.IntEditTextPreference
             android:defaultValue="1"
             android:inputType="number"
             android:key="period_sec"
@@ -99,10 +99,10 @@
             android:key="sensor_mic"
             android:title="@string/mic"/>
 
-        <com.nextgis.logger.util.AudioCalibratePreference
+        <com.nextgis.logger.ui.view.AudioCalibratePreference
             android:defaultValue="0"
             android:dependency="sensor_mic"
-            android:dialogLayout="@layout/audio_calibrate_dialog"
+            android:dialogLayout="@layout/dialog_audio_calibrate"
             android:key="sensor_mic_delta"
             android:negativeButtonText="@android:string/cancel"
             android:positiveButtonText="@android:string/ok"

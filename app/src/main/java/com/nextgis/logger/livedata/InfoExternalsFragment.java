@@ -4,7 +4,7 @@
  * Purpose: Productive data logger for Android
  * Author:  Stanislav Petriakov, becomeglory@gmail.com
  * *****************************************************************************
- * Copyright © 2015-2016 NextGIS
+ * Copyright © 2015-2017 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,10 +37,10 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.nextgis.logger.PreferencesActivity;
+import com.nextgis.logger.ui.activity.PreferencesActivity;
 import com.nextgis.logger.R;
-import com.nextgis.logger.UI.ProgressBarActivity;
-import com.nextgis.logger.UI.fragment.SensorsPreferenceFragment;
+import com.nextgis.logger.ui.activity.ProgressBarActivity;
+import com.nextgis.logger.ui.fragment.SensorsPreferenceFragment;
 import com.nextgis.logger.engines.ArduinoEngine;
 import com.nextgis.logger.engines.BaseEngine;
 import com.nextgis.logger.engines.InfoItem;
@@ -59,7 +59,7 @@ public class InfoExternalsFragment extends InfoFragment implements View.OnClickL
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.info_external_fragment, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_info_external, container, false);
         mLayoutError = (LinearLayout) rootView.findViewById(R.id.ll_error);
         mSvData = (ScrollView) rootView.findViewById(R.id.sv_data);
         mLayoutData = (LinearLayout) rootView.findViewById(R.id.ll_data);

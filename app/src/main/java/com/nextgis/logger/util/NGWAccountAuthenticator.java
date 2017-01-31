@@ -4,7 +4,7 @@
  * Purpose: Productive data logger for Android
  * Author:  Stanislav Petriakov, becomeglory@gmail.com
  * *****************************************************************************
- * Copyright © 2016 NextGIS
+ * Copyright © 2016-2017 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
-import com.nextgis.logger.NGWLoginActivity;
+import com.nextgis.logger.ui.activity.NGWLoginActivity;
 import com.nextgis.maplib.util.Constants;
 
 class NGWAccountAuthenticator extends AbstractAccountAuthenticator {

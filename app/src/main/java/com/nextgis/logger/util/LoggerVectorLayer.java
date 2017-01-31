@@ -4,7 +4,7 @@
  * Purpose: Productive data logger for Android
  * Author:  Stanislav Petriakov, becomeglory@gmail.com
  * *****************************************************************************
- * Copyright © 2016 NextGIS
+ * Copyright © 2016-2017 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,10 +25,9 @@ package com.nextgis.logger.util;
 
 import android.content.Context;
 import android.content.SyncResult;
-import android.os.Handler;
 import android.os.SystemClock;
 
-import com.nextgis.logger.UI.ProgressBarActivity;
+import com.nextgis.logger.ui.activity.ProgressBarActivity;
 import com.nextgis.maplib.api.IGeometryCache;
 import com.nextgis.maplib.datasource.GeoPoint;
 import com.nextgis.maplib.datasource.GeometryPlainList;
