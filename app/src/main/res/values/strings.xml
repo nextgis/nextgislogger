@@ -31,6 +31,9 @@
     <string name="title_activity_sessions">Sessions</string>
     <string name="title_activity_info">Live data</string>
 
+    <string name="intro1">Welcome to NextGIS Logger!\n\nThis app can:\n* Collect data from various external sources in an automated fashion\n* Get readings from cell towers, GPS, accelerometer, gyro and other sensors\n* Add user markers along the log\n* Save as CSV and upload to the cloud\nand much more!</string>
+    <string name="intro2">Log in to get the most out of this app, synchronize your data and get regular updates (commercial plan is needed http://nextgis.com/pricing/). You can sign in later in Settings.</string>
+
     <string name="about_info">This app collects cell and sensors (orientation, accelerometer, gyroscope, etc) data continiously and at specified points (markers).</string>
     <string name="about_more">See more:</string>
     <string name="about_more_url" translatable="false">http://github.com/nextgis/nextgislogger</string>

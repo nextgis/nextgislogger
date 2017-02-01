@@ -74,6 +74,12 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        if (!mPreferences.getBoolean(LoggerConstants.PREF_INTRO, false)) {
+            startActivity(new Intent(this, IntroActivity.class));
+            finish();
+            return;
+        }
+
         if (getActionBar() != null)
             getActionBar().setDisplayHomeAsUpEnabled(false);
 
@@ -154,7 +160,9 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 
     @Override
     protected void onDestroy() {
-        unregisterReceiver(mLoggerServiceReceiver);
+        if (mLoggerServiceReceiver != null)
+            unregisterReceiver(mLoggerServiceReceiver);
+
         super.onDestroy();
     }
 
