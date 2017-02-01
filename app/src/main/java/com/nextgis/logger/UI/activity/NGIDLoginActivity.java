@@ -2,10 +2,9 @@
  * *****************************************************************************
  * Project: NextGIS Logger
  * Purpose: Productive data logger for Android
- * Author:  Nikita Kirin
  * Author:  Stanislav Petriakov, becomeglory@gmail.com
  * *****************************************************************************
- * Copyright © 2014-2017 NextGIS
+ * Copyright © 2017 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,37 +21,17 @@
  * *****************************************************************************
  */
 
-apply plugin: 'com.android.application'
+package com.nextgis.logger.ui.activity;
 
-android {
-    compileSdkVersion 25
-    buildToolsVersion "23.0.3"
+import android.os.Bundle;
 
-    defaultConfig {
-        applicationId "com.nextgis.logger"
-        minSdkVersion 11
-        targetSdkVersion 25
-        versionCode 19
-        versionName "1.6.2"
-        buildConfigField "String", "CLIENT_ID", "\"Im6GFdPPuPM09BnvFb3EacFZyq8TpRBSAAex7JDZ\""
+import com.nextgis.logger.R;
+
+public class NGIDLoginActivity extends ProgressBarActivity {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mHasFAB = false;
+        setContentView(R.layout.activity_ngid_login);
     }
-
-    buildTypes {
-        release {
-            minifyEnabled true
-            proguardFile getDefaultProguardFile('proguard-android.txt')
-            proguardFile 'proguard-logger.txt'
-        }
-    }
-
-    return void
-}
-
-dependencies {
-    compile 'com.android.support:gridlayout-v7:25.1.1'
-    compile 'com.melnykov:floatingactionbutton:1.2.0'
-    compile 'com.android.support:support-v4:25.1.1'
-    compile 'com.github.TechFreak:WizardPager:1.0.3'
-    compile 'com.4ert:sfcdialog:0.2'
-    compile project(':maplib')
 }

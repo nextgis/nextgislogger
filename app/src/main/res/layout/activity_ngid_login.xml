@@ -1,10 +1,11 @@
-<?xml version="1.0" encoding="utf-8"?><!--
+<?xml version="1.0" encoding="utf-8"?>
+<!--
   ~ ******************************************************************************
   ~ Project: NextGIS Logger
   ~ Purpose: Productive data logger for Android
   ~ Author:  Stanislav Petriakov, becomeglory@gmail.com
   ~ ******************************************************************************
-  ~ Copyright © 2016-2017 NextGIS
+  ~ Copyright © 2017 NextGIS
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -21,19 +22,17 @@
   ~ ******************************************************************************
   -->
 
-<preference-headers xmlns:android="http://schemas.android.com/apk/res/android">
-    <header
-        android:fragment="com.nextgis.logger.ui.fragment.MainPreferenceFragment"
-        android:title="@string/settings_main"/>
-    <header
-        android:fragment="com.nextgis.logger.ui.fragment.SensorsPreferenceFragment"
-        android:title="@string/settings_sensors"/>
-    <header
-        android:fragment="com.nextgis.logger.ui.fragment.AccountPreferenceFragment"
-        android:title="@string/settings_account"/>
-    <header android:title="@string/ngid_settings">
-        <intent
-            android:targetClass="com.nextgis.logger.ui.activity.NGIDSettingsActivity"
-            android:targetPackage="com.nextgis.logger"/>
-    </header>
-</preference-headers>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="8dp">
+
+    <fragment
+        android:id="@+id/login_screen"
+        android:name="com.nextgis.logger.ui.fragment.NGIDLoginFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:layout="@layout/fragment_ngid_login"/>
+</FrameLayout>

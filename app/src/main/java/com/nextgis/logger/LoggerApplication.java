@@ -4,7 +4,7 @@
  * Purpose: Productive data logger for Android
  * Author:  Stanislav Petriakov, becomeglory@gmail.com
  * *****************************************************************************
- * Copyright © 2015-2016 NextGIS
+ * Copyright © 2015-2017 NextGIS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -318,6 +318,16 @@ public class LoggerApplication extends Application implements IGISApplication {
 
     @Override
     public void showSettings(String setting) {
+
+    }
+
+    @Override
+    public void sendEvent(String category, String action, String label) {
+
+    }
+
+    @Override
+    public void sendScreen(String name) {
 
     }
 

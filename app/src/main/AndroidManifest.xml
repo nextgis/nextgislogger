@@ -87,6 +87,28 @@
         </activity-alias>
 
         <activity
+            android:name=".ui.activity.NGIDSettingsActivity"
+            android:label="@string/ngid_settings"
+            android:parentActivityName=".ui.activity.PreferencesActivity">
+
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.nextgis.logger.ui.activity.PreferencesActivity"/>
+        </activity>
+
+        <activity
+            android:name=".ui.activity.NGIDLoginActivity"
+            android:label="@string/login"
+            android:parentActivityName=".ui.activity.NGIDSettingsActivity">
+
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.nextgis.logger.ui.activity.NGIDSettingsActivity"/>
+        </activity>
+
+        <activity
             android:name=".ui.activity.MarkActivity"
             android:label="@string/menu_search"
             android:parentActivityName=".ui.activity.MainActivity"

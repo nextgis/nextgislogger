@@ -6,7 +6,7 @@
   ~ Author:  Nikita Kirin
   ~ Author:  Stanislav Petriakov, becomeglory@gmail.com
   ~ ******************************************************************************
-  ~ Copyright © 2014-2016 NextGIS
+  ~ Copyright © 2014-2017 NextGIS
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@
     <string name="settings_sensors">Sensors</string>
     <string name="settings_main">Main</string>
     <string name="settings_external">External</string>
-    <string name="settings_account" translatable="false">NextGIS.com</string>
+    <string name="settings_account">Web GIS</string>
     <string name="settings_internal">Internal</string>
 
     <string name="settings_period">Set Period (sec)</string>
@@ -230,4 +230,18 @@
     <string name="permissions_main">Application needs access to location to record data from GPS, to phone state to get near base radio stations info and to
         microphone to get noise level.</string>
     <string name="permissions_acc">Application needs access to accounts to create one and sync with cloud.</string>
+
+    <string name="previous">Previous</string>
+    <string name="next">Next</string>
+    <string name="skip">Skip</string>
+    <string name="ngid_account_new">Sign up</string>
+    <string name="ngid_account_ask">Do not have account?</string>
+    <string name="ngid_settings">Account</string>
+    <string name="ngid_username">Username</string>
+    <string name="ngid_email">E-mail</string>
+    <string name="ngid_first_name">First name</string>
+    <string name="ngid_last_name">Last name</string>
+    <string name="ngid_my">my.nextgis.com</string>
+    <string name="sign_out">Sign out</string>
+    <string name="not_set">Not set</string>
 </resources>

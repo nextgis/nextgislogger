@@ -6,7 +6,7 @@
   ~ Author:  Nikita Kirin
   ~ Author:  Stanislav Petriakov, becomeglory@gmail.com
   ~ ******************************************************************************
-  ~ Copyright © 2014-2016 NextGIS
+  ~ Copyright © 2014-2017 NextGIS
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@
     <string name="app_ngw">Отправить в nextgis.com</string>
     <string name="title_activity_sessions">Сессии</string>
     <string name="title_activity_info">Данные в реальном времени</string>
-    
+
     <string name="about_info">Эта программа собирает текущие данные о БС и с датчиков устройства (акселерометр, гироскоп, и т.д.) постоянно и в определенные моменты (метки).</string>
     <string name="about_more">Подробнее:</string>
     <string name="about_authors">Информация об авторстве:</string>
@@ -39,6 +39,7 @@
     <string name="settings_sensors">Сенсоры</string>
     <string name="settings_main">Основное</string>
     <string name="settings_external">Внешние</string>
+    <string name="settings_account">Веб ГИС</string>
     <string name="settings_internal">Внутренние</string>
 
     <string name="settings_period">Задать период (сек)</string>
@@ -203,4 +204,18 @@
     <string name="permissions_main">Приложению требуется доступ к местоположению для записи данных с GPS, к статусу телефона для получения информации об
         окружающих базовых станциях и к микрофону для записи уровня шума.</string>
     <string name="permissions_acc">Приложению требуется доступ к аккаунтам для создания записи и синхронизации с облаком.</string>
+
+    <string name="previous">Предыдущий</string>
+    <string name="next">Следующий</string>
+    <string name="skip">Пропустить</string>
+    <string name="ngid_account_new">Зарегистрироваться</string>
+    <string name="ngid_account_ask">Нет своего аккаунта?</string>
+    <string name="ngid_settings">Аккаунт</string>
+    <string name="ngid_username">Имя пользователя</string>
+    <string name="ngid_email">E-mail</string>
+    <string name="ngid_first_name">Имя</string>
+    <string name="ngid_last_name">Фамилия</string>
+    <string name="ngid_my">my.nextgis.com</string>
+    <string name="sign_out">Выйти</string>
+    <string name="not_set">Не задано</string>
 </resources>
