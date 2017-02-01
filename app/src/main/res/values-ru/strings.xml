@@ -103,6 +103,13 @@
 
     <string name="ext_media_unmounted_msg">Нет доступа к внешней памяти</string>
     <string name="fs_error_msg">Ошибка файловой системы</string>
+    <string name="error_401">Требуется авторизация</string>
+
+    <string name="cancel_download">Загрузка отменена</string>
+    <string name="update_new">Найдена версия %1$s. Вы хотите обновиться?</string>
+    <string name="update_title">Обновить?</string>
+    <string name="update_check">Проверить обновления</string>
+    <string name="update_no">Обновлений не найдено</string>
 
     <string name="sensor_disabled">Нет включенных сенсоров</string>
     <string name="sensor_error">"Сенсоры не найдены: "</string>
@@ -207,6 +214,7 @@
     <string name="permissions_main">Приложению требуется доступ к местоположению для записи данных с GPS, к статусу телефона для получения информации об
         окружающих базовых станциях и к микрофону для записи уровня шума.</string>
     <string name="permissions_acc">Приложению требуется доступ к аккаунтам для создания записи и синхронизации с облаком.</string>
+    <string name="permissions_storage">Приложению требуется доступ к внутренней памяти для загрузки новой версии.</string>
 
     <string name="previous">Предыдущий</string>
     <string name="next">Следующий</string>

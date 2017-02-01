@@ -26,10 +26,12 @@ import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceActivity;
+import android.support.annotation.NonNull;
 import android.view.MenuItem;
 import android.widget.Toast;
 
@@ -38,6 +40,7 @@ import com.nextgis.logger.LoggerService;
 import com.nextgis.logger.R;
 import com.nextgis.logger.engines.ArduinoEngine;
 import com.nextgis.logger.engines.AudioEngine;
+import com.nextgis.logger.util.ApkDownloader;
 
 import java.io.File;
 import java.util.List;
@@ -149,5 +152,17 @@ public class PreferencesActivity extends PreferenceActivity implements ServiceCo
 
     public AudioEngine getAudioEngine() {
         return mAudioEngine;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case ProgressBarActivity.PERMISSION_STORAGE:
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                    ApkDownloader.check(this, true);
+                break;
+            default:
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
     }
 }

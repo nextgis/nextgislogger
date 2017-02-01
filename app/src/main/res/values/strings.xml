@@ -107,6 +107,13 @@
 
     <string name="ext_media_unmounted_msg">External Media is NOT MOUNTED</string>
     <string name="fs_error_msg">File system ERROR.</string>
+    <string name="error_401">Authorization required</string>
+
+    <string name="cancel_download">Download canceled</string>
+    <string name="update_new">Version %1$s found. Would you like to update?</string>
+    <string name="update_title">Update?</string>
+    <string name="update_check">Check updates</string>
+    <string name="update_no">No updates found</string>
 
     <string name="sensor_disabled">No active sensors.</string>
     <string name="sensor_error">"No sensors found: "</string>
@@ -233,6 +240,7 @@
     <string name="permissions_main">Application needs access to location to record data from GPS, to phone state to get near base radio stations info and to
         microphone to get noise level.</string>
     <string name="permissions_acc">Application needs access to accounts to create one and sync with cloud.</string>
+    <string name="permissions_storage">Application needs access to your storage to download new version.</string>
 
     <string name="previous">Previous</string>
     <string name="next">Next</string>

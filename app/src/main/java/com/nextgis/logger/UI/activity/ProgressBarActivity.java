@@ -37,6 +37,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.SyncResult;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -59,6 +60,7 @@ import com.melnykov.fab.FloatingActionButton;
 import com.nextgis.logger.LoggerService;
 import com.nextgis.logger.R;
 import com.nextgis.logger.livedata.InfoActivity;
+import com.nextgis.logger.util.ApkDownloader;
 import com.nextgis.logger.util.LoggerConstants;
 import com.nextgis.logger.util.LoggerVectorLayer;
 import com.nextgis.logger.util.UiUtil;
@@ -74,6 +76,7 @@ import java.util.List;
 public class ProgressBarActivity extends FragmentActivity implements View.OnClickListener {
     private static final int PERMISSION_MAIN = 1;
     public static final int PERMISSION_ACC = 2;
+    public static final int PERMISSION_STORAGE = 3;
 
     private BroadcastReceiver mLoggerServiceReceiver;
     protected SharedPreferences mPreferences;
@@ -425,6 +428,10 @@ public class ProgressBarActivity extends FragmentActivity implements View.OnClic
         return UiUtil.isPermissionGranted(context, Manifest.permission.GET_ACCOUNTS);
     }
 
+    public static boolean hasStoragePermissions(Context context) {
+        return UiUtil.isPermissionGranted(context, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+    }
+
     public static void requestPermissions(final Activity activity, int title, int message, final int requestCode, final String... permissions) {
         boolean shouldShowDialog = false;
         for (String permission : permissions) {
@@ -454,7 +461,12 @@ public class ProgressBarActivity extends FragmentActivity implements View.OnClic
             case PERMISSION_MAIN:
                 break;
             case PERMISSION_ACC:
-                startNGWActivity(this);
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                    startNGWActivity(this);
+                break;
+            case PERMISSION_STORAGE:
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                    ApkDownloader.check(this, false);
                 break;
             default:
                 super.onRequestPermissionsResult(requestCode, permissions, grantResults);

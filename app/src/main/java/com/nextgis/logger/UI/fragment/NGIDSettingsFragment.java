@@ -23,16 +23,32 @@
 
 package com.nextgis.logger.ui.fragment;
 
+import android.Manifest;
 import android.os.Bundle;
 import android.preference.PreferenceFragment;
 
 import com.nextgis.logger.R;
 import com.nextgis.logger.ui.activity.NGIDSettingsActivity;
+import com.nextgis.logger.ui.activity.ProgressBarActivity;
+import com.nextgis.logger.util.ApkDownloader;
 
 public class NGIDSettingsFragment extends PreferenceFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (getArguments() != null && getArguments().containsKey("updater")) {
+            if (ProgressBarActivity.hasStoragePermissions(getActivity()))
+                ApkDownloader.check(getActivity(), true);
+            else {
+                String[] permissions = new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE};
+                ProgressBarActivity.requestPermissions(getActivity(), R.string.permissions_title, R.string.permissions_storage,
+                                                       ProgressBarActivity.PERMISSION_STORAGE, permissions);
+            }
+
+            return;
+        }
+
         addPreferencesFromResource(R.xml.preferences_ngid);
         NGIDSettingsActivity activity = (NGIDSettingsActivity) getActivity();
         activity.fillAccountPreferences(getPreferenceScreen());

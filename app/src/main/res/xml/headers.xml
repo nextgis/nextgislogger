@@ -36,4 +36,11 @@
             android:targetClass="com.nextgis.logger.ui.activity.NGIDSettingsActivity"
             android:targetPackage="com.nextgis.logger"/>
     </header>
+    <header
+        android:fragment="com.nextgis.logger.ui.fragment.NGIDSettingsFragment"
+        android:title="@string/update_check">
+        <extra
+            android:name="updater"
+            android:value="true"/>
+    </header>
 </preference-headers>

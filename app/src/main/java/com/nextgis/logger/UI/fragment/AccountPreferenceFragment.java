@@ -34,6 +34,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.PeriodicSync;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.CheckBoxPreference;
@@ -253,7 +254,8 @@ public class AccountPreferenceFragment extends PreferenceFragment {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
             case ProgressBarActivity.PERMISSION_ACC:
-                initPreferences();
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                    initPreferences();
                 break;
             default:
                 super.onRequestPermissionsResult(requestCode, permissions, grantResults);

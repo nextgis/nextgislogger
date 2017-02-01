@@ -25,6 +25,7 @@ package com.nextgis.logger.util;
 
 public interface LoggerConstants {
     String AUTHORITY = "com.nextgis.logger.provider";
+    String APK_VERSION_UPDATE = "https://my.nextgis.com/downloads/software/logger/version";
 
     String CSV_SEPARATOR = ";";
     String CELL = "cell";

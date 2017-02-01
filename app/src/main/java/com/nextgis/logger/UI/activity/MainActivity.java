@@ -23,6 +23,7 @@
 
 package com.nextgis.logger.ui.activity;
 
+import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
@@ -50,6 +51,7 @@ import android.widget.Toast;
 
 import com.nextgis.logger.LoggerApplication;
 import com.nextgis.logger.R;
+import com.nextgis.logger.util.ApkDownloader;
 import com.nextgis.logger.util.FileUtil;
 import com.nextgis.logger.util.LoggerConstants;
 import com.nextgis.maplib.api.IGISApplication;
@@ -141,6 +143,13 @@ public class MainActivity extends ProgressBarActivity implements OnClickListener
 
         mUri = Uri.parse("content://" + ((IGISApplication) getApplicationContext()).getAuthority());
         mUri = mUri.buildUpon().appendPath(LoggerApplication.TABLE_SESSION).build();
+
+        if (hasStoragePermissions(this))
+            ApkDownloader.check(this, false);
+        else {
+            String[] permissions = new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE};
+            requestPermissions(this, R.string.permissions_title, R.string.permissions_storage, PERMISSION_STORAGE, permissions);
+        }
     }
 
     @Override
