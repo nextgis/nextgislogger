@@ -34,10 +34,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.text.Editable;
-import android.text.SpannableString;
-import android.text.Spanned;
 import android.text.TextWatcher;
-import android.text.style.URLSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -47,6 +44,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.nextgis.logger.R;
+import com.nextgis.logger.util.UiUtil;
 import com.nextgis.maplib.api.IGISApplication;
 import com.nextgis.maplib.api.INGWLayer;
 import com.nextgis.maplib.map.MapContentProviderHelper;
@@ -117,7 +115,7 @@ public class NGWLoginFragment extends Fragment implements LoaderManager.LoaderCa
 
         mManual = (TextView) view.findViewById(R.id.manual);
         mManual.setOnClickListener(this);
-        highlightText();
+        UiUtil.highlightText(mManual);
 
         mLogin.setText(DEFAULT_ACCOUNT);
         if (!mForNewAccount) {
@@ -200,15 +198,8 @@ public class NGWLoginFragment extends Fragment implements LoaderManager.LoaderCa
                     mUrlText += ENDING;
             }
 
-            highlightText();
+            UiUtil.highlightText(mManual);
         }
-    }
-
-    private void highlightText() {
-        final CharSequence text = mManual.getText();
-        final SpannableString spannableString = new SpannableString(text);
-        spannableString.setSpan(new URLSpan(""), 0, spannableString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        mManual.setText(spannableString, TextView.BufferType.SPANNABLE);
     }
 
     protected boolean checkEditText(EditText edit) {

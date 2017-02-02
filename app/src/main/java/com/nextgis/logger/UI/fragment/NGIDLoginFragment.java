@@ -29,9 +29,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.text.SpannableString;
-import android.text.Spanned;
-import android.text.style.URLSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,6 +39,7 @@ import android.widget.Toast;
 
 import com.nextgis.logger.R;
 import com.nextgis.logger.util.NGIDUtils;
+import com.nextgis.logger.util.UiUtil;
 import com.nextgis.maplib.util.NetworkUtil;
 
 public class NGIDLoginFragment extends Fragment implements View.OnClickListener {
@@ -63,16 +61,9 @@ public class NGIDLoginFragment extends Fragment implements View.OnClickListener 
         mSignInButton = (Button) view.findViewById(R.id.signin);
         mSignInButton.setOnClickListener(this);
         TextView signUp = (TextView) view.findViewById(R.id.signup);
-        highlightText(signUp);
+        UiUtil.highlightText(signUp);
         signUp.setOnClickListener(this);
         return view;
-    }
-
-    private static void highlightText(TextView textView) {
-        final CharSequence text = textView.getText();
-        final SpannableString spannableString = new SpannableString(text);
-        spannableString.setSpan(new URLSpan(""), 0, spannableString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        textView.setText(spannableString, TextView.BufferType.SPANNABLE);
     }
 
     @Override

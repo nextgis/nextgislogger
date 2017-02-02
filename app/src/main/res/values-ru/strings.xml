@@ -26,18 +26,28 @@
 <resources>
     <string name="app_settings">Настройки</string>
     <string name="app_about">О программе</string>
+    <string name="app_support">Поддержка</string>
     <string name="app_ngw">Отправить в nextgis.com</string>
+    <string name="app_help">Помощь</string>
     <string name="title_activity_sessions">Сессии</string>
     <string name="title_activity_info">Данные в реальном времени</string>
 
     <string name="intro1">Добро пожаловать в NextGIS Logger!\n\nЭто приложение поможет вам:\n* Собирать данные с внешних источников в автоматическом режиме\n* Опрашивать: сотовые вышки, GPS, акселерометр, гироскоп и другие сенсоры\n* Расставлять пользовательские метки по логу\n* Сохранять в CSV и загружать результаты в облако\nи многое другое!</string>
     <string name="intro2">Войдите для эффективной работы, синхронизациии и получения регулярных обновлений (необходима подписка на http://nextgis.ru/pricing/). Вы можете войти позже через настройки.</string>
 
+    <string name="copyright"><![CDATA[© <a href=\"http://nextgis.ru\">NextGIS</a>, 2014–2017]]></string>
+    <string name="credits_intro">Лицензии</string>
     <string name="about_info">Эта программа собирает текущие данные о БС и с датчиков устройства (акселерометр, гироскоп, и т.д.) постоянно и в определенные моменты (метки).</string>
-    <string name="about_more">Подробнее:</string>
-    <string name="about_authors">Информация об авторстве:</string>
-    <string name="about_authors_names">Никита Кирин, Станислав Петряков</string>
-    <string name="about_license">Лицензия:</string>
+
+    <string name="email">Email</string>
+    <string name="email_src">info@nextgis.com</string>
+    <string name="telegram">Telegram</string>
+    <string name="telegram_src">\@nextgis_support</string>
+    <string name="github">Github</string>
+    <string name="github_src">http://github.com/nextgis/nextgislogger/issues</string>
+    <string name="web">Веб-сайт</string>
+    <string name="web_src">http://nextgis.ru/nextgis-logger</string>
+    <string name="not_installed">Приложение не установлено</string>
 
     <string name="settings_sensors">Сенсоры</string>
     <string name="settings_main">Основное</string>
