@@ -54,6 +54,7 @@ import com.nextgis.maplib.datasource.Feature;
 import com.nextgis.maplib.map.MapBase;
 import com.nextgis.maplib.map.MapContentProviderHelper;
 import com.nextgis.maplib.map.NGWVectorLayer;
+import com.nextgis.maplib.util.Constants;
 import com.nextgis.maplib.util.MapUtil;
 
 import java.io.BufferedOutputStream;
@@ -181,16 +182,20 @@ public class SessionsActivity extends ProgressBarActivity implements View.OnClic
         mSessions.clear();
         NGWVectorLayer sessionLayer = (NGWVectorLayer) MapBase.getInstance().getLayerByPathName(LoggerApplication.TABLE_SESSION);
         if (sessionLayer != null) {
-            List<Long> ids = sessionLayer.query(null);
-            for (Long id : ids) {
-                Feature feature = sessionLayer.getFeature(id);
-                if (feature == null)
-                    continue;
+            Cursor ids = sessionLayer.query(new String[]{Constants.FIELD_ID}, null, null, null, null);
+            if (ids != null && ids.moveToFirst()) {
+                do {
+                    Feature feature = sessionLayer.getFeature(ids.getLong(0));
+                    if (feature == null)
+                        continue;
 
-                boolean isCurrentSession = mSessionId != null && mSessionId.equals(feature.getFieldValueAsString(LoggerApplication.FIELD_UNIQUE_ID));
-                mSessions.add(feature);
-                String name = feature.getFieldValueAsString(LoggerApplication.FIELD_NAME);
-                mSessionsName.add(isCurrentSession ? name + " *" + getString(R.string.scl_current_session) + "*" : name);
+                    boolean isCurrentSession = mSessionId != null && mSessionId.equals(feature.getFieldValueAsString(LoggerApplication.FIELD_UNIQUE_ID));
+                    mSessions.add(feature);
+                    String name = feature.getFieldValueAsString(LoggerApplication.FIELD_NAME);
+                    mSessionsName.add(isCurrentSession ? name + " *" + getString(R.string.scl_current_session) + "*" : name);
+                } while (ids.moveToNext());
+
+                ids.close();
             }
 
             Collections.sort(mSessionsName, Collections.reverseOrder());
